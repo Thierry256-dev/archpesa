@@ -3,7 +3,27 @@ import { Tabs } from "expo-router";
 
 export default function MemberTabsLayout() {
   return (
-    <Tabs screenOptions={{ headerShown: false }}>
+    <Tabs
+      screenOptions={{
+        headerShown: false,
+        tabBarActiveTintColor: "white",
+        tabBarStyle: {
+          backgroundColor: "#07193f",
+          height: "65",
+          position: "absolute",
+          bottom: 10,
+          left: 20,
+          right: 20,
+          borderRadius: 25,
+          elevation: 5,
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 10 },
+          shadowOpacity: 0.1,
+          shadowRadius: 10,
+          borderTopWidth: 0,
+        },
+      }}
+    >
       <Tabs.Screen
         name="dashboard"
         options={{
