@@ -25,57 +25,13 @@ export default function MemberSavings() {
       </View>
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        {/* TOTAL WEALTH CARD */}
-        <View className="items-center justify-center mt-4 mb-6">
-          <Text className="text-blue-100 font-medium text-sm mb-1 uppercase tracking-widest">
-            Total Cash
-          </Text>
-          <Text className="text-white text-4xl font-extrabold mb-2">
-            UGX 8,450,000
-          </Text>
-          <View className="bg-emerald-500/20 border border-emerald-400/30 px-3 py-1 rounded-full flex-row items-center">
-            <Ionicons name="trending-up" size={16} color="#4ADE80" />
-            <Text className="text-emerald-100 text-xs font-bold ml-1">
-              + UGX 450k (Dividends Earned)
-            </Text>
-          </View>
-        </View>
-
         {/* MAIN CONTENT LAYER */}
-        <View className="bg-gray-50 rounded-t-[30px] px-6 pt-1 pb-10 mt-10">
+        <View className="bg-gray-50 rounded-t-[30px] px-6 pt-1 pb-10">
           {/* 1. SAVINGS CATEGORIES (Horizontal Scroll) */}
           <Text className="text-gray-800 text-lg font-bold mb-4">Accounts</Text>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            className="mb-8 -mx-6 px-6"
-          >
-            {/* Share Capital Card */}
-            <View className="bg-white p-5 rounded-3xl w-72 shadow-sm mr-4 border-l-4 border-amber-400">
-              <View className="flex-row justify-between items-start mb-6">
-                <View className="bg-amber-100 p-2 rounded-full">
-                  <Ionicons name="ribbon-outline" size={24} color="#D97706" />
-                </View>
-                <View className="items-end">
-                  <Text className="text-gray-400 text-xs font-bold">
-                    SHARES OWNED
-                  </Text>
-                  <Text className="text-gray-800 font-bold text-lg">500</Text>
-                </View>
-              </View>
-              <Text className="text-gray-500 text-sm font-medium">
-                Share Capital
-              </Text>
-              <Text className="text-gray-900 text-2xl font-bold mb-1">
-                UGX 5,000,000
-              </Text>
-              <Text className="text-xs text-amber-600 font-semibold bg-amber-50 self-start px-2 py-1 rounded">
-                🔒 Non-Withdrawable
-              </Text>
-            </View>
-
+          <View className="mb-8 -mx-6 px-6">
             {/* Ordinary Savings Card */}
-            <View className="bg-arch-blue p-5 rounded-3xl w-72 shadow-lg shadow-blue-900/20 mr-4">
+            <View className="bg-arch-blue p-5 rounded-3xl w-full shadow-lg shadow-blue-900/20 mr-4">
               <View className="flex-row justify-between items-start mb-6">
                 <View className="bg-white/20 p-2 rounded-full">
                   <Ionicons name="wallet-outline" size={24} color="#FFF" />
@@ -99,7 +55,30 @@ export default function MemberSavings() {
                 🔓 Liquid Cash
               </Text>
             </View>
-          </ScrollView>
+            {/* Share Capital Card */}
+            <View className="bg-white p-5 rounded-3xl w-full shadow-sm mr-4 mt-4 border-l-4 border-r-4 border-amber-400">
+              <View className="flex-row justify-between items-start mb-6">
+                <View className="bg-amber-100 p-2 rounded-full">
+                  <Ionicons name="ribbon-outline" size={24} color="#D97706" />
+                </View>
+                <View className="items-end">
+                  <Text className="text-gray-400 text-xs font-bold">
+                    SHARES OWNED
+                  </Text>
+                  <Text className="text-gray-800 font-bold text-lg">500</Text>
+                </View>
+              </View>
+              <Text className="text-gray-500 text-sm font-medium">
+                Share Capital
+              </Text>
+              <Text className="text-gray-900 text-2xl font-bold mb-1">
+                UGX 5,000,000
+              </Text>
+              <Text className="text-xs text-amber-600 font-semibold bg-amber-50 self-start px-2 py-1 rounded">
+                🔒 Non-Withdrawable
+              </Text>
+            </View>
+          </View>
 
           {/* 2. GROWTH CHART (Custom CSS Bar Chart) */}
           <View className="bg-white p-6 rounded-3xl shadow-sm mb-8">

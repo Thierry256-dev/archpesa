@@ -3,7 +3,7 @@ import { Pressable, Text, View } from "react-native";
 
 export default function LoanActionCard({ title, icon, color, desc }) {
   return (
-    <Pressable className="flex-1 bg-white p-4 rounded-3xl border border-gray-100 shadow-sm">
+    <Pressable className="w-[48%] flex-1 bg-white p-4 rounded-3xl border border-gray-100 shadow-sm">
       <View
         className={`${color} w-10 h-10 rounded-2xl items-center justify-center mb-3`}
       >

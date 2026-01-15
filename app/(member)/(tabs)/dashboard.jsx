@@ -1,12 +1,14 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { Modal, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import QuickAction from "../../../components/ui/QuickAction";
+import ServiceCard from "../../../components/cards/ServiceCard";
+import LoanApplicationForm from "../../../components/forms/LoanApplicationForm";
 import TransactionItem from "../../../components/ui/TransactionItem";
 
 export default function MemberDashboard() {
   const [showBalance, setShowBalance] = useState(true);
+  const [isLoanFormVisible, setIsLoanFormVisible] = useState(false);
 
   // Mock Data for "Real World" simulation
   const loanLimit = 5000000;
@@ -16,7 +18,7 @@ export default function MemberDashboard() {
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
       {/* BACKGROUND HEADER */}
-      <View className="absolute top-0 w-full h-80 bg-arch-blue rounded-b-[40px]" />
+      <View className="absolute top-0 w-full h-72 bg-arch-blue rounded-b-[40px]" />
 
       {/* TOP HEADER */}
       <View className="pt-4 pb-6 px-6">
@@ -118,40 +120,60 @@ export default function MemberDashboard() {
               <Text className="font-bold text-blue-600">UGX 3.8M</Text> more.
             </Text>
           </View>
-          <Pressable className="bg-blue-600 px-4 py-2 rounded-xl shadow-sm shadow-blue-500/30">
+          <Pressable
+            onPress={() => setIsLoanFormVisible(true)}
+            className="bg-blue-600 px-4 py-2 rounded-xl shadow-sm shadow-blue-500/30"
+          >
             <Text className="text-white font-bold text-xs">Apply</Text>
           </Pressable>
         </View>
 
         {/* QUICK ACTIONS */}
-        <View className="mb-6">
-          <Text className="text-lg font-bold text-gray-800 mb-3">
-            Quick Actions
-          </Text>
-          <View className="flex-row flex-wrap justify-between gap-y-4">
-            <QuickAction
-              icon="add-circle-outline"
-              label="Save"
-              color="#FFFFFF"
-              bg="bg-emerald-500"
+        <View className="mb-8">
+          <View className="flex-row justify-between items-end mb-4">
+            <Text className="text-lg font-bold text-slate-800">
+              Member Services
+            </Text>
+            <Text className="text-xs font-semibold text-[#10b981]">
+              Need Help?
+            </Text>
+          </View>
+
+          <View className="flex-row flex-wrap justify-between gap-y-3">
+            {/* ACTION 1: Loan GUARANTOR STATUS */}
+            <ServiceCard
+              icon="shield-checkmark-outline"
+              label="Guarantorship"
+              subLabel="Who Approves My loan?"
+              iconColor="#07193f"
+              bg="bg-indigo-50"
             />
-            <QuickAction
-              icon="card-outline"
-              label="Pay Loan"
-              color="#FFFFFF"
-              bg="bg-slate-700"
+
+            {/* ACTION 2: DIGITAL STATEMENT  */}
+            <ServiceCard
+              icon="document-text-outline"
+              label="E-Statement"
+              subLabel="Download PDF"
+              iconColor="#07193f"
+              bg="bg-slate-50"
             />
-            <QuickAction
-              icon="calculator-outline"
-              label="Calculator"
-              color="#FFF"
-              bg="bg-arch-blue"
+
+            {/* ACTION 3: BENEFICIARY */}
+            <ServiceCard
+              icon="people-outline"
+              label="Beneficiary"
+              subLabel="Update Records"
+              iconColor="#07193f"
+              bg="bg-slate-50"
             />
-            <QuickAction
-              icon="receipt-outline"
-              label="Statement"
-              color="#FFF"
-              bg="bg-arch-blue"
+
+            {/* ACTION 4: SACCO NEWS */}
+            <ServiceCard
+              icon="megaphone-outline"
+              label="Announcements"
+              subLabel="SACCO Updates"
+              iconColor="#10b981"
+              bg="bg-emerald-50"
             />
           </View>
         </View>
@@ -195,6 +217,9 @@ export default function MemberDashboard() {
             amountColor="text-gray-600"
           />
         </View>
+        <Modal visible={isLoanFormVisible} transparent animationType="slide">
+          <LoanApplicationForm onClose={() => setIsLoanFormVisible(false)} />
+        </Modal>
       </ScrollView>
     </SafeAreaView>
   );
