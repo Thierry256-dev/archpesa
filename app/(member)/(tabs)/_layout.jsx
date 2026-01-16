@@ -9,7 +9,7 @@ export default function MemberTabsLayout() {
         tabBarActiveTintColor: "white",
         tabBarStyle: {
           backgroundColor: "#07193f",
-          height: "65",
+          height: "60",
           position: "absolute",
           left: 20,
           right: 20,
@@ -27,8 +27,8 @@ export default function MemberTabsLayout() {
         name="dashboard"
         options={{
           title: "Home",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="home-outline" size={size} color={color} />
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="home-outline" size={20} color={color} />
           ),
         }}
       />
@@ -37,8 +37,8 @@ export default function MemberTabsLayout() {
         name="savings"
         options={{
           title: "Savings",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="wallet-outline" size={size} color={color} />
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="wallet-outline" size={20} color={color} />
           ),
         }}
       />
@@ -47,8 +47,8 @@ export default function MemberTabsLayout() {
         name="loans"
         options={{
           title: "Loans",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="cash-outline" size={size} color={color} />
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="cash-outline" size={20} color={color} />
           ),
         }}
       />

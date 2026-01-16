@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Modal, Pressable, ScrollView, Text, View } from "react-native";
+import { Image, Modal, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import ServiceCard from "../../../components/cards/ServiceCard";
 import LoanApplicationForm from "../../../components/forms/LoanApplicationForm";
@@ -18,126 +18,130 @@ export default function MemberDashboard() {
   const progress = (currentLoan / loanLimit) * 100;
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
-      {/* BACKGROUND HEADER */}
-      <View className="absolute top-0 w-full h-72 bg-arch-blue rounded-b-[40px]" />
-
-      {/* TOP HEADER */}
-      <View className="pt-4 pb-6 px-6">
-        <View className="flex-row items-center justify-between mb-6">
-          <View className="flex-row items-center">
-            <Pressable
-              onPress={() => router.push("/(member)/utilityPages/profile")}
-              className="h-12 w-12 bg-white/20 rounded-full items-center justify-center border-2 border-white/30 mr-3"
-            >
-              <Ionicons name="person" size={24} color="#FFF" />
-            </Pressable>
-            <View>
-              <Text className="text-white/80 text-xs font-medium uppercase tracking-wider">
-                Member ID: 0428
-              </Text>
-              <Text className="text-white text-xl font-bold">Hello, Alex</Text>
-            </View>
-          </View>
-
-          <Pressable
-            onPress={() => router.push("/(member)/utilityPages/notifications")}
-            className="bg-white/20 p-2 rounded-full relative"
-          >
-            <View className="absolute top-2 right-2.5 w-2.5 h-2.5 bg-red-500 rounded-full z-10 border border-arch-blue" />
-            <Ionicons name="notifications-outline" size={24} color="#FFF" />
-          </Pressable>
-        </View>
-
-        {/* MAIN PORTFOLIO CARD */}
-        <View className="bg-white rounded-3xl p-6 shadow-lg shadow-blue-900/20">
-          {/* Header Row */}
-          <View className="flex-row justify-between items-start mb-2">
-            <View>
-              <Text className="text-gray-500 text-xs font-bold uppercase ">
-                Total Savings
-              </Text>
-            </View>
-            <Pressable
-              onPress={() => setShowBalance(!showBalance)}
-              className="bg-gray-50 rounded-full"
-            >
-              <Ionicons
-                name={showBalance ? "eye-outline" : "eye-off-outline"}
-                size={20}
-                color="#64748B"
-              />
-            </Pressable>
-          </View>
-
-          <Text className="text-3xl font-extrabold text-white text-center p-1 rounded-full w-full bg-arch-blue">
-            {showBalance ? "UGX 4.5M" : "••••••••"}
-          </Text>
-
-          {/* Divider */}
-          <View className="h-[1px] bg-gray-100 w-full my-2" />
-
-          {/* Loan Status Row */}
-          <View className="flex-row items-center justify-between mt-2">
-            <View className="flex-row items-center">
-              <View className="bg-red-50 p-2 rounded-lg mr-3">
-                <Ionicons name="trending-down" size={20} color="#EF4444" />
-              </View>
-              <View>
-                <Text className="text-gray-400 text-xs">Active Loan</Text>
-                <Text className="text-gray-800 font-bold text-base">
-                  {showBalance ? "UGX 1.2M" : "••••••"}
-                </Text>
-              </View>
-            </View>
-
-            <View className="bg-orange-50 px-3 py-2 rounded-xl border border-orange-100">
-              <Text className="text-orange-600 text-[10px] font-bold uppercase mb-0.5">
-                Next Payment
-              </Text>
-              <Text className="text-orange-800 font-bold text-xs">
-                Oct 24th
-              </Text>
-            </View>
-          </View>
-        </View>
+    <View className="flex-1 bg-gray-50">
+      {/* 1. HEADER BACKGROUND SECTION */}
+      <View className="relative w-full h-80 rounded-b-[20px] overflow-hidden z-0">
+        <Image
+          source={require("../../../assets/images/welcome.png")} // Ensure path matches your folder
+          className="w-full h-full object-cover"
+        />
+        <View className="absolute inset-0 bg-black/40" />
+        <View className="absolute bottom-0 w-full h-24 bg-gradient-to-t from-black/40 to-transparent" />
       </View>
 
-      <ScrollView
-        className="flex-1 px-6 -mt-2"
-        showsVerticalScrollIndicator={false}
-      >
-        {/* LOAN ELIGIBILITY WIDGET */}
-        <View className="bg-blue-50/50 border border-blue-100 rounded-2xl p-4 mb-6 flex-row items-center">
-          <View className="flex-1 mr-4">
-            <View className="flex-row justify-between mb-2">
-              <Text className="text-blue-900 font-bold text-sm">
-                Loan Limit
-              </Text>
-              <Text className="text-blue-700 font-bold text-sm">UGX 5M</Text>
-            </View>
-            {/* Progress Bar */}
-            <View className="h-2 bg-blue-200 rounded-full overflow-hidden">
-              <View
-                className="h-full bg-blue-600 rounded-full"
-                style={{ width: `${progress}%` }}
-              />
-            </View>
-            <Text className="text-blue-400 text-[10px] mt-1.5">
-              You can borrow up to{" "}
-              <Text className="font-bold text-blue-600">UGX 3.8M</Text> more.
+      {/* 2. FOREGROUND CONTENT (Profile & Greeting) */}
+      <SafeAreaView className="absolute top-0 w-full">
+        <View className="px-6 pt-4">
+          {/* Top Row: Profile & Notifications */}
+          <View className="flex-row items-center justify-between mb-8">
+            <Pressable
+              onPress={() => router.push("/(member)/utilityPages/profile")}
+              className="flex-row items-center"
+            >
+              <View className="h-12 w-12 bg-white/20 rounded-full items-center justify-center border-2 border-white/30 mr-3 backdrop-blur-md">
+                <Ionicons name="person" size={24} color="#FFF" />
+              </View>
+              <View>
+                <Text className="text-gray-300 text-xs font-bold uppercase">
+                  Welcome Back
+                </Text>
+                <Text className="text-white text-xl font-bold">Alex</Text>
+              </View>
+            </Pressable>
+
+            <Pressable
+              onPress={() =>
+                router.push("/(member)/utilityPages/notifications")
+              }
+              className="bg-white/20 p-2.5 rounded-full relative backdrop-blur-md border border-white/10"
+            >
+              <View className="absolute top-2.5 right-2.5 w-2.5 h-2.5 bg-red-500 rounded-full z-10 border border-white/20" />
+              <Ionicons name="notifications-outline" size={24} color="#FFF" />
+            </Pressable>
+          </View>
+
+          {/* Hero Greeting Text */}
+          <View className="px-2">
+            <Text className="text-white/80 font-medium text-base mb-1">
+              Your Financial Overview
+            </Text>
+            <Text className="text-white font-black text-3xl shadow-sm">
+              Dashboard
             </Text>
           </View>
-          <Pressable
-            onPress={() => setIsLoanFormVisible(true)}
-            className="bg-blue-600 px-4 py-2 rounded-xl shadow-sm shadow-blue-500/30"
-          >
-            <Text className="text-white font-bold text-xs">Apply</Text>
-          </Pressable>
+        </View>
+      </SafeAreaView>
+
+      <ScrollView
+        className="flex-1 -mt-20"
+        showsVerticalScrollIndicator={false}
+      >
+        {/* 3. THE FLOATING PORTFOLIO CARD */}
+        <View className="mb-6 z-10 mx-6">
+          <View className="bg-white rounded-3xl p-6 shadow-lg shadow-slate-900/5 border border-slate-100">
+            {/* TOP SECTION */}
+            <View className="mb-5">
+              <View className="flex-row justify-between items-center mb-1">
+                <Text className="text-slate-500 text-xs font-semibold tracking-wide">
+                  Account Summary
+                </Text>
+                <Pressable onPress={() => setShowBalance(!showBalance)}>
+                  <Ionicons
+                    name={showBalance ? "eye-outline" : "eye-off-outline"}
+                    size={18}
+                    color="#94a3b8"
+                  />
+                </Pressable>
+              </View>
+
+              <Text className="text-center text-[34px] font-extrabold text-arch-blue tracking-tight">
+                {showBalance ? "UGX 4.5M" : "••••••••"}
+              </Text>
+            </View>
+
+            {/* DIVIDER */}
+            <View className="h-px bg-slate-100 mb-5" />
+
+            {/* BOTTOM ROW */}
+            <View className="flex-row justify-between">
+              {/* Savings */}
+              <View className="flex-1 flex-row items-center">
+                <View className="bg-slate-100 p-2.5 rounded-xl mr-3">
+                  <Ionicons name="lock-closed" size={18} color="#334155" />
+                </View>
+                <View>
+                  <Text className="text-slate-500 text-[11px] font-medium">
+                    Locked Savings
+                  </Text>
+                  <Text className="text-slate-900 font-semibold text-sm">
+                    {showBalance ? "UGX 1.5M" : "•••"}
+                  </Text>
+                </View>
+              </View>
+
+              {/* Divider */}
+              <View className="w-px bg-slate-100 mx-3" />
+
+              {/* Loan */}
+              <View className="flex-1 flex-row items-center justify-end">
+                <View className="mr-3 items-end">
+                  <Text className="text-slate-500 text-[11px] font-medium">
+                    Active Loan
+                  </Text>
+                  <Text className="text-slate-900 font-semibold text-sm">
+                    {showBalance ? "UGX 1.2M" : "•••"}
+                  </Text>
+                </View>
+                <View className="bg-slate-100 p-2.5 rounded-xl">
+                  <Ionicons name="swap-vertical" size={18} color="#334155" />
+                </View>
+              </View>
+            </View>
+          </View>
         </View>
 
         {/* QUICK ACTIONS */}
-        <View className="mb-8">
+        <View className="mb-8 bg-gray-50 pt-4 rounded-t-3xl px-6">
           <View className="flex-row justify-between items-end mb-4">
             <Text className="text-lg font-bold text-slate-800">
               Member Services
@@ -155,10 +159,10 @@ export default function MemberDashboard() {
             {/* ACTION 1: Loan GUARANTOR STATUS */}
             <ServiceCard
               icon="shield-checkmark-outline"
-              label="Guarantorship"
+              label="Guarantors"
               subLabel="Who Approves My loan?"
               iconColor="#07193f"
-              bg="bg-indigo-50"
+              bg="bg-slate-50"
               onPress={() => router.push("/(member)/services/guarantors")}
             />
 
@@ -175,7 +179,7 @@ export default function MemberDashboard() {
             {/* ACTION 3: BENEFICIARY */}
             <ServiceCard
               icon="people-outline"
-              label="Beneficiary"
+              label="Beneficiaries"
               subLabel="Update Records"
               iconColor="#07193f"
               bg="bg-slate-50"
@@ -194,8 +198,37 @@ export default function MemberDashboard() {
           </View>
         </View>
 
+        {/* LOAN ELIGIBILITY WIDGET */}
+        <View className="bg-green-50/50 border border-blue-100 rounded-2xl p-4 mb-6 flex-row items-center mx-6">
+          <View className="flex-1 mr-4">
+            <View className="flex-row justify-between mb-2">
+              <Text className="text-green-900 font-bold text-sm">
+                Loan Limit
+              </Text>
+              <Text className="text-green-700 font-bold text-sm">UGX 5M</Text>
+            </View>
+            {/* Progress Bar */}
+            <View className="h-2 bg-green-200 rounded-full overflow-hidden">
+              <View
+                className="h-full bg-green-600 rounded-full"
+                style={{ width: `${progress}%` }}
+              />
+            </View>
+            <Text className="text-green-400 text-[10px] mt-1.5">
+              You can borrow up to{" "}
+              <Text className="font-bold text-green-600">UGX 3.8M</Text> more.
+            </Text>
+          </View>
+          <Pressable
+            onPress={() => setIsLoanFormVisible(true)}
+            className="bg-green-600 px-4 py-2 rounded-xl shadow-sm shadow-blue-500/30"
+          >
+            <Text className="text-white font-bold text-xs">Apply</Text>
+          </Pressable>
+        </View>
+
         {/* RECENT TRANSACTIONS */}
-        <View className="mb-10 bg-white rounded-3xl p-5 shadow-sm">
+        <View className="mb-20 bg-white rounded-3xl p-5 shadow-sm mx-6">
           <View className="flex-row justify-between items-center mb-4">
             <Text className="text-lg font-bold text-gray-800">
               Recent Transactions
@@ -237,6 +270,6 @@ export default function MemberDashboard() {
           <LoanApplicationForm onClose={() => setIsLoanFormVisible(false)} />
         </Modal>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
