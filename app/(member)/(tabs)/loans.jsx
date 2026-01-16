@@ -1,6 +1,13 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
-import { Modal, Pressable, ScrollView, Text, View } from "react-native";
+import {
+  Modal,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import LoanActionCard from "../../../components/cards/LoanActionCard";
 import LoanApplicationForm from "../../../components/forms/LoanApplicationForm";
@@ -8,6 +15,22 @@ import LoanApplicationForm from "../../../components/forms/LoanApplicationForm";
 export default function MemberLoans() {
   const [activeTab, setActiveTab] = useState("pending");
   const [isLoanFormVisible, setIsLoanFormVisible] = useState(false);
+
+  const [isReplaceModalVisible, setIsReplaceModalVisible] = useState(false);
+  const [targetRejectionId, setTargetRejectionId] = useState(null);
+
+  const handleReplaceGuarantor = (newMember) => {
+    // Update the status list
+    setGuarantorStatus((prev) =>
+      prev.map((g) =>
+        g.memberId === targetRejectionId
+          ? { ...newMember, status: "Pending", pledge: "UGX 1,250,000" }
+          : g
+      )
+    );
+    setIsReplaceModalVisible(false);
+    alert(`Replacement request sent to ${newMember.name}`);
+  };
 
   return (
     <SafeAreaView className="relative flex-1 bg-gray-50">
@@ -114,7 +137,70 @@ export default function MemberLoans() {
                     &quot;Business expansion for retail shop inventory.&quot;
                   </Text>
                 </View>
+                {/* 4. GUARANTOR TRACKING (NEW SECTION) */}
+                <View className="mb-6">
+                  <View className="flex-row justify-between items-center mb-4 px-1">
+                    <Text className="text-lg font-bold text-slate-900">
+                      Guarantor Pledges
+                    </Text>
+                    <View className="bg-indigo-50 px-2 py-1 rounded-md">
+                      <Text className="text-indigo-600 font-bold text-[10px]">
+                        Step 1 of 3
+                      </Text>
+                    </View>
+                  </View>
 
+                  <View className="bg-white rounded-3xl p-5 shadow-sm border border-slate-50">
+                    <GuarantorStatusRow
+                      name="Sarah Namuli"
+                      memberId="M-042"
+                      status="Accepted"
+                      pledge="UGX 1,250,000"
+                    />
+                    <GuarantorStatusRow
+                      name="John Bosco"
+                      memberId="M-115"
+                      status="Pending"
+                      pledge="UGX 1,250,000"
+                    />
+                    <GuarantorStatusRow
+                      name="Grace Akello"
+                      memberId="M-089"
+                      status="Rejected"
+                      isLast
+                    />
+                  </View>
+
+                  {/* Conditional Alert if someone rejected */}
+                  <Pressable
+                    onPress={() => {
+                      setTargetRejectionId("M-089"); // The ID of Grace Akello who rejected
+                      setIsReplaceModalVisible(true);
+                    }}
+                    className="mt-4 bg-red-50 p-4 rounded-3xl flex-row items-center border border-red-100 active:bg-red-100"
+                  >
+                    <View className="bg-red-500 p-2 rounded-full">
+                      <Ionicons
+                        name="swap-horizontal"
+                        size={16}
+                        color="white"
+                      />
+                    </View>
+                    <View className="ml-3 flex-1">
+                      <Text className="text-red-700 text-xs font-bold">
+                        Guarantor Rejected
+                      </Text>
+                      <Text className="text-red-600/70 text-[10px]">
+                        Tap to find a replacement for Grace Akello
+                      </Text>
+                    </View>
+                    <Ionicons
+                      name="chevron-forward"
+                      size={16}
+                      color="#ef4444"
+                    />
+                  </Pressable>
+                </View>
                 <View className="flex-row justify-between items-center mb-4 px-1">
                   <Text className="text-lg font-bold text-slate-900">
                     Official Approvals
@@ -225,6 +311,68 @@ export default function MemberLoans() {
       <Modal visible={isLoanFormVisible} transparent animationType="slide">
         <LoanApplicationForm onClose={() => setIsLoanFormVisible(false)} />
       </Modal>
+      {/* REPLACEMENT SEARCH MODAL */}
+      <Modal visible={isReplaceModalVisible} animationType="slide" transparent>
+        <View className="flex-1 justify-end bg-black/50">
+          <View className="bg-white rounded-t-[40px] h-[70%] p-8">
+            {/* Modal Header */}
+            <View className="flex-row justify-between items-center mb-6">
+              <View>
+                <Text className="text-xl font-black text-slate-900">
+                  Replace Guarantor
+                </Text>
+                <Text className="text-slate-400 text-xs">
+                  Search for a new member to pledge
+                </Text>
+              </View>
+              <Pressable
+                onPress={() => setIsReplaceModalVisible(false)}
+                className="bg-slate-100 p-2 rounded-full"
+              >
+                <Ionicons name="close" size={20} color="#000" />
+              </Pressable>
+            </View>
+
+            {/* Search Input */}
+            <View className="bg-slate-50 border border-slate-100 rounded-2xl px-4 py-4 flex-row items-center mb-6">
+              <Ionicons name="search" size={20} color="#94a3b8" />
+              <TextInput
+                placeholder="Enter Name or Member ID..."
+                className="flex-1 ml-3 font-bold text-slate-800"
+                autoFocus
+              />
+            </View>
+
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <Text className="text-slate-400 text-[10px] font-bold uppercase mb-4 ml-1">
+                Suggested Members
+              </Text>
+
+              {/* Mock Search Results */}
+              <ReplacementItem
+                name="Peter Sempala"
+                id="M-202"
+                onSelect={() =>
+                  handleReplaceGuarantor({
+                    name: "Peter Sempala",
+                    memberId: "M-202",
+                  })
+                }
+              />
+              <ReplacementItem
+                name="Doreen Lwanga"
+                id="M-156"
+                onSelect={() =>
+                  handleReplaceGuarantor({
+                    name: "Doreen Lwanga",
+                    memberId: "M-156",
+                  })
+                }
+              />
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -311,5 +459,84 @@ function HistoryItem({ title, amount, date, status }) {
         </View>
       </View>
     </View>
+  );
+}
+
+function GuarantorStatusRow({ name, memberId, status, pledge, isLast }) {
+  const getStatusStyle = () => {
+    switch (status) {
+      case "Accepted":
+        return {
+          text: "text-emerald-600",
+          bg: "bg-emerald-50",
+          icon: "checkmark-circle",
+        };
+      case "Rejected":
+        return { text: "text-red-600", bg: "bg-red-50", icon: "close-circle" };
+      default:
+        return { text: "text-orange-600", bg: "bg-orange-50", icon: "time" };
+    }
+  };
+
+  const style = getStatusStyle();
+
+  return (
+    <View
+      className={`flex-row items-center py-3 ${!isLast ? "border-b border-slate-50" : ""}`}
+    >
+      {/* Avatar/Initial */}
+      <View className="w-10 h-10 bg-slate-100 rounded-full items-center justify-center">
+        <Text className="font-bold text-slate-600">{name.charAt(0)}</Text>
+      </View>
+
+      <View className="flex-1 ml-3">
+        <Text className="text-sm font-bold text-slate-800">{name}</Text>
+        <Text className="text-[10px] text-slate-400 font-medium">
+          ID: {memberId}
+        </Text>
+      </View>
+
+      <View className="items-end">
+        <View
+          className={`${style.bg} px-2 py-1 rounded-md flex-row items-center mb-1`}
+        >
+          <Ionicons
+            name={style.icon}
+            size={12}
+            color={style.text.replace("text-", "#")}
+          />
+          <Text
+            className={`${style.text} text-[10px] font-black ml-1 uppercase`}
+          >
+            {status}
+          </Text>
+        </View>
+        {status === "Accepted" && (
+          <Text className="text-slate-500 font-bold text-[9px]">{pledge}</Text>
+        )}
+      </View>
+    </View>
+  );
+}
+
+function ReplacementItem({ name, id, onSelect }) {
+  return (
+    <Pressable
+      onPress={onSelect}
+      className="flex-row items-center justify-between p-4 bg-white border border-slate-100 rounded-2xl mb-3 shadow-sm active:bg-slate-50"
+    >
+      <View className="flex-row items-center">
+        <View className="w-10 h-10 bg-indigo-50 rounded-full items-center justify-center">
+          <Text className="text-indigo-600 font-bold">{name.charAt(0)}</Text>
+        </View>
+        <View className="ml-3">
+          <Text className="text-slate-800 font-bold text-sm">{name}</Text>
+          <Text className="text-slate-400 text-[10px]">Member ID: {id}</Text>
+        </View>
+      </View>
+      <View className="bg-indigo-600 px-3 py-1.5 rounded-xl">
+        <Text className="text-white font-bold text-[10px]">Select</Text>
+      </View>
+    </Pressable>
   );
 }

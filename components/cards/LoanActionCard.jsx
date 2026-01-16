@@ -9,7 +9,9 @@ export default function LoanActionCard({ title, icon, color, desc }) {
       >
         <Ionicons name={icon} size={20} color="white" />
       </View>
-      <Text className="font-bold text-slate-900 text-sm">{title}</Text>
+      <Text numberOfLines={1} className="font-bold text-slate-900 text-sm">
+        {title}
+      </Text>
       <Text className="text-gray-400 text-[10px] mt-1">{desc}</Text>
     </Pressable>
   );

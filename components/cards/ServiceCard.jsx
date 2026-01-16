@@ -1,9 +1,17 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Pressable, Text, View } from "react-native";
 
-export default function ServiceCard({ icon, label, subLabel, iconColor, bg }) {
+export default function ServiceCard({
+  icon,
+  label,
+  subLabel,
+  iconColor,
+  bg,
+  onPress,
+}) {
   return (
     <Pressable
+      onPress={onPress}
       className={`w-[48%] ${bg} p-4 rounded-2xl border border-black/5 flex-row items-start`}
       style={{ elevation: 1 }}
     >

@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Modal, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -9,6 +10,7 @@ import TransactionItem from "../../../components/ui/TransactionItem";
 export default function MemberDashboard() {
   const [showBalance, setShowBalance] = useState(true);
   const [isLoanFormVisible, setIsLoanFormVisible] = useState(false);
+  const router = useRouter();
 
   // Mock Data for "Real World" simulation
   const loanLimit = 5000000;
@@ -24,9 +26,12 @@ export default function MemberDashboard() {
       <View className="pt-4 pb-6 px-6">
         <View className="flex-row items-center justify-between mb-6">
           <View className="flex-row items-center">
-            <View className="h-12 w-12 bg-white/20 rounded-full items-center justify-center border-2 border-white/30 mr-3">
+            <Pressable
+              onPress={() => router.push("/(member)/utilityPages/profile")}
+              className="h-12 w-12 bg-white/20 rounded-full items-center justify-center border-2 border-white/30 mr-3"
+            >
               <Ionicons name="person" size={24} color="#FFF" />
-            </View>
+            </Pressable>
             <View>
               <Text className="text-white/80 text-xs font-medium uppercase tracking-wider">
                 Member ID: 0428
@@ -35,7 +40,10 @@ export default function MemberDashboard() {
             </View>
           </View>
 
-          <Pressable className="bg-white/20 p-2 rounded-full relative">
+          <Pressable
+            onPress={() => router.push("/(member)/utilityPages/notifications")}
+            className="bg-white/20 p-2 rounded-full relative"
+          >
             <View className="absolute top-2 right-2.5 w-2.5 h-2.5 bg-red-500 rounded-full z-10 border border-arch-blue" />
             <Ionicons name="notifications-outline" size={24} color="#FFF" />
           </Pressable>
@@ -134,9 +142,13 @@ export default function MemberDashboard() {
             <Text className="text-lg font-bold text-slate-800">
               Member Services
             </Text>
-            <Text className="text-xs font-semibold text-[#10b981]">
-              Need Help?
-            </Text>
+            <Pressable
+              onPress={() => router.push("/(member)/services/support")}
+            >
+              <Text className="text-xs font-semibold text-[#10b981]">
+                Need Help?
+              </Text>
+            </Pressable>
           </View>
 
           <View className="flex-row flex-wrap justify-between gap-y-3">
@@ -147,6 +159,7 @@ export default function MemberDashboard() {
               subLabel="Who Approves My loan?"
               iconColor="#07193f"
               bg="bg-indigo-50"
+              onPress={() => router.push("/(member)/services/guarantors")}
             />
 
             {/* ACTION 2: DIGITAL STATEMENT  */}
@@ -156,6 +169,7 @@ export default function MemberDashboard() {
               subLabel="Download PDF"
               iconColor="#07193f"
               bg="bg-slate-50"
+              onPress={() => router.push("/(member)/services/statement")}
             />
 
             {/* ACTION 3: BENEFICIARY */}
@@ -165,6 +179,7 @@ export default function MemberDashboard() {
               subLabel="Update Records"
               iconColor="#07193f"
               bg="bg-slate-50"
+              onPress={() => router.push("/(member)/services/beneficiary")}
             />
 
             {/* ACTION 4: SACCO NEWS */}
@@ -174,6 +189,7 @@ export default function MemberDashboard() {
               subLabel="SACCO Updates"
               iconColor="#10b981"
               bg="bg-emerald-50"
+              onPress={() => router.push("/(member)/services/news")}
             />
           </View>
         </View>
