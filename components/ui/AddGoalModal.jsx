@@ -6,7 +6,6 @@ import {
   PanResponder,
   Platform,
   Pressable,
-  Switch,
   Text,
   TextInput,
   View,
@@ -15,7 +14,6 @@ import {
 export default function AddGoalModal({ onClose }) {
   const [targetAmount, setTargetAmount] = useState("");
   const [months, setMonths] = useState("12");
-  const [isAutoSave, setIsAutoSave] = useState(false);
 
   // --- GESTURE LOGIC ---
   const pan = useRef(new Animated.ValueXY()).current;
@@ -132,22 +130,6 @@ export default function AddGoalModal({ onClose }) {
                 className="flex-1 ml-3 font-bold text-gray-800"
               />
             </View>
-          </View>
-
-          <View className="flex-1 bg-blue-50/50 rounded-2xl p-3 border border-blue-100 justify-center">
-            <View className="flex-row justify-between items-center">
-              <Text className="text-[10px] font-bold text-blue-900 uppercase">
-                Auto-Save
-              </Text>
-              <Switch
-                value={isAutoSave}
-                onValueChange={setIsAutoSave}
-                trackColor={{ false: "#CBD5E1", true: "#10B981" }}
-              />
-            </View>
-            <Text className="text-[9px] text-blue-700 mt-1">
-              Deduct from Savings
-            </Text>
           </View>
         </View>
 

@@ -1,27 +1,31 @@
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Modal, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AddGoalModal from "../../../components/ui/AddGoalModal";
 
 export default function MemberSavings() {
+  const router = useRouter();
   const [selectedPeriod, setSelectedPeriod] = useState("6M");
   const [isGoalModalVisible, setIsGoalModalVisible] = useState(false);
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50 pb-10">
       {/* BACKGROUND HEADER */}
-      <View className="absolute top-0 w-full h-72 bg-arch-blue rounded-b-[40px]" />
+      <View className="absolute top-0 w-full h-64 bg-arch-blue rounded-b-[40px]" />
 
       {/* HEADER & NAV */}
-      <View className="px-6 pt-4 pb-2 flex-row justify-between items-center">
-        <Pressable className="bg-white/20 p-2 rounded-xl">
+      <View className="px-6 pt-4 pb-2 flex-row gap-6 items-center">
+        <Pressable
+          onPress={() => router.back()}
+          className="bg-white/20 p-2 rounded-xl"
+        >
           <Ionicons name="arrow-back" size={24} color="#FFF" />
         </Pressable>
-        <Text className="text-white text-lg font-bold">My Savings</Text>
-        <Pressable className="bg-white/20 p-2 rounded-xl">
-          <Ionicons name="add" size={24} color="#FFF" />
-        </Pressable>
+        <Text className="text-white text-center text-lg font-bold">
+          My Savings
+        </Text>
       </View>
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
@@ -37,7 +41,7 @@ export default function MemberSavings() {
                   <Ionicons name="wallet-outline" size={24} color="#FFF" />
                 </View>
                 <View className="items-end">
-                  <Text className="text-blue-200 text-xs font-bold">
+                  <Text className="text-blue-200 text-[10px] tracking-wide">
                     LOAN POWER
                   </Text>
                   <Text className="text-white font-bold text-lg">
@@ -52,11 +56,11 @@ export default function MemberSavings() {
                 UGX 3,450,000
               </Text>
               <Text className="text-xs text-blue-100 font-semibold bg-white/10 self-start px-2 py-1 rounded">
-                🔓 Liquid Cash
+                Liquid Cash
               </Text>
             </View>
             {/* Share Capital Card */}
-            <View className="bg-white p-5 rounded-3xl w-full shadow-sm mr-4 mt-4 border-l-4 border-r-4 border-amber-400">
+            <View className="bg-white p-5 rounded-3xl w-full shadow-sm mr-4 mt-4 border-t-4 border-amber-400">
               <View className="flex-row justify-between items-start mb-6">
                 <View className="bg-amber-100 p-2 rounded-full">
                   <Ionicons name="ribbon-outline" size={24} color="#D97706" />
@@ -133,11 +137,11 @@ export default function MemberSavings() {
                     </Text>
                   </View>
                 </View>
-                <Text className="text-purple-600 font-bold">84%</Text>
+                <Text className="text-purple-500 font-bold">84%</Text>
               </View>
               {/* Progress Bar */}
               <View className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
-                <View className="h-full w-[84%] bg-purple-600 rounded-full" />
+                <View className="h-full w-[84%] bg-purple-500 rounded-full" />
               </View>
               <Text className="text-xs text-gray-400 mt-2">
                 <Text className="text-gray-800 font-bold">UGX 1.6M</Text>{" "}

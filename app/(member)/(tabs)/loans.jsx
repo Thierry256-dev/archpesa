@@ -9,8 +9,15 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import LoanActionCard from "../../../components/cards/LoanActionCard";
 import LoanApplicationForm from "../../../components/forms/LoanApplicationForm";
+import {
+  ApproverRow,
+  GuarantorStatusRow,
+  HistoryItem,
+  LoanActionCard,
+  ReplacementItem,
+  TabButton,
+} from "../../../components/ui/loansSmallComponents";
 
 export default function MemberLoans() {
   const [activeTab, setActiveTab] = useState("pending");
@@ -25,8 +32,8 @@ export default function MemberLoans() {
       prev.map((g) =>
         g.memberId === targetRejectionId
           ? { ...newMember, status: "Pending", pledge: "UGX 1,250,000" }
-          : g
-      )
+          : g,
+      ),
     );
     setIsReplaceModalVisible(false);
     alert(`Replacement request sent to ${newMember.name}`);
@@ -35,17 +42,11 @@ export default function MemberLoans() {
   return (
     <SafeAreaView className="relative flex-1 bg-gray-50">
       {/* BACKGROUND HEADER */}
-      <View className="absolute top-0 w-full h-72 bg-arch-blue rounded-b-[40px]" />
+      <View className="absolute top-0 w-full h-64 bg-arch-blue rounded-b-[20px]" />
 
       {/* HEADER */}
-      <View className="px-6 pt-4 pb-2 flex-row justify-between items-center">
-        <Pressable className="bg-white/10 p-2 rounded-xl">
-          <Ionicons name="menu-outline" size={24} color="#FFF" />
-        </Pressable>
+      <View className="px-6 pt-4 pb-2 flex-row justify-center items-center">
         <Text className="text-white text-lg font-bold">Loan Center</Text>
-        <Pressable className="bg-white/10 p-2 rounded-xl">
-          <Ionicons name="help-circle-outline" size={24} color="#FFF" />
-        </Pressable>
       </View>
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
@@ -60,8 +61,8 @@ export default function MemberLoans() {
                 UGX 2,400,000
               </Text>
             </View>
-            <View className="bg-red-50 px-2 py-1 rounded-lg">
-              <Text className="text-red-600 text-[10px] font-bold">
+            <View className="bg-amber-50 px-2 py-1 rounded-lg">
+              <Text className="text-amber-700 text-[10px] font-bold">
                 14% APR
               </Text>
             </View>
@@ -97,7 +98,7 @@ export default function MemberLoans() {
         </View>
         <View className="bg-gray-50 rounded-t-3xl mt-6">
           {/* 2. TAB TOGGLE */}
-          <View className="flex-row mx-6 mt-4 bg-arch-blue/10 p-1 rounded-2xl border border-white/10">
+          <View className="flex-row mx-6 mt-4 bg-arch-blue/15 p-1 rounded-2xl border border-white/10">
             <TabButton
               label="Pending"
               name="pending"
@@ -305,7 +306,7 @@ export default function MemberLoans() {
           className="bg-blue-600 py-2 px-4 rounded-full flex- items-center justify-center shadow-lg shadow-slate-900/40"
         >
           <Ionicons name="add-circle-outline" size={24} color="white" />
-          <Text className="text-white text-xs font-bold">Apply</Text>
+          <Text className="text-white text-xs font-bold">Apply for loan</Text>
         </Pressable>
       </View>
       <Modal visible={isLoanFormVisible} transparent animationType="slide">
@@ -374,169 +375,5 @@ export default function MemberLoans() {
         </View>
       </Modal>
     </SafeAreaView>
-  );
-}
-
-function TabButton({ label, name, activeTab, onPress }) {
-  const isActive = activeTab === name;
-
-  return (
-    <Pressable
-      hitSlop={8}
-      onPress={(e) => {
-        if (onPress) onPress();
-      }}
-      className="flex-1 py-3 rounded-xl items-center justify-center"
-      style={{
-        backgroundColor: isActive ? "#FFFFFF" : "transparent",
-        shadowColor: isActive ? "#000" : "transparent",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: isActive ? 0.1 : 0,
-        shadowRadius: 4,
-        elevation: isActive ? 2 : 0,
-      }}
-    >
-      <Text
-        className={`font-bold ${
-          isActive ? "text-[#07193f]" : "text-slate-400"
-        }`}
-      >
-        {label}
-      </Text>
-    </Pressable>
-  );
-}
-
-function ApproverRow({ name, person, status, icon, isLast }) {
-  return (
-    <View
-      className={`flex-row justify-between items-center py-4 ${!isLast ? "border-b border-gray-50" : ""}`}
-    >
-      <View className="flex-row items-center">
-        <View
-          className={`w-10 h-10 rounded-2xl items-center justify-center ${status === "Approved" ? "bg-emerald-50" : "bg-slate-50"}`}
-        >
-          <Ionicons
-            name={icon}
-            size={20}
-            color={status === "Approved" ? "#10B981" : "#94A3B8"}
-          />
-        </View>
-        <View className="ml-3">
-          <Text className="text-gray-400 text-[10px] font-bold uppercase">
-            {name}
-          </Text>
-          <Text className="font-bold text-slate-800 text-sm">{person}</Text>
-        </View>
-      </View>
-      <View
-        className={`px-3 py-1 rounded-full ${status === "Approved" ? "bg-emerald-100" : "bg-orange-50"}`}
-      >
-        <Text
-          className={`text-[10px] font-black ${status === "Approved" ? "text-emerald-700" : "text-orange-600"}`}
-        >
-          {status.toUpperCase()}
-        </Text>
-      </View>
-    </View>
-  );
-}
-
-function HistoryItem({ title, amount, date, status }) {
-  return (
-    <View className="bg-white mb-3 p-4 rounded-2xl flex-row justify-between items-center border border-gray-100">
-      <View>
-        <Text className="font-bold text-slate-800">{title}</Text>
-        <Text className="text-gray-400 text-xs">{date}</Text>
-      </View>
-      <View className="items-end">
-        <Text className="font-black text-slate-900">{amount}</Text>
-        <View className="flex-row items-center">
-          <Ionicons name="checkmark-done" size={14} color="#10B981" />
-          <Text className="text-emerald-600 text-[10px] font-bold ml-1">
-            {status}
-          </Text>
-        </View>
-      </View>
-    </View>
-  );
-}
-
-function GuarantorStatusRow({ name, memberId, status, pledge, isLast }) {
-  const getStatusStyle = () => {
-    switch (status) {
-      case "Accepted":
-        return {
-          text: "text-emerald-600",
-          bg: "bg-emerald-50",
-          icon: "checkmark-circle",
-        };
-      case "Rejected":
-        return { text: "text-red-600", bg: "bg-red-50", icon: "close-circle" };
-      default:
-        return { text: "text-orange-600", bg: "bg-orange-50", icon: "time" };
-    }
-  };
-
-  const style = getStatusStyle();
-
-  return (
-    <View
-      className={`flex-row items-center py-3 ${!isLast ? "border-b border-slate-50" : ""}`}
-    >
-      {/* Avatar/Initial */}
-      <View className="w-10 h-10 bg-slate-100 rounded-full items-center justify-center">
-        <Text className="font-bold text-slate-600">{name.charAt(0)}</Text>
-      </View>
-
-      <View className="flex-1 ml-3">
-        <Text className="text-sm font-bold text-slate-800">{name}</Text>
-        <Text className="text-[10px] text-slate-400 font-medium">
-          ID: {memberId}
-        </Text>
-      </View>
-
-      <View className="items-end">
-        <View
-          className={`${style.bg} px-2 py-1 rounded-md flex-row items-center mb-1`}
-        >
-          <Ionicons
-            name={style.icon}
-            size={12}
-            color={style.text.replace("text-", "#")}
-          />
-          <Text
-            className={`${style.text} text-[10px] font-black ml-1 uppercase`}
-          >
-            {status}
-          </Text>
-        </View>
-        {status === "Accepted" && (
-          <Text className="text-slate-500 font-bold text-[9px]">{pledge}</Text>
-        )}
-      </View>
-    </View>
-  );
-}
-
-function ReplacementItem({ name, id, onSelect }) {
-  return (
-    <Pressable
-      onPress={onSelect}
-      className="flex-row items-center justify-between p-4 bg-white border border-slate-100 rounded-2xl mb-3 shadow-sm active:bg-slate-50"
-    >
-      <View className="flex-row items-center">
-        <View className="w-10 h-10 bg-indigo-50 rounded-full items-center justify-center">
-          <Text className="text-indigo-600 font-bold">{name.charAt(0)}</Text>
-        </View>
-        <View className="ml-3">
-          <Text className="text-slate-800 font-bold text-sm">{name}</Text>
-          <Text className="text-slate-400 text-[10px]">Member ID: {id}</Text>
-        </View>
-      </View>
-      <View className="bg-indigo-600 px-3 py-1.5 rounded-xl">
-        <Text className="text-white font-bold text-[10px]">Select</Text>
-      </View>
-    </Pressable>
   );
 }
