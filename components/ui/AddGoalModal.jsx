@@ -11,8 +11,9 @@ import {
   View,
 } from "react-native";
 
-export default function AddGoalModal({ onClose }) {
+export default function AddGoalModal({ onClose, onAdd }) {
   const [targetAmount, setTargetAmount] = useState("");
+  const [title, setTitle] = useState("");
   const [months, setMonths] = useState("12");
 
   // --- GESTURE LOGIC ---
@@ -34,12 +35,27 @@ export default function AddGoalModal({ onClose }) {
           }).start();
         }
       },
-    })
+    }),
   ).current;
 
   const monthlySaving = targetAmount
     ? (parseInt(targetAmount) / parseInt(months)).toFixed(0)
     : 0;
+
+  function handleAddGoal() {
+    if (!title || !targetAmount) return;
+
+    const newGoal = {
+      icon: "flag",
+      target: targetAmount,
+      title: title,
+      completed: Number(Math.floor(Math.random() * 100)),
+      remaining: 0,
+    };
+    newGoal.remaining = 100 - newGoal.completed;
+    onAdd(newGoal);
+    onClose();
+  }
 
   return (
     <KeyboardAvoidingView
@@ -90,6 +106,8 @@ export default function AddGoalModal({ onClose }) {
           <View className="bg-gray-50 border border-gray-100 rounded-2xl px-4 py-4 flex-row items-center">
             <Ionicons name="pencil-outline" size={20} color="#94A3B8" />
             <TextInput
+              value={title}
+              onChangeText={(text) => setTitle(text)}
               placeholder="e.g. Buy Land in Mukono"
               className="flex-1 ml-3 font-semibold text-gray-800"
               placeholderTextColor="#CBD5E1"
@@ -107,7 +125,7 @@ export default function AddGoalModal({ onClose }) {
             <TextInput
               keyboardType="numeric"
               value={targetAmount}
-              onChangeText={setTargetAmount}
+              onChangeText={(text) => setTargetAmount(text)}
               placeholder="0.00"
               className="flex-1 font-bold text-xl text-arch-blue"
               placeholderTextColor="#CBD5E1"
@@ -154,7 +172,7 @@ export default function AddGoalModal({ onClose }) {
         {/* CREATE BUTTON */}
         <Pressable
           className="bg-emerald-500 py-5 rounded-2xl items-center shadow-md shadow-emerald-500/20"
-          onPress={onClose}
+          onPress={handleAddGoal}
         >
           <Text className="text-white font-extrabold text-lg">
             Activate Goal
