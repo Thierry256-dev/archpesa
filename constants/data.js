@@ -201,3 +201,40 @@ export const MEMBERS_DATA = [
     ],
   },
 ];
+
+export const SAVINGS_LEDGER = {
+  memberId: "MBR-0012",
+  memberName: "Jane Doe",
+  accountType: "Compulsory Savings",
+  openingBalance: 80000,
+  currency: "UGX",
+  transactions: [
+    {
+      id: "TX-8921",
+      type: "deposit",
+      amount: 50000,
+      date: "2026-01-18",
+      reference: "Jan Contribution",
+      recordedBy: "Admin Sarah",
+      status: "Verified",
+    },
+    {
+      id: "TX-8920",
+      type: "withdrawal",
+      amount: 15000,
+      date: "2026-01-15",
+      reference: "Emergency Loan Offset",
+      recordedBy: "Admin Paul",
+      status: "Pending Audit",
+    },
+    {
+      id: "TX-8919",
+      type: "deposit",
+      amount: 20000,
+      date: "2026-01-10",
+      reference: "Dec Contribution",
+      recordedBy: "Admin Sarah",
+      status: "Verified",
+    },
+  ],
+};
