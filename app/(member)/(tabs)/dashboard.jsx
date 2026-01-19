@@ -35,7 +35,7 @@ export default function MemberDashboard() {
           {/* Top Row: Profile & Notifications */}
           <View className="flex-row items-center justify-between mb-8">
             <Pressable
-              onPress={() => router.push("/(member)/utilityPages/profile")}
+              onPress={() => router.push("/utilityPages/profile")}
               className="flex-row items-center"
             >
               <View className="h-12 w-12 bg-white/20 rounded-full items-center justify-center border-2 border-white/30 mr-3 backdrop-blur-md">
@@ -50,9 +50,7 @@ export default function MemberDashboard() {
             </Pressable>
 
             <Pressable
-              onPress={() =>
-                router.push("/(member)/utilityPages/notifications")
-              }
+              onPress={() => router.push("/utilityPages/notifications")}
               className="bg-white/20 p-2.5 rounded-full relative backdrop-blur-md border border-white/10"
             >
               <View className="absolute top-2.5 right-2.5 w-2.5 h-2.5 bg-red-500 rounded-full z-10 border border-white/20" />

@@ -1,32 +1,77 @@
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { Image, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AlertCard from "../../../components/ui/AlertCard";
 import QuickAction from "../../../components/ui/QuickAction";
+import { ROLE_CONFIG } from "../../../constants/roles";
 
 export default function AdminDashboard() {
   const [showBalance, setShowBalance] = useState(true);
+  const router = useRouter();
+  const adminRole = "treasurer"; // from auth/session
+  const roleConfig = ROLE_CONFIG[adminRole];
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
-      <View className="absolute top-0 w-full h-80 bg-arch-blue rounded-b-[40px]" />
+    <View className="flex-1 bg-gray-50">
+      <View className="relative w-full h-80 rounded-b-[20px] overflow-hidden z-0">
+        <Image
+          source={require("../../../assets/images/welcome.png")} // Ensure path matches your folder
+          className="w-full h-full object-cover"
+        />
+        <View className="absolute inset-0 bg-black/40" />
+        <View className="absolute bottom-0 w-full h-24 bg-gradient-to-t from-black/40 to-transparent" />
+      </View>
+      {/* 2. FOREGROUND CONTENT (Profile & Greeting) */}
+      <SafeAreaView className="absolute top-0 w-full">
+        <View className="px-6 pt-4">
+          {/* Top Row: Profile & Notifications */}
+          <View className="flex-row items-center justify-between mb-8">
+            <Pressable
+              onPress={() => router.push("/utilityPages/profile")}
+              className="flex-row items-center"
+            >
+              <View className="h-12 w-12 bg-white/20 rounded-full items-center justify-center border-2 border-white/30 mr-3 backdrop-blur-md">
+                <Ionicons name="person" size={24} color="#FFF" />
+              </View>
+              <View className="flex-row items-center">
+                <Text className="text-gray-300 text-xs font-bold uppercase mr-2">
+                  {roleConfig.label}
+                </Text>
+                <View className="bg-emerald-500/20 px-2 py-0.5 rounded-full">
+                  <Text className="text-emerald-300 text-[10px] font-bold">
+                    {roleConfig.badge}
+                  </Text>
+                </View>
+              </View>
+            </Pressable>
 
-      <View className=" pt-15 pb-6 px-6">
-        <View className="flex-row items-center justify-between mb-2">
-          <View>
-            <Text className="text-white/80 text-sm font-medium">
+            <Pressable
+              onPress={() => router.push("/utilityPages/notifications")}
+              className="bg-white/20 p-2.5 rounded-full relative backdrop-blur-md border border-white/10"
+            >
+              <View className="absolute top-2.5 right-2.5 w-2.5 h-2.5 bg-red-500 rounded-full z-10 border border-white/20" />
+              <Ionicons name="notifications-outline" size={24} color="#FFF" />
+            </Pressable>
+          </View>
+
+          {/* Hero Greeting Text */}
+          <View className="px-2">
+            <Text className="text-white/80 font-medium text-base mb-1">
+              UMOJA SACCO
+            </Text>
+            <Text className="text-white font-black text-3xl shadow-sm">
               Admin Dashboard
             </Text>
-            <Text className="text-white text-2xl font-bold">Umoja SACCO</Text>
           </View>
-          <Pressable className="bg-white/20 p-2 rounded-xl">
-            <Ionicons name="settings-outline" size={22} color="#FFF" />
-          </Pressable>
         </View>
-      </View>
+      </SafeAreaView>
 
-      <ScrollView className="flex-1 -mt-6" showsVerticalScrollIndicator={false}>
+      <ScrollView
+        className="flex-1 -mt-20 bg-gray-50 rounded-3xl"
+        showsVerticalScrollIndicator={false}
+      >
         {/* HEALTH CHECK CARD  */}
         <View className="bg-white rounded-3xl p-6 mx-6 shadow-lg mb-8">
           <View className="flex-row justify-between items-center mb-3">
@@ -45,7 +90,7 @@ export default function AdminDashboard() {
             </Pressable>
           </View>
 
-          <Text className="text-3xl text-center font-extrabold text-white p-1 rounded-full bg-arch-blue mb-4">
+          <Text className="text-3xl text-center font-extrabold text-arch-blue p-1 mb-4">
             {showBalance ? "UGX 125.4M" : "••••••••••"}
           </Text>
 
@@ -68,46 +113,67 @@ export default function AdminDashboard() {
               </Text>
             </View>
           </View>
-
-          {/* Growth Indicator */}
-          <View className="flex-row items-center mt-4 bg-green-50 self-start px-3 py-1.5 rounded-full">
-            <Ionicons name="trending-up" size={16} color="#10B981" />
-            <Text className="text-green-700 font-bold text-xs ml-1.5">
-              +2.4% this month
-            </Text>
-          </View>
         </View>
 
-        <View className="bg-white rounded-3xl px-6">
+        <View className="px-6">
           {/* QUICK ACTIONS */}
           <View className="mb-8">
-            <Text className="text-lg font-bold text-gray-800 mb-2">
-              Quick Actions
-            </Text>
+            <View className="flex-row items-center justify-between mb-2">
+              <Text className="text-lg font-bold text-gray-800">
+                Quick Actions
+              </Text>
+              {/* Growth Indicator */}
+              <View className="flex-row items-center mt-4 bg-green-50 self-start px-3 py-1.5 rounded-full">
+                <Ionicons name="trending-up" size={16} color="#10B981" />
+                <Text className="text-green-700 font-bold text-xs ml-1.5">
+                  +2.4% this month
+                </Text>
+              </View>
+            </View>
             <View className="flex-row flex-wrap justify-between">
-              <QuickAction
-                icon="wallet-outline"
-                label="Record `Deposit"
-                color="#10B981"
-                bg="bg-arch-blue"
-              />
+              {roleConfig.actions.includes("deposit") && (
+                <>
+                  <QuickAction
+                    icon="wallet-outline"
+                    label="Record Deposit"
+                    color="#10B981"
+                  />
+                  <QuickAction
+                    icon="person-add-outline"
+                    label="Add Member"
+                    color="#7C3AED"
+                  />
+                  <QuickAction
+                    icon="bar-chart-outline"
+                    label="Upload Reports"
+                    color="#F59E0B"
+                  />
+                </>
+              )}
+
+              {roleConfig.actions.includes("finalApproval") && (
+                <>
+                  <QuickAction
+                    icon="checkmark-done-outline"
+                    label="Final Approvals"
+                    color="#0F4C88"
+                  />
+                  <QuickAction
+                    icon="person-add-outline"
+                    label="Add Member"
+                    color="#7C3AED"
+                  />
+                  <QuickAction
+                    icon="bar-chart-outline"
+                    label="View Reports"
+                    color="#F59E0B"
+                  />
+                </>
+              )}
               <QuickAction
                 icon="cash-outline"
                 label="Issue Loan"
                 color="#0F4C88"
-                bg="bg-arch-blue"
-              />
-              <QuickAction
-                icon="person-add-outline"
-                label="Add Member"
-                color="#7C3AED"
-                bg="bg-arch-blue"
-              />
-              <QuickAction
-                icon="bar-chart-outline"
-                label="View Reports"
-                color="#F59E0B"
-                bg="bg-arch-blue"
               />
             </View>
           </View>
@@ -163,7 +229,7 @@ export default function AdminDashboard() {
           </View>
 
           {/* 4. RECENT ACTIVITY SECTION (Optional Addition) */}
-          <View className="mb-10">
+          <View className="mb-20">
             <Text className="text-lg font-bold text-gray-800 mb-4">
               Recent Activity
             </Text>
@@ -186,7 +252,7 @@ export default function AdminDashboard() {
           </View>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 

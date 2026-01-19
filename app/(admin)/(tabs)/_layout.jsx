@@ -9,9 +9,8 @@ export default function AdminTabsLayout() {
         tabBarActiveTintColor: "white",
         tabBarStyle: {
           backgroundColor: "#07193f",
-          height: "65",
+          height: "60",
           position: "absolute",
-          bottom: 10,
           left: 20,
           right: 20,
           borderRadius: 25,
@@ -28,8 +27,8 @@ export default function AdminTabsLayout() {
         name="dashboard"
         options={{
           title: "Dashboard",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="grid-outline" size={size} color={color} />
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="grid-outline" size={20} color={color} />
           ),
         }}
       />
@@ -38,8 +37,8 @@ export default function AdminTabsLayout() {
         name="members"
         options={{
           title: "Members",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="people-outline" size={size} color={color} />
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="people-outline" size={20} color={color} />
           ),
         }}
       />
@@ -48,8 +47,8 @@ export default function AdminTabsLayout() {
         name="savings"
         options={{
           title: "Savings",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="wallet-outline" size={size} color={color} />
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="wallet-outline" size={20} color={color} />
           ),
         }}
       />
@@ -58,8 +57,8 @@ export default function AdminTabsLayout() {
         name="loans"
         options={{
           title: "Loans",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="cash-outline" size={size} color={color} />
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="cash-outline" size={20} color={color} />
           ),
         }}
       />
