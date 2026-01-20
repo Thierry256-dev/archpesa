@@ -12,6 +12,10 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { TransactionRow } from "../../../components/ui/adminSavingsSubComponents";
 import { SAVINGS_LEDGER } from "../../../constants/data";
+import {
+  generateSaccoExcel,
+  generateSaccoSavingsReport,
+} from "../../../constants/generateSaccoDocument";
 
 export default function SavingsLedgerPage() {
   const [filterType, setFilterType] = useState("all");
@@ -66,6 +70,15 @@ export default function SavingsLedgerPage() {
 
   // Helper for Currency
   const formatMoney = (amount) => Number(amount).toLocaleString();
+
+  const handleExport = () => {
+    generateSaccoSavingsReport(
+      "Savings Ledger Report",
+      { memberName: "UMOJA SACCO", memberId: "0001" }, // Meta
+      filteredTransactions, // Your API Data
+      totals, // Your calculated totals
+    );
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-[#F8FAFC]">
@@ -163,10 +176,13 @@ export default function SavingsLedgerPage() {
           {/* Export Button */}
           <Pressable
             onPress={() => setShowExportOptions(!showExportOptions)}
-            className="bg-arch-blue h-12 rounded-xl items-center justify-center shadow-sm shadow-emerald-200"
+            className="bg-emerald-500 h-12 rounded-xl px-2 items-center justify-center shadow-sm shadow-emerald-200"
           >
             <Ionicons name="download-outline" size={20} color="white" />
-            <Text className="text-white text-xs px-1"> Generate Report</Text>
+            <Text className="text-white text-xs px-1 font-bold">
+              {" "}
+              Download Ledger
+            </Text>
           </Pressable>
         </View>
 
@@ -233,6 +249,7 @@ export default function SavingsLedgerPage() {
                       "Generating PDF",
                       `Report from ${range.start.toDateString()} to ${range.end.toDateString()}`,
                     );
+                    handleExport();
                   }}
                   className="items-center"
                 >
@@ -245,7 +262,13 @@ export default function SavingsLedgerPage() {
                 </Pressable>
                 <View className="w-px bg-slate-100" />
                 <Pressable
-                  onPress={() => Alert.alert("Generating Excel...")}
+                  onPress={() => {
+                    generateSaccoExcel(
+                      "Savings Ledger Audit",
+                      filteredTransactions,
+                      SAVINGS_LEDGER,
+                    );
+                  }}
                   className="items-center"
                 >
                   <View className="bg-green-50 w-10 h-10 rounded-full items-center justify-center mb-1">

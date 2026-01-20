@@ -3,13 +3,17 @@ import { useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import {
   ActivityIndicator,
-  Modal,
   Pressable,
   ScrollView,
   Text,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import {
+  LOAN_TRANSACTIONS,
+  SAVINGS_TRANSACTIONS,
+} from "../../../constants/data";
+import { generateMemberStatementPdf } from "../../../constants/generateSaccoDocument";
 
 const formatDate = (date) => {
   return date.toLocaleDateString("en-US", {
@@ -23,7 +27,7 @@ export default function Statement() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [selectedRange, setSelectedRange] = useState("3M"); // 3M, 6M, 1Y, Custom
-  const [previewType, setPreviewType] = useState(null);
+  const [statementType, setStatementType] = useState("standard");
 
   const dateRange = useMemo(() => {
     const toDate = new Date(); // Current Date (Today)
@@ -43,13 +47,20 @@ export default function Statement() {
     };
   }, [selectedRange]);
 
-  const handleDownload = () => {
+  const handleDownload = async () => {
     setLoading(true);
-    // Simulate a PDF generation delay
-    setTimeout(() => {
-      setLoading(false);
-      alert("Statement generated and saved to downloads!");
-    }, 2000);
+
+    await generateMemberStatementPdf({
+      member: {
+        id: "M-001",
+        name: "John Mugisha",
+      },
+      transactions:
+        statementType === "loan" ? LOAN_TRANSACTIONS : SAVINGS_TRANSACTIONS,
+      period: dateRange,
+    });
+
+    setLoading(false);
   };
 
   return (
@@ -138,15 +149,18 @@ export default function Statement() {
 
           <OptionCard
             title="Standard Statement"
-            desc="Detailed list of all transactions"
-            icon="document-attach"
-            onPress={() => setPreviewType("standard")}
+            desc="All savings, deposits & withdrawals"
+            icon="document-text"
+            active={statementType === "standard"}
+            onPress={() => setStatementType("standard")}
           />
+
           <OptionCard
-            title="Loan specific"
-            desc="Only shows loan disbursements & repayments"
+            title="Loan Statement"
+            desc="Loan disbursements & repayments only"
             icon="calculator"
-            onPress={() => setPreviewType("loan")}
+            active={statementType === "loan"}
+            onPress={() => setStatementType("loan")}
           />
         </View>
 
@@ -172,64 +186,6 @@ export default function Statement() {
           Statements are digitally signed and valid for official use.
         </Text>
       </ScrollView>
-
-      <Modal
-        visible={!!previewType}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setPreviewType(null)}
-      >
-        <View className="flex-1 justify-end bg-black/60">
-          <View className="bg-white rounded-t-[40px] h-[80%] p-6">
-            {/* Modal Header */}
-            <View className="flex-row justify-between items-center mb-6">
-              <Text className="text-xl font-black text-slate-900">
-                Document Preview
-              </Text>
-              <Pressable
-                onPress={() => setPreviewType(null)}
-                className="bg-slate-100 p-2 rounded-full"
-              >
-                <Ionicons name="close" size={20} color="#000" />
-              </Pressable>
-            </View>
-
-            {/* THE "PAPER" PREVIEW */}
-            <ScrollView
-              className="bg-slate-50 border border-slate-200 rounded-2xl p-4 mb-6 shadow-inner"
-              showsVerticalScrollIndicator={false}
-            >
-              <View className="items-center mb-6">
-                <View className="w-12 h-12 bg-arch-blue rounded-xl items-center justify-center mb-2">
-                  <Ionicons name="business" size={24} color="white" />
-                </View>
-                <Text className="font-black text-slate-900 text-sm">
-                  UNITY SACCO LTD
-                </Text>
-                <Text className="text-[10px] text-slate-400 uppercase tracking-tighter">
-                  Official Financial Record
-                </Text>
-              </View>
-
-              {previewType === "standard" ? (
-                <StandardPreview />
-              ) : (
-                <LoanPreview />
-              )}
-            </ScrollView>
-
-            {/* Action Button */}
-            <Pressable
-              className="bg-arch-blue py-5 rounded-2xl items-center shadow-lg"
-              onPress={() => setPreviewType(null)}
-            >
-              <Text className="text-white font-extrabold">
-                Download Official PDF
-              </Text>
-            </Pressable>
-          </View>
-        </View>
-      </Modal>
     </SafeAreaView>
   );
 }
@@ -252,78 +208,28 @@ function RangeChip({ label, value, active, onSelect }) {
   );
 }
 
-function OptionCard({ title, desc, icon, onPress }) {
+function OptionCard({ title, desc, icon, active, onPress }) {
   return (
     <Pressable
       onPress={onPress}
-      className="bg-white p-4 rounded-2xl border border-slate-100 mb-3 flex-row items-center"
+      className={`p-4 rounded-2xl border mb-3 flex-row items-center ${
+        active ? "bg-blue-50 border-[#07193f]" : "bg-white border-slate-100"
+      }`}
     >
-      <View className="bg-blue-50 p-3 rounded-xl mr-4">
-        <Ionicons name={icon} size={22} color="#07193f" />
+      <View
+        className={`p-3 rounded-xl mr-4 ${
+          active ? "bg-[#07193f]" : "bg-blue-50"
+        }`}
+      >
+        <Ionicons name={icon} size={22} color={active ? "white" : "#07193f"} />
       </View>
+
       <View className="flex-1">
         <Text className="text-slate-800 font-bold text-sm">{title}</Text>
         <Text className="text-slate-400 text-[10px]">{desc}</Text>
       </View>
-      <Ionicons name="chevron-forward" size={18} color="#cbd5e1" />
+
+      {active && <Ionicons name="checkmark-circle" size={20} color="#07193f" />}
     </Pressable>
-  );
-}
-
-function StandardPreview() {
-  return (
-    <View>
-      <View className="border-b border-slate-200 pb-2 mb-4">
-        <Text className="text-[10px] font-bold text-slate-400 uppercase">
-          Standard History
-        </Text>
-      </View>
-      {[1, 2, 3, 4, 5].map((i) => (
-        <View
-          key={i}
-          className="flex-row justify-between mb-4 border-b border-slate-100 pb-2"
-        >
-          <View>
-            <Text className="text-[10px] font-bold text-slate-800">
-              Jan 1{i}, 2026
-            </Text>
-            <Text className="text-[9px] text-slate-400">Monthly Deposit</Text>
-          </View>
-          <Text className="text-xs font-black text-emerald-600">+50,000</Text>
-        </View>
-      ))}
-    </View>
-  );
-}
-
-function LoanPreview() {
-  return (
-    <View>
-      <View className="border-b border-slate-200 pb-2 mb-4">
-        <Text className="text-[10px] font-bold text-slate-400 uppercase">
-          Loan Ledger
-        </Text>
-      </View>
-      <View className="bg-blue-50 p-3 rounded-lg mb-4">
-        <Text className="text-[10px] text-blue-800 font-bold">
-          Principal: UGX 2.5M
-        </Text>
-        <Text className="text-[10px] text-blue-600">Interest Rate: 10%</Text>
-      </View>
-      {[1, 2, 3].map((i) => (
-        <View
-          key={i}
-          className="flex-row justify-between mb-4 border-b border-slate-100 pb-2"
-        >
-          <View>
-            <Text className="text-[10px] font-bold text-slate-800">
-              Payment #{i}
-            </Text>
-            <Text className="text-[9px] text-slate-400">Repayment</Text>
-          </View>
-          <Text className="text-xs font-black text-slate-900">-210,000</Text>
-        </View>
-      ))}
-    </View>
   );
 }

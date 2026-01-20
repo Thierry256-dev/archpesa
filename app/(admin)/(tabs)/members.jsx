@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useMemo, useState } from "react";
-import { ScrollView, Text, TextInput, View } from "react-native";
+import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   FilterChip,
@@ -8,6 +8,7 @@ import {
   StatCard,
 } from "../../../components/ui/membersSmallComponents";
 import { MEMBERS_DATA } from "../../../constants/data";
+import { generateAllMembersReportPdf } from "../../../constants/generateSaccoDocument";
 
 export default function Members() {
   const [search, setSearch] = useState("");
@@ -43,7 +44,7 @@ export default function Members() {
         </Text>
 
         {/* SEARCH */}
-        <View className="mt-4 bg-white rounded-2xl px-4 py-3 flex-row items-center">
+        <View className="mt-4 bg-white rounded-2xl px-4 py-1 flex-row items-center">
           <Ionicons name="search" size={18} color="#94A3B8" />
           <TextInput
             placeholder="Search by name, ID or phone"
@@ -72,6 +73,15 @@ export default function Members() {
           />
         </View>
       </View>
+      <Pressable
+        onPress={() => generateAllMembersReportPdf(filteredMembers)}
+        className="mt-4 bg-white py-3 rounded-xl flex-row items-center justify-center mx-6"
+      >
+        <Ionicons name="document-text-outline" size={18} color="#07193f" />
+        <Text className="ml-2 text-arch-blue font-bold text-sm">
+          Generate Members Report
+        </Text>
+      </Pressable>
 
       {/* SUMMARY STATS */}
       <View className="flex-row justify-between px-6 mt-6">

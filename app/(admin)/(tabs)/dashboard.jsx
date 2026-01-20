@@ -195,7 +195,7 @@ export default function AdminDashboard() {
                 icon="alert-circle-outline"
                 iconColor="#EF4444"
                 bgColor="bg-red-50"
-                title="John Doe"
+                title="Kabazi Fred"
                 subtitle="Loan overdue by 3 days"
                 status="overdue"
                 amount="UGX 50,000"
