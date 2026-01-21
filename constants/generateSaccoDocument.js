@@ -3,6 +3,10 @@ import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
 import { Alert, Platform } from "react-native";
 import * as XLSX from "xlsx";
+import {
+  saveExcelToDownloads,
+  savePdfToDownloads,
+} from "../utils/saveToStorage";
 
 /**
  * Professional SACCO PDF Engine
@@ -395,7 +399,7 @@ export const generateSaccoExcel = async (title, data = [], meta = {}) => {
     }
 
     if (Platform.OS === "android") {
-      await saveToDownloads(fileName, base64);
+      await saveExcelToDownloads(fileName, base64);
     } else {
       await Sharing.shareAsync(fileUri, {
         mimeType:
@@ -576,46 +580,4 @@ export const generateMemberStatementPdf = async ({
     console.error("Member Statement Error:", error);
     Alert.alert("Error", "Failed to generate statement.");
   }
-};
-
-export const saveToDownloads = async (fileName, base64Data) => {
-  const permissions =
-    await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
-
-  if (!permissions.granted) {
-    throw new Error("Permission denied");
-  }
-
-  const fileUri = await FileSystem.StorageAccessFramework.createFileAsync(
-    permissions.directoryUri,
-    fileName,
-    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-  );
-
-  await FileSystem.writeAsStringAsync(fileUri, base64Data, {
-    encoding: FileSystem.EncodingType.Base64,
-  });
-
-  return fileUri;
-};
-
-const savePdfToDownloads = async (fileName, base64Data) => {
-  const permission =
-    await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
-
-  if (!permission.granted) {
-    throw new Error("Storage permission denied");
-  }
-
-  const fileUri = await FileSystem.StorageAccessFramework.createFileAsync(
-    permission.directoryUri,
-    fileName,
-    "application/pdf",
-  );
-
-  await FileSystem.writeAsStringAsync(fileUri, base64Data, {
-    encoding: FileSystem.EncodingType.Base64,
-  });
-
-  return fileUri;
 };

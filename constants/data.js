@@ -348,3 +348,46 @@ export const LOAN_TRANSACTIONS = [
     createdAt: "2025-11-10T16:40:33Z",
   },
 ];
+
+export const MOCK_LOANS = [
+  {
+    id: "1",
+    member_name: "Sam Kablaza",
+    membership_no: "SACCO-0012",
+    principal: 2000000,
+    balance_due: 850000,
+    status: "Disbursed",
+    risk_category: "Performing",
+    days_in_arrears: 0,
+  },
+  {
+    id: "2",
+    member_name: "Mary Nambooze",
+    membership_no: "SACCO-0041",
+    principal: 1500000,
+    balance_due: 1200000,
+    status: "Disbursed",
+    risk_category: "Watch",
+    days_in_arrears: 18,
+  },
+  {
+    id: "3",
+    member_name: "Peter Okello",
+    membership_no: "SACCO-0033",
+    principal: 3000000,
+    balance_due: 2800000,
+    status: "Disbursed",
+    risk_category: "Substandard",
+    days_in_arrears: 45,
+  },
+  {
+    id: "4",
+    member_name: "James Okello",
+    membership_no: "SACCO-0054",
+    principal: 3000000,
+    balance_due: 2800000,
+    status: "Pending",
+    risk_category: "performing",
+    days_in_arrears: 0,
+  },
+];
