@@ -1,8 +1,12 @@
+import { supabase } from "@/lib/supabase";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
+  ActivityIndicator,
   Image,
+  KeyboardAvoidingView,
+  Platform,
   Pressable,
   ScrollView,
   Text,
@@ -10,193 +14,226 @@ import {
   View,
 } from "react-native";
 
+const getPasswordStrength = (password) => {
+  if (password.length < 8) return "weak";
+  if (!/[A-Za-z]/.test(password)) return "weak";
+  if (!/[0-9]/.test(password)) return "weak";
+  return "strong";
+};
+
 export default function Register() {
   const router = useRouter();
 
   // Form state
-  const [saccoQuery, setSaccoQuery] = useState("");
-  const [selectedSacco, setSelectedSacco] = useState(null);
   const [fullName, setFullName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [memberId, setMemberId] = useState("");
-  const [pin, setPin] = useState("");
-  const [confirmPin, setConfirmPin] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordStrength, setPasswordStrength] = useState("weak");
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // Dummy SACCO results
-  const saccoResults = [
-    "Umoja SACCO",
-    "Arch Savings Group",
-    "GreenGrow SACCO",
-  ].filter((s) => s.toLowerCase().includes(saccoQuery.toLowerCase()));
-
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     setError("");
 
-    if (!selectedSacco) {
-      return setError("Please select a SACCO to join.");
-    }
     if (!fullName.trim()) {
       return setError("Full name is required.");
     }
-    if (phone.length < 10) {
-      return setError("Phone number must be at least 10 digits.");
-    }
-    if (pin.length < 6) {
-      return setError("PIN must be 6 digits.");
-    }
-    if (pin !== confirmPin) {
-      return setError("PINs do not match.");
+
+    if (!email.includes("@")) {
+      return setError("Valid email is required.");
     }
 
-    // Passed validation
+    if (getPasswordStrength(password) !== "strong") {
+      return setError(
+        "Password must be at least 8 characters and include letters and numbers.",
+      );
+    }
+
+    if (password !== confirmPassword) {
+      return setError("Passwords do not match.");
+    }
+
+    setLoading(true);
+
+    const { error: authError } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name: fullName, // TEMP metadata only
+        },
+      },
+    });
+
+    if (authError) {
+      setLoading(false);
+      return setError(authError.message);
+    }
+
+    await supabase.auth.signOut();
+
+    setLoading(false);
+
+    // Redirect to login instead of dashboard
     router.replace("/(auth)/login");
   };
 
   return (
-    <ScrollView
-      className="flex-1 bg-arch-blue px-6"
-      contentContainerStyle={{ paddingVertical: 40 }}
-      keyboardShouldPersistTaps="handled"
-      showsVerticalScrollIndicator={false}
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "padding"}
+      className="flex-1 bg-arch-blue"
     >
-      {/* Header */}
-      <View className="items-center mb-8">
-        <Image
-          source={require("../../assets/images/icon.png")}
-          className="w-20 h-20 mb-4"
-          resizeMode="contain"
-        />
-        <Text className="text-3xl font-bold">
-          <Text className="text-white">Arch</Text>
-          <Text className="text-brand-secondary">Pesa</Text>
-        </Text>
-        <Text className="text-sm text-gray-300 mt-1">
-          Secure. Transparent. Simple.
-        </Text>
-      </View>
-
-      {/* Form Card */}
-      <View className="bg-brand-surface rounded-2xl p-5">
-        {/* SACCO Search */}
-        <Text className="text-sm font-semibold text-arch-slate mb-2">
-          Select SACCO
-        </Text>
-
-        <View className="flex-row items-center border border-gray-300 rounded-xl px-4 py-1 mb-3">
-          <Ionicons name="search-outline" size={18} color="#6B7280" />
-          <TextInput
-            placeholder="Search SACCO name"
-            value={saccoQuery}
-            onChangeText={setSaccoQuery}
-            className="ml-3 flex-1 text-arch-charcoal"
-            placeholderTextColor="#9CA3AF"
-          />
+      <ScrollView
+        className="flex-1"
+        contentContainerStyle={{ paddingVertical: 60, paddingHorizontal: 24 }}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Header */}
+        <View className="items-center mb-10">
+          <View className="shadow-xl shadow-black/20 rounded-3xl mb-4 backdrop-blur-md">
+            <Image
+              source={require("../../assets/images/icon.png")}
+              className="w-20 h-20"
+              resizeMode="contain"
+            />
+          </View>
+          <Text className="text-4xl font-extrabold tracking-tight mb-2">
+            <Text className="text-white">Arch</Text>
+            <Text className="text-brand-secondary">Pesa</Text>
+          </Text>
+          <Text className="text-base text-gray-300 font-medium tracking-wide">
+            Secure. Transparent. Simple.
+          </Text>
         </View>
 
-        {saccoQuery.length > 0 && (
-          <View className="mb-4 border border-gray-200 rounded-xl overflow-hidden">
-            {saccoResults.map((sacco, index) => (
-              <Pressable
-                key={index}
-                className="px-4 py-3 border-b border-gray-200 last:border-b-0"
-                onPress={() => {
-                  setSelectedSacco(sacco);
-                  setSaccoQuery(sacco);
-                }}
+        {/* Form Card */}
+        <View className="bg-white rounded-[32px] p-6 shadow-2xl shadow-black/20">
+          {/* Member Details */}
+          <Text className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-6 text-center">
+            Create your account
+          </Text>
+
+          <Input
+            icon="person-outline"
+            placeholder="Full Name"
+            value={fullName}
+            onChangeText={setFullName}
+          />
+
+          <Input
+            icon="mail-outline"
+            placeholder="Email Address"
+            keyboardType="email-address"
+            value={email}
+            onChangeText={setEmail}
+          />
+
+          <Input
+            icon="lock-closed-outline"
+            placeholder="Password"
+            secure
+            value={password}
+            onChangeText={(text) => {
+              setPassword(text);
+              setPasswordStrength(getPasswordStrength(text));
+            }}
+          />
+          <Input
+            icon="lock-closed-outline"
+            placeholder="Confirm Password"
+            secure
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+          />
+
+          {password.length < 6 && password !== "" ? (
+            ""
+          ) : (
+            <View className="flex-row items-center justify-center mt-2">
+              {password !== "" && (
+                <Ionicons
+                  name={
+                    passwordStrength === "strong"
+                      ? "checkmark-circle"
+                      : "alert-circle"
+                  }
+                  size={16}
+                  color={passwordStrength === "strong" ? "#16A34A" : "#EF4444"}
+                  style={{ marginRight: 6 }}
+                />
+              )}
+              <Text
+                className={`text-xs font-medium ${
+                  passwordStrength === "strong"
+                    ? "text-green-600"
+                    : "text-red-500"
+                }`}
               >
-                <Text className="text-arch-charcoal">{sacco}</Text>
-              </Pressable>
-            ))}
+                {passwordStrength === "strong"
+                  ? "Password strength: Strong"
+                  : password !== ""
+                    ? "Use 8+ chars with letters & numbers"
+                    : ""}
+              </Text>
+            </View>
+          )}
+
+          {/* Error */}
+          {error ? (
+            <View className="bg-red-50 p-3 rounded-xl mt-4 border border-red-100 flex-row items-center">
+              <Ionicons name="warning" size={20} color="#EF4444" />
+              <Text className="text-red-600 text-sm font-medium ml-2 flex-1">
+                {error}
+              </Text>
+            </View>
+          ) : null}
+
+          {/* Submit */}
+          <Pressable
+            className={`h-14 rounded-2xl mt-8 flex-row items-center justify-center shadow-lg active:opacity-90 ${loading ? "bg-arch-green/70" : "bg-arch-green"}`}
+            onPress={handleSubmit}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color="white" />
+            ) : (
+              <View className="flex-row items-center">
+                <Text className="text-white font-bold text-lg mr-2">
+                  Create Account
+                </Text>
+                <Ionicons name="arrow-forward" size={20} color="white" />
+              </View>
+            )}
+          </Pressable>
+
+          <View className="mt-6 flex-row justify-center items-center space-x-1">
+            <Text className="text-gray-500">Already a member?</Text>
+            <Pressable
+              hitSlop={10}
+              onPress={() => router.push("/(auth)/login")}
+            >
+              <Text className="text-brand-primary font-bold text-base ml-1">
+                Sign in
+              </Text>
+            </Pressable>
           </View>
-        )}
+        </View>
 
-        {/* Member Details */}
-        <Text className="text-sm font-semibold text-arch-slate mb-2">
-          Member Details
-        </Text>
-
-        <Input
-          icon="person-outline"
-          placeholder="Full Name"
-          value={fullName}
-          onChangeText={setFullName}
-        />
-        <Input
-          icon="call-outline"
-          placeholder="Phone Number"
-          keyboardType="number-pad"
-          value={phone}
-          maxLength={15}
-          onChangeText={setPhone}
-        />
-        <Input
-          icon="card-outline"
-          placeholder="National ID / Member ID"
-          value={memberId}
-          onChangeText={setMemberId}
-        />
-
-        {/* Security */}
-        <Text className="text-sm font-semibold text-arch-slate mt-4 mb-2">
-          Security
-        </Text>
-
-        <Input
-          icon="lock-closed-outline"
-          placeholder="Create PIN"
-          secure
-          keyboardType="number-pad"
-          maxLength={6}
-          value={pin}
-          onChangeText={setPin}
-        />
-        <Input
-          icon="lock-closed-outline"
-          placeholder="Confirm PIN"
-          secure
-          keyboardType="number-pad"
-          maxLength={6}
-          value={confirmPin}
-          onChangeText={setConfirmPin}
-        />
-
-        {/* Error */}
-        {error ? (
-          <Text className="text-red-500 text-sm mt-2">{error}</Text>
-        ) : null}
-
-        {/* Submit */}
-        <Pressable
-          className="bg-arch-green py-4 rounded-xl mt-6"
-          onPress={handleSubmit}
-        >
-          <Text className="text-white text-center font-semibold">
-            Register & Join SACCO
+        {/* Footer */}
+        <View className="items-center mt-8 mb-4">
+          <Ionicons name="shield-checkmark-outline" size={16} color="#9CA3AF" />
+          <Text className="text-[10px] text-gray-400 mt-1 font-medium uppercase tracking-wider">
+            Secured by ArchPesa
           </Text>
-        </Pressable>
-
-        <Pressable
-          className="mt-3"
-          onPress={() => router.push("/(auth)/login")}
-        >
-          <Text className="text-center text-brand-primary font-semibold">
-            Already have an account? Sign in
-          </Text>
-        </Pressable>
-      </View>
-
-      {/* Footer */}
-      <View className="items-center mt-6">
-        <Text className="text-xs text-gray-300">
-          Your data is secured by ArchPesa
-        </Text>
-      </View>
-    </ScrollView>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
-/* Reusable Input */
+/* Reusable Input - Enhanced Visuals */
 function Input({
   icon,
   placeholder,
@@ -207,8 +244,10 @@ function Input({
   maxLength,
 }) {
   return (
-    <View className="flex-row items-center border border-gray-300 rounded-xl px-4 py-1 mb-3">
-      <Ionicons name={icon} size={18} color="#6B7280" />
+    <View className="flex-row items-center bg-gray-50 border border-gray-100 rounded-2xl px-4 h-14 mb-4 focus:border-brand-primary focus:bg-white transition-colors">
+      <View className="w-8 items-center justify-center">
+        <Ionicons name={icon} size={20} color="#6B7280" />
+      </View>
       <TextInput
         placeholder={placeholder}
         secureTextEntry={secure}
@@ -220,8 +259,9 @@ function Input({
             : onChangeText(text)
         }
         maxLength={maxLength}
-        className="ml-3 flex-1 text-arch-charcoal"
+        className="ml-2 flex-1 text-base text-gray-800 font-medium h-full"
         placeholderTextColor="#9CA3AF"
+        autoCapitalize="none"
       />
     </View>
   );
