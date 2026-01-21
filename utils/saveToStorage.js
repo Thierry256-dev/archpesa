@@ -1,7 +1,7 @@
-import * as FileSystem from "expo-file-system";
+import * as FileSystem from "expo-file-system/legacy";
 import { Platform } from "react-native";
 
-export const saveToDownloads = async (fileName, base64Data) => {
+export const saveExcelToDownloads = async (fileName, base64Data) => {
   const permissions =
     await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
 
