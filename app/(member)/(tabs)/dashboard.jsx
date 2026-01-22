@@ -1,3 +1,4 @@
+import { useAuth } from "@/context/AuthContext";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useState } from "react";
@@ -6,6 +7,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import ServiceCard from "../../../components/cards/ServiceCard";
 import LoanApplicationForm from "../../../components/forms/LoanApplicationForm";
 import TransactionItem from "../../../components/ui/TransactionItem";
+import { MOCK_TRANSACTIONS } from "../../../constants/data";
 
 export default function MemberDashboard() {
   const [showBalance, setShowBalance] = useState(true);
@@ -17,12 +19,46 @@ export default function MemberDashboard() {
   const currentLoan = 1200000;
   const progress = (currentLoan / loanLimit) * 100;
 
+  const transactions = MOCK_TRANSACTIONS;
+
+  const { application } = useAuth();
+
+  const applicationStatus = application?.status ?? "pending";
+
+  const isApproved = applicationStatus === "approved";
+
+  const dashboardData = {
+    name: application?.first_name || "Member",
+    balance: isApproved ? "UGX 4.5M" : "UGX 0",
+    lockedSavings: isApproved ? "UGX 1.5M" : "UGX 0",
+    activeLoan: isApproved ? "UGX 1.2M" : "UGX 0",
+  };
+
+  const statusConfig = {
+    pending: {
+      label: "Application Under Review",
+      description: "Your SACCO application is being reviewed.",
+      color: "bg-yellow-50 border-yellow-200",
+      icon: "time-outline",
+      iconColor: "#f59e0b",
+    },
+    rejected: {
+      label: "Application Requires Update",
+      description: "Some details need correction. Tap to update and resubmit.",
+      color: "bg-red-50 border-red-200",
+      icon: "alert-circle-outline",
+      iconColor: "#ef4444",
+    },
+  };
+
+  const statusUI = statusConfig[applicationStatus];
+
   return (
     <View className="flex-1 bg-gray-50">
       {/* 1. HEADER BACKGROUND SECTION */}
       <View className="relative w-full h-80 rounded-b-[20px] overflow-hidden z-0">
         <Image
-          source={require("../../../assets/images/welcome.png")} // Ensure path matches your folder
+          source={require("../../../assets/images/welcome.png")}
           className="w-full h-full object-cover"
         />
         <View className="absolute inset-0 bg-black/40" />
@@ -45,7 +81,9 @@ export default function MemberDashboard() {
                 <Text className="text-gray-300 text-xs font-bold uppercase">
                   Welcome Back
                 </Text>
-                <Text className="text-white text-xl font-bold">Alex</Text>
+                <Text className="text-white text-xl font-bold">
+                  {dashboardData.name}
+                </Text>
               </View>
             </Pressable>
 
@@ -93,7 +131,7 @@ export default function MemberDashboard() {
               </View>
 
               <Text className="text-center text-[34px] font-extrabold text-arch-blue tracking-tight">
-                {showBalance ? "UGX 4.5M" : "••••••••"}
+                {showBalance ? dashboardData.balance : "••••••••"}
               </Text>
             </View>
 
@@ -112,7 +150,7 @@ export default function MemberDashboard() {
                     Locked Savings
                   </Text>
                   <Text className="text-slate-900 font-semibold text-sm">
-                    {showBalance ? "UGX 1.5M" : "•••"}
+                    {showBalance ? dashboardData.lockedSavings : "•••"}
                   </Text>
                 </View>
               </View>
@@ -127,7 +165,7 @@ export default function MemberDashboard() {
                     Active Loan
                   </Text>
                   <Text className="text-slate-900 font-semibold text-sm">
-                    {showBalance ? "UGX 1.2M" : "•••"}
+                    {showBalance ? dashboardData.activeLoan : "•••"}
                   </Text>
                 </View>
                 <View className="bg-slate-100 p-2.5 rounded-xl">
@@ -137,6 +175,40 @@ export default function MemberDashboard() {
             </View>
           </View>
         </View>
+
+        {application?.status === "pending" ||
+        application?.status === "rejected" ? (
+          <Pressable
+            disabled={applicationStatus !== "rejected"}
+            onPress={() => router.push("/(member)/services/review")}
+            className={`mx-6 mb-6 p-4 rounded-2xl border ${statusUI.color}`}
+          >
+            <View className="flex-row items-center">
+              <Ionicons
+                name={statusUI.icon}
+                size={26}
+                color={statusUI.iconColor}
+                style={{ marginRight: 12 }}
+              />
+              <View className="flex-1">
+                <Text className="font-bold text-slate-800 text-sm">
+                  {statusUI.label}
+                </Text>
+                <Text className="text-xs text-slate-600 mt-1">
+                  {statusUI.description}
+                </Text>
+              </View>
+
+              {applicationStatus === "rejected" && (
+                <Text className="text-red-600 font-semibold text-xs">
+                  Update →
+                </Text>
+              )}
+            </View>
+          </Pressable>
+        ) : (
+          ""
+        )}
 
         {/* QUICK ACTIONS */}
         <View className="mb-8 bg-gray-50 pt-4 rounded-t-3xl px-6">
@@ -218,7 +290,8 @@ export default function MemberDashboard() {
             </Text>
           </View>
           <Pressable
-            onPress={() => setIsLoanFormVisible(true)}
+            disabled={!isApproved}
+            onPress={() => isApproved && setIsLoanFormVisible(true)}
             className="bg-green-600 px-4 py-2 rounded-xl shadow-sm shadow-blue-500/30"
           >
             <Text className="text-white font-bold text-xs">Apply</Text>
@@ -227,42 +300,35 @@ export default function MemberDashboard() {
 
         {/* RECENT TRANSACTIONS */}
         <View className="mb-20 bg-white rounded-3xl p-5 shadow-sm mx-6">
+          {/* Header */}
           <View className="flex-row justify-between items-center mb-4">
             <Text className="text-lg font-bold text-gray-800">
-              Recent Transactions
+              Recent Activity
             </Text>
             <Text className="text-arch-blue text-sm font-semibold">
               See All
             </Text>
           </View>
-
-          <TransactionItem
-            icon="arrow-up-circle"
-            iconColor="text-emerald-500"
-            bg="bg-emerald-50"
-            title="Monthly Savings"
-            date="Today, 10:23 AM"
-            amount="+ UGX 50,000"
-            amountColor="text-emerald-600"
-          />
-          <TransactionItem
-            icon="arrow-down-circle"
-            iconColor="text-slate-600"
-            bg="bg-slate-100"
-            title="Loan Repayment"
-            date="Yesterday"
-            amount="- UGX 120,000"
-            amountColor="text-slate-800"
-          />
-          <TransactionItem
-            icon="gift-outline"
-            iconColor="text-purple-500"
-            bg="bg-purple-50"
-            title="Welfare Contribution"
-            date="24 Sept 2023"
-            amount="- UGX 10,000"
-            amountColor="text-gray-600"
-          />
+          {/* 3. CONDITIONAL RENDERING */}
+          {transactions?.length !== 0 &&
+            transactions.map((item, index) => (
+              <TransactionItem key={index} item={item} />
+            ))}
+          {/* 4. EMPTY STATE UI */}
+          {transactions?.length === 0 && (
+            <View className="items-center py-10">
+              <View className="w-20 h-20 bg-slate-50 rounded-full items-center justify-center mb-4">
+                <Ionicons name="receipt-outline" size={32} color="#CBD5E1" />
+              </View>
+              <Text className="text-slate-900 font-bold text-base">
+                No transactions yet
+              </Text>
+              <Text className="text-slate-400 text-sm text-center mt-1 px-4">
+                Your financial activities will appear here once you start saving
+                or borrowing.
+              </Text>
+            </View>
+          )}
         </View>
         <Modal visible={isLoanFormVisible} transparent animationType="slide">
           <LoanApplicationForm onClose={() => setIsLoanFormVisible(false)} />

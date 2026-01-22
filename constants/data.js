@@ -11,6 +11,33 @@ export const chartData = [
   { label: "Dec", height: 35, active: true },
 ];
 
+export const MOCK_TRANSACTIONS = [
+  {
+    id: "1",
+    title: "Monthly Savings",
+    date: "Today, 10:23 AM",
+    amount: 50000,
+    type: "credit",
+    category: "savings",
+  },
+  {
+    id: "2",
+    title: "Loan Repayment",
+    date: "Yesterday",
+    amount: 120000,
+    type: "debit",
+    category: "loan",
+  },
+  {
+    id: "3",
+    title: "Welfare Contribution",
+    date: "24 Sept 2023",
+    amount: 10000,
+    type: "debit",
+    category: "welfare",
+  },
+];
+
 export const savingsTransactions = [
   { date: "Oct 24", type: "Mobile Money", amount: "+ 50,000" },
   { date: "Oct 01", type: "Standing Order", amount: "+ 150,000" },

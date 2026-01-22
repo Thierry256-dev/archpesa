@@ -4,7 +4,7 @@ import { ActivityIndicator, View } from "react-native";
 import "../global.css";
 
 export default function Index() {
-  const { user, appUser, loading, isAdmin } = useAuth();
+  const { user, loading, isAdmin, isNewUser, isPendingApplicant } = useAuth();
 
   if (loading) {
     return (
@@ -18,9 +18,14 @@ export default function Index() {
     return <Redirect href="/(auth)/login" />;
   }
 
-  // Logged in but NOT yet SACCO-approved
-  if (!appUser) {
+  // Brand new user → onboarding
+  if (isNewUser) {
     return <Redirect href="/(onboarding)" />;
+  }
+
+  // Pending or rejected applicant → limited dashboard
+  if (isPendingApplicant) {
+    return <Redirect href="/(member)/(tabs)/dashboard" />;
   }
 
   if (isAdmin) {
