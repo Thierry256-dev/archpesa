@@ -41,49 +41,73 @@ export function AuthProvider({ children }) {
   };
 
   useEffect(() => {
+    let isMounted = true;
+    let subscription;
+
     const initAuth = async () => {
-      const remember = await SecureStore.getItemAsync("rememberMe");
+      try {
+        const remember = await SecureStore.getItemAsync("rememberMe");
 
-      // Subscribe to auth state changes
-      const {
-        data: { subscription },
-      } = supabase.auth.onAuthStateChange(async (_event, session) => {
-        const authUser = session?.user ?? null;
-        setUser(authUser);
+        // Subscribe to auth state changes
+        const {
+          data: { subscription: authSubscription },
+        } = supabase.auth.onAuthStateChange(async (_event, session) => {
+          if (!isMounted) return;
 
-        if (authUser) {
-          const appUserData = await fetchAppUser(authUser);
-          setAppUser(appUserData);
-          setIsAdmin(appUserData?.role === "admin");
+          const authUser = session?.user ?? null;
+          setUser(authUser);
+
+          if (authUser) {
+            const appUserData = await fetchAppUser(authUser);
+            if (isMounted) {
+              setAppUser(appUserData);
+              setIsAdmin(appUserData?.role === "admin");
+            }
+          } else {
+            if (isMounted) {
+              setAppUser(null);
+              setIsAdmin(false);
+            }
+          }
+        });
+
+        subscription = authSubscription;
+
+        if (remember === "1") {
+          const { data } = await supabase.auth.getSession();
+          if (isMounted) {
+            setUser(data.session?.user ?? null);
+
+            if (data.session?.user) {
+              const appUserData = await fetchAppUser(data.session.user);
+              if (isMounted) {
+                setAppUser(appUserData);
+                setIsAdmin(appUserData?.role === "admin");
+              }
+            }
+          }
         } else {
-          setAppUser(null);
-          setIsAdmin(false);
+          await supabase.auth.signOut();
         }
-      });
 
-      if (remember === "1") {
-        const { data } = await supabase.auth.getSession();
-        setUser(data.session?.user ?? null);
-
-        if (data.session?.user) {
-          const appUserData = await fetchAppUser(data.session.user);
-          setAppUser(appUserData);
-          setIsAdmin(appUserData?.role === "admin");
+        if (isMounted) {
+          setRememberMeState(remember === "1");
+          setLoading(false);
         }
-      } else {
-        await supabase.auth.signOut();
+      } catch (error) {
+        console.error("Auth initialization error:", error);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
-
-      setRememberMeState(remember === "1");
-      setLoading(false);
-
-      // Cleanup subscription on unmount
-      return () => subscription?.unsubscribe();
     };
 
-    const cleanup = initAuth();
+    initAuth();
+
+    // Cleanup on unmount
     return () => {
-      cleanup.then((fn) => fn?.());
+      isMounted = false;
+      subscription?.unsubscribe();
     };
   }, []);
 

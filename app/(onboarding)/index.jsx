@@ -1,5 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
+import { useRouter } from "expo-router";
 import { useRef, useState } from "react";
 import {
   Dimensions,
@@ -42,11 +43,12 @@ const slides = [
 ];
 
 export default function OnboardingScreen() {
+  const router = useRouter();
   const flatListRef = useRef(null);
   const [index, setIndex] = useState(0);
 
   const isLast = index === slides.length - 1;
-  const archBlue = "#001F3F";
+  const archWhite = "#ffffff";
 
   const viewConfigRef = useRef({ viewAreaCoveragePercentThreshold: 50 });
 
@@ -57,7 +59,7 @@ export default function OnboardingScreen() {
   });
 
   return (
-    <View className="flex-1 bg-arch-blue">
+    <View className="flex-1 bg-white z-1">
       <StatusBar barStyle="light-content" />
 
       {/* Ambient Glows */}
@@ -70,17 +72,31 @@ export default function OnboardingScreen() {
           height: 320,
           backgroundColor: "rgba(255,255,255,0.08)",
           borderRadius: 160,
+          zIndex: 5,
         }}
       />
       <View
         style={{
           position: "absolute",
-          top: height * 0.35,
-          left: -120,
+          top: height * 0.1,
+          left: -160,
           width: 240,
           height: 240,
           backgroundColor: "rgba(0,122,255,0.18)",
           borderRadius: 120,
+          zIndex: 5,
+        }}
+      />
+      <View
+        style={{
+          position: "absolute",
+          bottom: height * 0.35,
+          right: -120,
+          width: 280,
+          height: 280,
+          backgroundColor: "rgba(0,122,255,0.18)",
+          borderRadius: 140,
+          zIndex: 5,
         }}
       />
 
@@ -114,7 +130,7 @@ export default function OnboardingScreen() {
             />
 
             <LinearGradient
-              colors={["transparent", archBlue]}
+              colors={["transparent", archWhite]}
               style={{
                 position: "absolute",
                 bottom: 0,
@@ -128,7 +144,7 @@ export default function OnboardingScreen() {
       />
 
       {/* Floating Card */}
-      <View className="flex-1 justify-end">
+      <View className="flex-1 justify-end z-20">
         <View className="mx-5 mb-10 bg-white rounded-[32px] p-8 shadow-2xl shadow-black/40">
           {/* Indicators */}
           <View className="flex-row space-x-2 mb-6">
@@ -182,7 +198,7 @@ export default function OnboardingScreen() {
             ) : (
               <Pressable
                 onPress={() => {
-                  // navigate to registration
+                  router.push("/(onboarding)/register");
                 }}
                 className="bg-brand-primary flex-1 h-14 rounded-2xl flex-row items-center justify-center"
               >
