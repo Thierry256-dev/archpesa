@@ -5,82 +5,86 @@ import { createContext, useContext, useEffect, useState } from "react";
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null); // Supabase auth user
-  const [appUser, setAppUser] = useState(null); // From users table
+  const [user, setUser] = useState(null);
+  const [appUser, setAppUser] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   const [rememberMe, setRememberMeState] = useState(false);
 
-  /** Save rememberMe preference */
   const setRememberMe = async (value) => {
     setRememberMeState(value);
     await SecureStore.setItemAsync("rememberMe", value ? "1" : "0");
   };
 
-  /** Fetch role & SACCO info from users table */
-  const fetchAppUser = async (authUser) => {
-    if (!authUser) {
-      setAppUser(null);
-      return;
-    }
-
-    const { data, error } = await supabase
-      .from("users")
-      .select("*")
-      .eq("id", authUser.id)
-      .single();
-
-    if (error) {
-      // Not yet approved / not in users table
-      setAppUser(null);
-      return;
-    }
-
-    setAppUser(data);
-  };
-
-  /** Logout */
   const signOut = async () => {
     await supabase.auth.signOut();
     await SecureStore.deleteItemAsync("rememberMe");
     setUser(null);
     setAppUser(null);
+    setIsAdmin(false);
   };
 
-  /** Initial boot logic */
+  /** Fetch SACCO user */
+  const fetchAppUser = async (authUser) => {
+    const { data, error } = await supabase
+      .from("users")
+      .select("*")
+      .eq("id", authUser.id)
+      .single(); // use single now that RLS is correct
+
+    if (error) {
+      console.error("User fetch error:", error);
+      return null;
+    }
+
+    return data;
+  };
+
   useEffect(() => {
     const initAuth = async () => {
       const remember = await SecureStore.getItemAsync("rememberMe");
 
-      // Auth listener (single source of truth)
+      // Subscribe to auth state changes
       const {
         data: { subscription },
       } = supabase.auth.onAuthStateChange(async (_event, session) => {
         const authUser = session?.user ?? null;
         setUser(authUser);
-        await fetchAppUser(authUser);
+
+        if (authUser) {
+          const appUserData = await fetchAppUser(authUser);
+          setAppUser(appUserData);
+          setIsAdmin(appUserData?.role === "admin");
+        } else {
+          setAppUser(null);
+          setIsAdmin(false);
+        }
       });
 
       if (remember === "1") {
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
+        const { data } = await supabase.auth.getSession();
+        setUser(data.session?.user ?? null);
 
-        const authUser = session?.user ?? null;
-        setUser(authUser);
-        await fetchAppUser(authUser);
+        if (data.session?.user) {
+          const appUserData = await fetchAppUser(data.session.user);
+          setAppUser(appUserData);
+          setIsAdmin(appUserData?.role === "admin");
+        }
       } else {
         await supabase.auth.signOut();
-        setUser(null);
-        setAppUser(null);
       }
 
       setRememberMeState(remember === "1");
       setLoading(false);
 
-      return () => subscription.unsubscribe();
+      // Cleanup subscription on unmount
+      return () => subscription?.unsubscribe();
     };
 
-    initAuth();
+    const cleanup = initAuth();
+    return () => {
+      cleanup.then((fn) => fn?.());
+    };
   }, []);
 
   return (
@@ -88,12 +92,11 @@ export function AuthProvider({ children }) {
       value={{
         user,
         appUser,
+        isAdmin,
         loading,
         rememberMe,
         setRememberMe,
         signOut,
-        isAdmin: appUser?.role === "admin",
-        isMember: appUser?.role === "member",
       }}
     >
       {children}
@@ -101,7 +104,6 @@ export function AuthProvider({ children }) {
   );
 }
 
-/** Hook */
 export function useAuth() {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error("useAuth must be used inside AuthProvider");

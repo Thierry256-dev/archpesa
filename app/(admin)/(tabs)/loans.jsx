@@ -343,13 +343,12 @@ export default function Loans() {
 
             <Pressable
               onPress={() => {
-                // Replace later with Supabase transaction
-                console.log(`${actionType} loan`, selectedLoan.id);
-
-                setActionType(null);
-                setSelectedLoan(null);
+                // TODO: Implement Supabase transaction to update loan status
+                // This will handle both approval and disbursement actions
+                // setActionType(null);
+                // setSelectedLoan(null);
               }}
-              className="bg-arch-blue py-4 rounded-xl mb-3"
+              className="bg-arch-blue py-4 rounded-xl mb-3 opacity-60"
             >
               <Text className="text-white text-center font-bold">
                 Yes, Proceed

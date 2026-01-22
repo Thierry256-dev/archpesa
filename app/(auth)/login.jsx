@@ -38,11 +38,13 @@ export default function Login() {
     });
 
     setLoading(false);
-    router.replace("/(member)/(tabs)/dashboard");
+
     if (error) {
       setError(error.message);
       return;
     }
+
+    router.replace("/");
   };
 
   return (

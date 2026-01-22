@@ -63,7 +63,7 @@ export default function MemberDetail() {
   const saveChanges = () => {
     Alert.alert("Saved", "Member data has been updated (MVP).");
     setIsEditing(false);
-    // TODO: Replace with API call
+    // TODO: Implement Supabase API call to update member profile data
   };
 
   return (

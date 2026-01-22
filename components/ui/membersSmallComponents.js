@@ -48,7 +48,7 @@ export function MemberRow({ member }) {
 
   return (
     <Pressable
-      onPress={() => router.push(`/memberProfiles/${member.id}`)}
+      onPress={() => router.push(`/(admin)/memberProfiles/${member.id}`)}
       className="bg-white p-4 rounded-2xl mb-4 border border-gray-100 shadow-sm"
     >
       <View className="flex-row justify-between items-center">

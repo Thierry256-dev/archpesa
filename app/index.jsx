@@ -8,7 +8,7 @@ export default function Index() {
 
   if (loading) {
     return (
-      <View className="flex-1 items-center justify-center bg-brand-primary">
+      <View className="flex-1 items-center justify-center bg-arch-blue">
         <ActivityIndicator size="large" color="#fff" />
       </View>
     );
@@ -18,9 +18,9 @@ export default function Index() {
     return <Redirect href="/(auth)/login" />;
   }
 
-  // Logged in but not yet approved into users table
+  // Logged in but NOT yet SACCO-approved
   if (!appUser) {
-    return <Redirect href="/(member)/(tabs)/dashboard" />;
+    return <Redirect href="/(onboarding)" />;
   }
 
   if (isAdmin) {
