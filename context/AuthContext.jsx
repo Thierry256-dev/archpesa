@@ -5,18 +5,18 @@ import { createContext, useContext, useEffect, useState } from "react";
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [application, setApplication] = useState(null);
-  const [isPendingApplicant, setIsPendingApplicant] = useState(false);
-  const [isNewUser, setIsNewUser] = useState(false);
   const [user, setUser] = useState(null);
   const [appUser, setAppUser] = useState(null);
-  const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   const [rememberMe, setRememberMeState] = useState(false);
 
   const setRememberMe = async (value) => {
-    setRememberMeState(value);
-    await SecureStore.setItemAsync("rememberMe", value ? "1" : "0");
+    try {
+      await SecureStore.setItemAsync("rememberMe", value ? "1" : "0");
+      setRememberMeState(value);
+    } catch (error) {
+      console.error("Failed to save rememberMe preference:", error);
+    }
   };
 
   const signOut = async () => {
@@ -24,43 +24,21 @@ export function AuthProvider({ children }) {
     await SecureStore.deleteItemAsync("rememberMe");
     setUser(null);
     setAppUser(null);
-    setIsAdmin(false);
   };
 
-  /** Fetch SACCO user */
-  const fetchAppUser = async (authUser) => {
-    const { data, error } = await supabase
-      .from("users")
-      .select("*")
-      .eq("id", authUser.id)
-      .single(); // use single now that RLS is correct
+  //Fetch User Context
+  const fetchUserContext = async () => {
+    const { data, error } = await supabase.rpc("get_user_context");
 
     if (error) {
-      console.error("User fetch error:", error);
+      console.error("User context error:", error);
       return null;
     }
 
     return data;
   };
 
-  /** Fetch member application (if any) */
-  const fetchApplication = async (authUser) => {
-    const { data, error } = await supabase
-      .from("member_applications")
-      .select("*")
-      .eq("auth_user_id", authUser.id)
-      .single();
-
-    if (error) {
-      // no row found is NORMAL for brand new users
-      if (error.code !== "PGRST116") {
-        console.error("Application fetch error:", error);
-      }
-      return null;
-    }
-
-    return data;
-  };
+  const userType = appUser?.type ?? null;
 
   useEffect(() => {
     let isMounted = true;
@@ -70,7 +48,22 @@ export function AuthProvider({ children }) {
       try {
         const remember = await SecureStore.getItemAsync("rememberMe");
 
-        // Subscribe to auth state changes
+        if (remember !== "1") {
+          await supabase.auth.signOut();
+          if (isMounted) setLoading(false);
+          return;
+        }
+
+        setRememberMeState(true);
+
+        const { data: sessionData } = await supabase.auth.getSession();
+
+        if (sessionData?.session?.user) {
+          setUser(sessionData.session.user);
+          const context = await fetchUserContext();
+          if (isMounted) setAppUser(context);
+        }
+
         const {
           data: { subscription: authSubscription },
         } = supabase.auth.onAuthStateChange(async (_event, session) => {
@@ -78,79 +71,26 @@ export function AuthProvider({ children }) {
 
           const authUser = session?.user ?? null;
           setUser(authUser);
-          if (authUser) {
-            const appUserData = await fetchAppUser(authUser);
-            const applicationData = await fetchApplication(authUser);
 
-            if (!isMounted) return;
-
-            setAppUser(appUserData);
-            setApplication(applicationData);
-
-            // ADMIN
-            if (appUserData?.role === "admin") {
-              setIsAdmin(true);
-              setIsNewUser(false);
-              setIsPendingApplicant(false);
-              return;
-            }
-
-            // REGISTERED MEMBER
-            if (appUserData) {
-              setIsAdmin(false);
-              setIsNewUser(false);
-              setIsPendingApplicant(false);
-              return;
-            }
-
-            // PENDING / REJECTED APPLICANT
-            if (applicationData) {
-              setIsPendingApplicant(true);
-              setIsNewUser(false);
-              setIsAdmin(false);
-              return;
-            }
-
-            // BRAND NEW USER
-            setIsNewUser(true);
-            setIsPendingApplicant(false);
-            setIsAdmin(false);
-          } else {
-            if (isMounted) {
-              setAppUser(null);
-              setIsAdmin(false);
-            }
+          if (!authUser) {
+            setAppUser(null);
+            setLoading(false);
+            return;
           }
+
+          const context = await fetchUserContext();
+          if (!isMounted) return;
+
+          setAppUser(context);
+          setLoading(false);
         });
 
         subscription = authSubscription;
 
-        if (remember === "1") {
-          const { data } = await supabase.auth.getSession();
-          if (isMounted) {
-            setUser(data.session?.user ?? null);
-
-            if (data.session?.user) {
-              const appUserData = await fetchAppUser(data.session.user);
-              if (isMounted) {
-                setAppUser(appUserData);
-                setIsAdmin(appUserData?.role === "admin");
-              }
-            }
-          }
-        } else {
-          await supabase.auth.signOut();
-        }
-
-        if (isMounted) {
-          setRememberMeState(remember === "1");
-          setLoading(false);
-        }
+        if (isMounted) setLoading(false);
       } catch (error) {
         console.error("Auth initialization error:", error);
-        if (isMounted) {
-          setLoading(false);
-        }
+        if (isMounted) setLoading(false);
       }
     };
 
@@ -168,10 +108,7 @@ export function AuthProvider({ children }) {
       value={{
         user,
         appUser,
-        application,
-        isAdmin,
-        isNewUser,
-        isPendingApplicant,
+        userType,
         loading,
         rememberMe,
         setRememberMe,

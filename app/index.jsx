@@ -4,8 +4,9 @@ import { ActivityIndicator, View } from "react-native";
 import "../global.css";
 
 export default function Index() {
-  const { user, loading, isAdmin, isNewUser, isPendingApplicant } = useAuth();
+  const { user, userType, loading } = useAuth();
 
+  // Still resolving auth / context
   if (loading) {
     return (
       <View className="flex-1 items-center justify-center bg-arch-blue">
@@ -14,23 +15,27 @@ export default function Index() {
     );
   }
 
+  // Not logged in
   if (!user) {
     return <Redirect href="/(auth)/login" />;
   }
 
-  // Brand new user → onboarding
-  if (isNewUser) {
-    return <Redirect href="/(onboarding)" />;
-  }
+  // Supabase-driven routing
+  switch (userType) {
+    case "new_user":
+      return <Redirect href="/(onboarding)" />;
 
-  // Pending or rejected applicant → limited dashboard
-  if (isPendingApplicant) {
-    return <Redirect href="/(member)/(tabs)/dashboard" />;
-  }
+    case "pending_applicant":
+      return <Redirect href="/(member)/(tabs)/dashboard" />;
 
-  if (isAdmin) {
-    return <Redirect href="/(admin)/(tabs)/dashboard" />;
-  }
+    case "admin":
+      return <Redirect href="/(admin)/(tabs)/dashboard" />;
 
-  return <Redirect href="/(member)/(tabs)/dashboard" />;
+    case "member":
+      return <Redirect href="/(member)/(tabs)/dashboard" />;
+
+    default:
+      // Safety net — should never happen
+      return <Redirect href="/(auth)/login" />;
+  }
 }
