@@ -1,18 +1,23 @@
+import { useTheme } from "@/context/ThemeProvider";
 import { useRouter } from "expo-router";
 import { Pressable, Text, View } from "react-native";
 
 export function FilterChip({ label, active, onPress }) {
+  const { theme } = useTheme();
+
   return (
     <Pressable
       onPress={onPress}
-      className={`px-4 py-2 rounded-full ${
-        active ? "bg-white" : "bg-white/20"
-      }`}
+      style={{
+        backgroundColor: active ? theme.card : "rgba(255,255,255,0.2)",
+      }}
+      className="px-4 py-2 rounded-full"
     >
       <Text
-        className={`text-xs font-bold ${
-          active ? "text-arch-blue" : "text-white"
-        }`}
+        style={{
+          color: active ? theme.primary : theme.white,
+        }}
+        className="text-xs font-bold"
       >
         {label}
       </Text>
@@ -21,15 +26,27 @@ export function FilterChip({ label, active, onPress }) {
 }
 
 export function StatCard({ label, value, danger }) {
+  const { theme } = useTheme();
+
   return (
-    <View className="bg-white p-4 rounded-2xl w-[48%] shadow-sm">
-      <Text className="text-gray-400 text-[10px] uppercase font-bold">
+    <View
+      style={{
+        backgroundColor: theme.card,
+        shadowColor: theme.gray200,
+      }}
+      className="p-4 rounded-2xl w-[48%] shadow-sm"
+    >
+      <Text
+        style={{ color: theme.gray400 }}
+        className="text-[10px] uppercase font-bold"
+      >
         {label}
       </Text>
       <Text
-        className={`text-2xl font-black mt-1 ${
-          danger ? "text-red-600" : "text-slate-900"
-        }`}
+        style={{
+          color: danger ? theme.rose : theme.text,
+        }}
+        className="text-2xl font-black mt-1"
       >
         {value}
       </Text>
@@ -39,31 +56,46 @@ export function StatCard({ label, value, danger }) {
 
 export function MemberRow({ member }) {
   const router = useRouter();
-  const statusColor =
-    member.loan.status === "overdue"
-      ? "bg-red-50 text-red-600"
-      : member.loan.status === "current"
-        ? "bg-orange-50 text-orange-600"
-        : "bg-emerald-50 text-emerald-600";
+  const { theme } = useTheme();
+
+  const getStatusStyle = () => {
+    if (member.loan.status === "overdue") {
+      return { bg: theme.rose + "15", text: theme.rose };
+    } else if (member.loan.status === "current") {
+      return { bg: theme.orange + "15", text: theme.orange };
+    } else {
+      return { bg: theme.emerald + "15", text: theme.emerald };
+    }
+  };
+
+  const statusStyle = getStatusStyle();
 
   return (
     <Pressable
       onPress={() => router.push(`/(admin)/memberProfiles/${member.id}`)}
-      className="bg-white p-4 rounded-2xl mb-4 border border-gray-100 shadow-sm"
+      style={{
+        backgroundColor: theme.card,
+        borderColor: theme.gray100,
+        shadowColor: theme.gray200,
+      }}
+      className="p-4 rounded-2xl mb-4 border shadow-sm"
     >
       <View className="flex-row justify-between items-center">
         {/* LEFT */}
         <View className="flex-row items-center">
-          <View className="w-10 h-10 rounded-full bg-slate-100 items-center justify-center">
-            <Text className="font-bold text-slate-600">
+          <View
+            style={{ backgroundColor: theme.gray100 }}
+            className="w-10 h-10 rounded-full items-center justify-center"
+          >
+            <Text style={{ color: theme.gray600 }} className="font-bold">
               {member.firstName.charAt(0)}
             </Text>
           </View>
           <View className="ml-3">
-            <Text className="font-bold text-slate-900">
+            <Text style={{ color: theme.text }} className="font-bold">
               {member.firstName} {member.lastName}
             </Text>
-            <Text className="text-[10px] text-gray-400">
+            <Text style={{ color: theme.gray400 }} className="text-[10px]">
               {member.id} • {member.phone}
             </Text>
           </View>
@@ -71,28 +103,37 @@ export function MemberRow({ member }) {
 
         {/* RIGHT */}
         <View className="items-end">
-          <View className={`px-2 py-1 rounded-md ${statusColor}`}>
-            <Text className="text-[10px] font-bold uppercase">
+          <View
+            style={{ backgroundColor: statusStyle.bg }}
+            className="px-2 py-1 rounded-md"
+          >
+            <Text
+              style={{ color: statusStyle.text }}
+              className="text-[10px] font-bold uppercase"
+            >
               {member.loan.status}
             </Text>
           </View>
-          <Text className="text-[9px] text-gray-400 mt-1">
+          <Text style={{ color: theme.gray400 }} className="text-[9px] mt-1">
             Last active: {member.lastActive}
           </Text>
         </View>
       </View>
 
       {/* FINANCIAL SNAPSHOT */}
-      <View className="flex-row justify-between mt-4 border-t border-gray-100 pt-3">
-        <Text className="text-xs text-gray-500">
+      <View
+        style={{ borderTopColor: theme.gray100 }}
+        className="flex-row justify-between mt-4 border-t pt-3"
+      >
+        <Text style={{ color: theme.gray500 }} className="text-xs">
           Savings:{" "}
-          <Text className="font-bold text-slate-800">
+          <Text style={{ color: theme.text }} className="font-bold">
             UGX {member.savings.toLocaleString()}
           </Text>
         </Text>
-        <Text className="text-xs text-gray-500">
+        <Text style={{ color: theme.gray500 }} className="text-xs">
           Loan:{" "}
-          <Text className="font-bold text-slate-800">
+          <Text style={{ color: theme.text }} className="font-bold">
             UGX {member.loan.outstanding.toLocaleString()}
           </Text>
         </Text>

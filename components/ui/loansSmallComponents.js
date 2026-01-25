@@ -1,19 +1,30 @@
+import { useTheme } from "@/context/ThemeProvider";
 import { Ionicons } from "@expo/vector-icons";
 import { Pressable, Text, View } from "react-native";
 
 export function GuarantorStatusRow({ name, memberId, status, pledge, isLast }) {
+  const { theme } = useTheme();
+
   const getStatusStyle = () => {
     switch (status) {
       case "Accepted":
         return {
-          text: "text-emerald-600",
-          bg: "bg-emerald-50",
+          textColor: theme.emerald,
+          bgColor: theme.emerald + "15",
           icon: "checkmark-circle",
         };
       case "Rejected":
-        return { text: "text-red-600", bg: "bg-red-50", icon: "close-circle" };
+        return {
+          textColor: theme.rose,
+          bgColor: theme.rose + "15",
+          icon: "close-circle",
+        };
       default:
-        return { text: "text-orange-600", bg: "bg-orange-50", icon: "time" };
+        return {
+          textColor: theme.orange,
+          bgColor: theme.orange + "15",
+          icon: "time",
+        };
     }
   };
 
@@ -21,37 +32,54 @@ export function GuarantorStatusRow({ name, memberId, status, pledge, isLast }) {
 
   return (
     <View
-      className={`flex-row items-center py-3 ${!isLast ? "border-b border-slate-50" : ""}`}
+      style={{
+        borderBottomColor: theme.border,
+        borderBottomWidth: !isLast ? 1 : 0,
+      }}
+      className="flex-row items-center py-3"
     >
       {/* Avatar/Initial */}
-      <View className="w-10 h-10 bg-slate-100 rounded-full items-center justify-center">
-        <Text className="font-bold text-slate-600">{name.charAt(0)}</Text>
+      <View
+        style={{ backgroundColor: theme.gray100 }}
+        className="w-10 h-10 rounded-full items-center justify-center"
+      >
+        <Text style={{ color: theme.gray600 }} className="font-bold">
+          {name.charAt(0)}
+        </Text>
       </View>
 
       <View className="flex-1 ml-3">
-        <Text className="text-sm font-bold text-slate-800">{name}</Text>
-        <Text className="text-[10px] text-slate-400 font-medium">
+        <Text style={{ color: theme.text }} className="text-sm font-bold">
+          {name}
+        </Text>
+        <Text
+          style={{ color: theme.gray400 }}
+          className="text-[10px] font-medium"
+        >
           ID: {memberId}
         </Text>
       </View>
 
       <View className="items-end">
         <View
-          className={`${style.bg} px-2 py-1 rounded-md flex-row items-center mb-1`}
+          style={{ backgroundColor: style.bgColor }}
+          className="px-2 py-1 rounded-md flex-row items-center mb-1"
         >
-          <Ionicons
-            name={style.icon}
-            size={12}
-            color={style.text.replace("text-", "#")}
-          />
+          <Ionicons name={style.icon} size={12} color={style.textColor} />
           <Text
-            className={`${style.text} text-[10px] font-black ml-1 uppercase`}
+            style={{ color: style.textColor }}
+            className="text-[10px] font-black ml-1 uppercase"
           >
             {status}
           </Text>
         </View>
         {status === "Accepted" && (
-          <Text className="text-slate-500 font-bold text-[9px]">{pledge}</Text>
+          <Text
+            style={{ color: theme.gray500 }}
+            className="font-bold text-[9px]"
+          >
+            {pledge}
+          </Text>
         )}
       </View>
     </View>
@@ -59,40 +87,60 @@ export function GuarantorStatusRow({ name, memberId, status, pledge, isLast }) {
 }
 
 export function ReplacementItem({ name, id, onSelect }) {
+  const { theme } = useTheme();
+
   return (
     <Pressable
       onPress={onSelect}
-      className="flex-row items-center justify-between p-4 bg-white border border-slate-100 rounded-2xl mb-3 shadow-sm active:bg-slate-50"
+      style={{
+        backgroundColor: theme.card,
+        borderColor: theme.border,
+        shadowColor: theme.gray200,
+      }}
+      className="flex-row items-center justify-between p-4 border rounded-2xl mb-3 shadow-sm"
     >
       <View className="flex-row items-center">
-        <View className="w-10 h-10 bg-indigo-50 rounded-full items-center justify-center">
-          <Text className="text-indigo-600 font-bold">{name.charAt(0)}</Text>
+        <View
+          style={{ backgroundColor: theme.indigo + "20" }} // Light indigo bg
+          className="w-10 h-10 rounded-full items-center justify-center"
+        >
+          <Text style={{ color: theme.indigo }} className="font-bold">
+            {name.charAt(0)}
+          </Text>
         </View>
         <View className="ml-3">
-          <Text className="text-slate-800 font-bold text-sm">{name}</Text>
-          <Text className="text-slate-400 text-[10px]">Member ID: {id}</Text>
+          <Text style={{ color: theme.text }} className="font-bold text-sm">
+            {name}
+          </Text>
+          <Text style={{ color: theme.gray400 }} className="text-[10px]">
+            Member ID: {id}
+          </Text>
         </View>
       </View>
-      <View className="bg-indigo-600 px-3 py-1.5 rounded-xl">
-        <Text className="text-white font-bold text-[10px]">Select</Text>
+      <View
+        style={{ backgroundColor: theme.indigo }}
+        className="px-3 py-1.5 rounded-xl"
+      >
+        <Text style={{ color: theme.white }} className="font-bold text-[10px]">
+          Select
+        </Text>
       </View>
     </Pressable>
   );
 }
 
 export function TabButton({ label, name, activeTab, onPress }) {
+  const { theme } = useTheme();
   const isActive = activeTab === name;
 
   return (
     <Pressable
       hitSlop={8}
-      onPress={(e) => {
-        if (onPress) onPress();
-      }}
+      onPress={onPress}
       className="flex-1 py-3 rounded-xl items-center justify-center"
       style={{
-        backgroundColor: isActive ? "#FFFFFF" : "transparent",
-        shadowColor: isActive ? "#000" : "transparent",
+        backgroundColor: isActive ? theme.card : "transparent",
+        shadowColor: isActive ? theme.shadow : "transparent",
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: isActive ? 0.1 : 0,
         shadowRadius: 4,
@@ -100,9 +148,10 @@ export function TabButton({ label, name, activeTab, onPress }) {
       }}
     >
       <Text
-        className={`font-bold ${
-          isActive ? "text-[#07193f]" : "text-slate-400"
-        }`}
+        style={{
+          color: isActive ? theme.text : theme.gray400,
+        }}
+        className="font-bold"
       >
         {label}
       </Text>
@@ -111,32 +160,55 @@ export function TabButton({ label, name, activeTab, onPress }) {
 }
 
 export function ApproverRow({ name, person, status, icon, isLast }) {
+  const { theme } = useTheme();
+  const isApproved = status === "Approved";
+
   return (
     <View
-      className={`flex-row justify-between items-center py-4 ${!isLast ? "border-b border-gray-50" : ""}`}
+      style={{
+        borderBottomColor: theme.border,
+        borderBottomWidth: !isLast ? 1 : 0,
+      }}
+      className="flex-row justify-between items-center py-4"
     >
       <View className="flex-row items-center">
         <View
-          className={`w-10 h-10 rounded-2xl items-center justify-center ${status === "Approved" ? "bg-emerald-50" : "bg-slate-50"}`}
+          style={{
+            backgroundColor: isApproved ? theme.emerald + "15" : theme.gray50,
+          }}
+          className="w-10 h-10 rounded-2xl items-center justify-center"
         >
           <Ionicons
             name={icon}
             size={20}
-            color={status === "Approved" ? "#10B981" : "#94A3B8"}
+            color={isApproved ? theme.emerald : theme.gray400}
           />
         </View>
         <View className="ml-3">
-          <Text className="text-gray-400 text-[10px] font-bold uppercase">
+          <Text
+            style={{ color: theme.gray400 }}
+            className="text-[10px] font-bold uppercase"
+          >
             {name}
           </Text>
-          <Text className="font-bold text-slate-800 text-sm">{person}</Text>
+          <Text style={{ color: theme.text }} className="font-bold text-sm">
+            {person}
+          </Text>
         </View>
       </View>
       <View
-        className={`px-3 py-1 rounded-full ${status === "Approved" ? "bg-emerald-100" : "bg-orange-50"}`}
+        style={{
+          backgroundColor: isApproved
+            ? theme.emerald + "20"
+            : theme.orange + "15",
+        }}
+        className="px-3 py-1 rounded-full"
       >
         <Text
-          className={`text-[10px] font-black ${status === "Approved" ? "text-emerald-700" : "text-orange-600"}`}
+          style={{
+            color: isApproved ? theme.emerald : theme.orange,
+          }}
+          className="text-[10px] font-black"
         >
           {status.toUpperCase()}
         </Text>
@@ -146,17 +218,34 @@ export function ApproverRow({ name, person, status, icon, isLast }) {
 }
 
 export function HistoryItem({ title, amount, date, status }) {
+  const { theme } = useTheme();
+
   return (
-    <View className="bg-white mb-3 p-4 rounded-2xl flex-row justify-between items-center border border-gray-100">
+    <View
+      style={{
+        backgroundColor: theme.card,
+        borderColor: theme.border,
+      }}
+      className="mb-3 p-4 rounded-2xl flex-row justify-between items-center border"
+    >
       <View>
-        <Text className="font-bold text-slate-800">{title}</Text>
-        <Text className="text-gray-400 text-xs">{date}</Text>
+        <Text style={{ color: theme.text }} className="font-bold">
+          {title}
+        </Text>
+        <Text style={{ color: theme.gray400 }} className="text-xs">
+          {date}
+        </Text>
       </View>
       <View className="items-end">
-        <Text className="font-black text-slate-900">{amount}</Text>
+        <Text style={{ color: theme.text }} className="font-black">
+          {amount}
+        </Text>
         <View className="flex-row items-center">
-          <Ionicons name="checkmark-done" size={14} color="#10B981" />
-          <Text className="text-emerald-600 text-[10px] font-bold ml-1">
+          <Ionicons name="checkmark-done" size={14} color={theme.emerald} />
+          <Text
+            style={{ color: theme.emerald }}
+            className="text-[10px] font-bold ml-1"
+          >
             {status}
           </Text>
         </View>
@@ -166,17 +255,32 @@ export function HistoryItem({ title, amount, date, status }) {
 }
 
 export function LoanActionCard({ title, icon, color, desc }) {
+  const { theme } = useTheme();
+
   return (
-    <Pressable className="w-[48%] flex-1 bg-white p-4 rounded-3xl border border-gray-100 shadow-sm">
+    <Pressable
+      style={{
+        backgroundColor: theme.card,
+        borderColor: theme.border,
+        shadowColor: theme.gray200,
+      }}
+      className="w-[48%] flex-1 p-4 rounded-3xl border shadow-sm"
+    >
       <View
         className={`${color} w-10 h-10 rounded-2xl items-center justify-center mb-3`}
       >
         <Ionicons name={icon} size={20} color="white" />
       </View>
-      <Text numberOfLines={1} className="font-bold text-slate-900 text-sm">
+      <Text
+        numberOfLines={1}
+        style={{ color: theme.text }}
+        className="font-bold text-sm"
+      >
         {title}
       </Text>
-      <Text className="text-gray-400 text-[10px] mt-1">{desc}</Text>
+      <Text style={{ color: theme.gray400 }} className="text-[10px] mt-1">
+        {desc}
+      </Text>
     </Pressable>
   );
 }

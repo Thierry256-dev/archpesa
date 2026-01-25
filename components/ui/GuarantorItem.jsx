@@ -1,3 +1,4 @@
+import { useTheme } from "@/context/ThemeProvider";
 import { Ionicons } from "@expo/vector-icons";
 import { Text, View } from "react-native";
 
@@ -9,39 +10,76 @@ export default function GuarantorItem({
   date,
   isWarning,
 }) {
+  const { theme } = useTheme();
+
   return (
-    <View className="bg-white p-5 rounded-3xl border border-slate-100 mb-4 shadow-sm">
+    <View
+      style={{
+        backgroundColor: theme.card,
+        borderColor: theme.gray100,
+        shadowColor: theme.gray200,
+      }}
+      className="p-5 rounded-3xl border mb-4 shadow-sm"
+    >
       <View className="flex-row justify-between items-start mb-4">
         <View className="flex-row items-center">
-          <View className="w-10 h-10 bg-slate-100 rounded-full items-center justify-center">
-            <Ionicons name="person-outline" size={20} color="#07193f" />
+          <View
+            style={{ backgroundColor: theme.gray100 }}
+            className="w-10 h-10 rounded-full items-center justify-center"
+          >
+            <Ionicons name="person-outline" size={20} color={theme.primary} />
           </View>
           <View className="ml-3">
-            <Text className="font-bold text-slate-900">{name}</Text>
-            <Text className="text-slate-400 text-[10px]">{loanType}</Text>
+            <Text style={{ color: theme.text }} className="font-bold">
+              {name}
+            </Text>
+            <Text style={{ color: theme.gray400 }} className="text-[10px]">
+              {loanType}
+            </Text>
           </View>
         </View>
         <View
-          className={`${isWarning ? "bg-red-50" : "bg-emerald-50"} px-3 py-1 rounded-full`}
+          style={{
+            backgroundColor: isWarning
+              ? theme.rose + "15"
+              : theme.emerald + "15", // 15 = ~10% opacity hex
+          }}
+          className="px-3 py-1 rounded-full"
         >
           <Text
-            className={`text-[10px] font-bold ${isWarning ? "text-red-600" : "text-[#10b981]"}`}
+            style={{
+              color: isWarning ? theme.rose : theme.emerald,
+            }}
+            className="text-[10px] font-bold"
           >
             {status}
           </Text>
         </View>
       </View>
 
-      <View className="h-[1px] bg-slate-50 w-full mb-4" />
+      <View
+        style={{ backgroundColor: theme.gray50 }}
+        className="h-[1px] w-full mb-4"
+      />
 
       <View className="flex-row justify-between items-center">
         <View>
-          <Text className="text-slate-400 text-[10px] uppercase font-bold">
+          <Text
+            style={{ color: theme.gray400 }}
+            className="text-[10px] uppercase font-bold"
+          >
             Pledged Amount
           </Text>
-          <Text className="text-[#07193f] font-bold">{amount}</Text>
+          <Text style={{ color: theme.primary }} className="font-bold">
+            {amount}
+          </Text>
         </View>
-        <Text className="text-slate-400 text-[10px] font-medium">{date}</Text>
+        <Text
+          style={{ color: theme.gray400 }}
+          className="text-[10px] font-medium"
+        >
+          {date}
+        </Text>
       </View>
     </View>
   );

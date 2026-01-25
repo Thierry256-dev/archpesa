@@ -1,3 +1,4 @@
+import { useTheme } from "@/context/ThemeProvider";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useState } from "react";
@@ -7,12 +8,16 @@ import { SafeAreaView } from "react-native-safe-area-context";
 export default function Beneficiary() {
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
+  const { theme } = useTheme();
 
   return (
-    <SafeAreaView className="flex-1 bg-[#f8fafc]">
+    <SafeAreaView style={{ flex: 1, backgroundColor: theme.background }}>
       <View className="absolute top-0 w-full h-20 bg-arch-blue" />
       {/* HEADER */}
-      <View className="bg-[#07193f] px-6 pt-4 pb-12 rounded-b-[40px]">
+      <View
+        style={{ backgroundColor: theme.primary }}
+        className="px-6 pt-4 pb-12 rounded-b-[40px]"
+      >
         <View className="flex-row items-center justify-between mb-6">
           <View className="flex-row items-center">
             <Pressable
@@ -27,7 +32,8 @@ export default function Beneficiary() {
           </View>
           <Pressable
             onPress={() => setIsEditing(!isEditing)}
-            className="bg-[#10b981] px-4 py-2 rounded-full"
+            style={{ backgroundColor: theme.secondary }}
+            className="px-4 py-2 rounded-full"
           >
             <Text className="text-white font-bold text-xs">
               {isEditing ? "Save" : "Update"}
@@ -37,7 +43,7 @@ export default function Beneficiary() {
 
         {/* STATUS BADGE */}
         <View className="bg-emerald-500/20 self-start px-3 py-1.5 rounded-full flex-row items-center border border-emerald-500/30">
-          <Ionicons name="checkmark-circle" size={14} color="#10b981" />
+          <Ionicons name="checkmark-circle" size={14} color={theme.success} />
           <Text className="text-emerald-400 text-[10px] font-bold ml-1 uppercase">
             Records Verified
           </Text>

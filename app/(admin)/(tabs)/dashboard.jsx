@@ -1,3 +1,4 @@
+import { useTheme } from "@/context/ThemeProvider";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useState } from "react";
@@ -8,25 +9,24 @@ import QuickAction from "../../../components/ui/QuickAction";
 import { ROLE_CONFIG } from "../../../constants/roles";
 
 export default function AdminDashboard() {
+  const { theme } = useTheme();
   const [showBalance, setShowBalance] = useState(true);
   const router = useRouter();
-  const adminRole = "treasurer"; // from auth/session
+  const adminRole = "treasurer";
   const roleConfig = ROLE_CONFIG[adminRole];
 
   return (
-    <View className="flex-1 bg-gray-50">
+    <View style={{ backgroundColor: theme.background }} className="flex-1">
       <View className="relative w-full h-80 rounded-b-[20px] overflow-hidden z-0">
         <Image
-          source={require("../../../assets/images/welcome.png")} // Ensure path matches your folder
+          source={require("../../../assets/images/welcome.png")}
           className="w-full h-full object-cover"
         />
         <View className="absolute inset-0 bg-black/40" />
-        <View className="absolute bottom-0 w-full h-24 bg-gradient-to-t from-black/40 to-transparent" />
       </View>
-      {/* 2. FOREGROUND CONTENT (Profile & Greeting) */}
+
       <SafeAreaView className="absolute top-0 w-full">
         <View className="px-6 pt-4">
-          {/* Top Row: Profile & Notifications */}
           <View className="flex-row items-center justify-between mb-8">
             <Pressable
               onPress={() => router.push("/utilityPages/profile")}
@@ -39,8 +39,14 @@ export default function AdminDashboard() {
                 <Text className="text-gray-300 text-xs font-bold uppercase mr-2">
                   {roleConfig.label}
                 </Text>
-                <View className="bg-emerald-500/20 px-2 py-0.5 rounded-full">
-                  <Text className="text-emerald-300 text-[10px] font-bold">
+                <View
+                  style={{ backgroundColor: theme.emerald + "40" }}
+                  className="px-2 py-0.5 rounded-full"
+                >
+                  <Text
+                    style={{ color: theme.emerald }}
+                    className="text-[10px] font-bold"
+                  >
                     {roleConfig.badge}
                   </Text>
                 </View>
@@ -56,7 +62,6 @@ export default function AdminDashboard() {
             </Pressable>
           </View>
 
-          {/* Hero Greeting Text */}
           <View className="px-2">
             <Text className="text-white/80 font-medium text-base mb-1">
               UMOJA SACCO
@@ -69,186 +74,170 @@ export default function AdminDashboard() {
       </SafeAreaView>
 
       <ScrollView
-        className="flex-1 -mt-20 bg-gray-50 rounded-3xl"
+        className="flex-1 -mt-20 rounded-3xl"
         showsVerticalScrollIndicator={false}
       >
-        {/* HEALTH CHECK CARD  */}
-        <View className="bg-white rounded-3xl p-6 mx-6 shadow-lg mb-8">
+        {/* SACCO VALUE CARD */}
+        <View
+          style={{ backgroundColor: theme.card, shadowColor: theme.shadow }}
+          className="rounded-3xl p-6 mx-6 shadow-lg mb-8"
+        >
           <View className="flex-row justify-between items-center mb-3">
-            <Text className="text-gray-500 text-sm font-semibold">
+            <Text
+              style={{ color: theme.gray500 }}
+              className="text-sm font-semibold"
+            >
               TOTAL SACCO VALUE
             </Text>
             <Pressable
               onPress={() => setShowBalance(!showBalance)}
-              className="bg-gray-100 p-2 rounded-lg"
+              style={{ backgroundColor: theme.gray100 }}
+              className="p-2 rounded-lg"
             >
               <Ionicons
                 name={showBalance ? "eye-outline" : "eye-off-outline"}
                 size={20}
-                color="#64748B"
+                color={theme.gray600}
               />
             </Pressable>
           </View>
 
-          <Text className="text-3xl text-center font-extrabold text-arch-blue p-1 mb-4">
+          <Text
+            style={{ color: theme.primary }}
+            className="text-3xl text-center font-extrabold mb-4"
+          >
             {showBalance ? "UGX 125.4M" : "••••••••••"}
           </Text>
 
-          {/* Breakdown Row */}
-          <View className="flex-row justify-between border-t border-gray-300">
+          <View
+            style={{ borderTopColor: theme.gray200 }}
+            className="flex-row justify-between border-t pt-4"
+          >
             <View>
-              <Text className="text-gray-400 text-xs text-center">
+              <Text
+                style={{ color: theme.gray400 }}
+                className="text-xs text-center"
+              >
                 Cash at Hand
               </Text>
-              <Text className="text-lg font-semibold text-arch-blue p-1 mt-1">
-                {showBalance ? "UGX 36.2M" : "••••••••••"}
+              <Text
+                style={{ color: theme.text }}
+                className="text-lg font-semibold mt-1"
+              >
+                {showBalance ? "UGX 36.2M" : "••••••"}
               </Text>
             </View>
             <View>
-              <Text className="text-gray-400 text-xs text-center">
+              <Text
+                style={{ color: theme.gray400 }}
+                className="text-xs text-center"
+              >
                 Total Savings
               </Text>
-              <Text className="text-lg font-semibold text-arch-blue p-1 mt-1">
-                {showBalance ? "UGX 89.2M" : "••••••••••"}
+              <Text
+                style={{ color: theme.text }}
+                className="text-lg font-semibold mt-1"
+              >
+                {showBalance ? "UGX 89.2M" : "••••••"}
               </Text>
             </View>
           </View>
         </View>
 
         <View className="px-6">
-          {/* QUICK ACTIONS */}
           <View className="mb-8">
-            <View className="flex-row items-center justify-between mb-2">
-              <Text className="text-lg font-bold text-gray-800">
-                Quick Actions
+            <Text
+              style={{ color: theme.text }}
+              className="text-lg font-bold mb-4"
+            >
+              Quick Actions
+            </Text>
+            <View className="flex-row flex-wrap justify-between">
+              {roleConfig.actions.map((action, i) => (
+                <QuickAction
+                  key={i}
+                  icon="flash-outline"
+                  label={action}
+                  color={theme.primary}
+                />
+              ))}
+              <QuickAction
+                icon="person-add-outline"
+                label="Applications"
+                color={theme.purple}
+                onPress={() => router.push("/(admin)/applications")}
+              />
+            </View>
+          </View>
+
+          <View className="mb-12">
+            <View className="flex-row justify-between items-center mb-4">
+              <Text style={{ color: theme.text }} className="text-lg font-bold">
+                Attention Needed
               </Text>
-              {/* Growth Indicator */}
-              <View className="flex-row items-center mt-4 bg-green-50 self-start px-3 py-1.5 rounded-full">
-                <Ionicons name="trending-up" size={16} color="#10B981" />
-                <Text className="text-green-700 font-bold text-xs ml-1.5">
-                  +2.4% this month
+              <View
+                style={{ backgroundColor: theme.rose + "20" }}
+                className="px-3 py-1.5 rounded-full"
+              >
+                <Text
+                  style={{ color: theme.rose }}
+                  className="text-sm font-bold"
+                >
+                  3 Alerts
                 </Text>
               </View>
             </View>
-            <View className="flex-row flex-wrap justify-between">
-              {roleConfig.actions.includes("deposit") && (
-                <>
-                  <QuickAction
-                    icon="wallet-outline"
-                    label="Record Deposit"
-                    color="#10B981"
-                  />
-                  <QuickAction
-                    icon="person-add-outline"
-                    label="Register Forms"
-                    color="#7C3AED"
-                    onPress={() => router.push("/(admin)/applications")}
-                  />
-                  <QuickAction
-                    icon="bar-chart-outline"
-                    label="Upload Reports"
-                    color="#F59E0B"
-                  />
-                </>
-              )}
 
-              {roleConfig.actions.includes("finalApproval") && (
-                <>
-                  <QuickAction
-                    icon="checkmark-done-outline"
-                    label="Final Approvals"
-                    color="#0F4C88"
-                  />
-                  <QuickAction
-                    icon="person-add-outline"
-                    label="Register Forms"
-                    color="#7C3AED"
-                    onPress={() => router.push("/(admin)/applications")}
-                  />
-                  <QuickAction
-                    icon="bar-chart-outline"
-                    label="View Reports"
-                    color="#F59E0B"
-                  />
-                </>
-              )}
-              <QuickAction
-                icon="cash-outline"
-                label="Issue Loan"
-                color="#0F4C88"
-              />
-            </View>
-          </View>
-
-          {/* ATTENTION NEEDED */}
-          <View className="mb-12">
-            <View className="flex-row justify-between items-center mb-4">
-              <Text className="text-lg font-bold text-gray-800">
-                Attention Needed
-              </Text>
-              <View className="bg-red-100 px-3 py-1.5 rounded-full">
-                <Text className="text-red-700 text-sm font-bold">3 Alerts</Text>
-              </View>
-            </View>
-
-            <View className="space-y-3">
-              {/* Overdue Alert */}
+            <View className="gap-y-3">
               <AlertCard
                 icon="alert-circle-outline"
-                iconColor="#EF4444"
-                bgColor="bg-red-50"
+                iconColor={theme.rose}
+                bgColor={theme.rose + "10"}
                 title="Kabazi Fred"
                 subtitle="Loan overdue by 3 days"
                 status="overdue"
-                amount="UGX 50,000"
-                action="Call Member"
+                amount="UGX 50k"
+                action="Call"
               />
-
-              {/* Approval Request */}
               <AlertCard
                 icon="document-text-outline"
-                iconColor="#2563EB"
-                bgColor="bg-blue-50"
+                iconColor={theme.primary}
+                bgColor={theme.primary + "10"}
                 title="Sarah K."
-                subtitle="Loan application pending"
+                subtitle="Loan pending"
                 status="pending"
-                amount="UGX 20,000"
+                amount="UGX 20k"
                 action="Review"
-              />
-
-              {/* Low Balance Alert */}
-              <AlertCard
-                icon="warning-outline"
-                iconColor="#F59E0B"
-                bgColor="bg-amber-50"
-                title="Emergency Fund"
-                subtitle="Balance below threshold"
-                status="warning"
-                amount=""
-                action="Top Up"
               />
             </View>
           </View>
 
-          {/* 4. RECENT ACTIVITY SECTION (Optional Addition) */}
           <View className="mb-20">
-            <Text className="text-lg font-bold text-gray-800 mb-4">
+            <Text
+              style={{ color: theme.text }}
+              className="text-lg font-bold mb-4"
+            >
               Recent Activity
             </Text>
-            <View className="bg-white rounded-2xl p-4">
+            <View
+              style={{ backgroundColor: theme.card }}
+              className="rounded-2xl p-4"
+            >
               <ActivityItem
                 icon="checkmark-circle-outline"
-                color="text-emerald-600"
+                color={theme.emerald}
                 title="Loan Approved"
                 description="Jane M. • UGX 15,000"
-                time="2 hours ago"
+                time="2h ago"
+                theme={theme}
               />
               <ActivityItem
                 icon="arrow-down-circle-outline"
-                color="text-blue-600"
+                color={theme.primary}
                 title="Deposit Received"
                 description="Peter K. • UGX 5,000"
                 time="Yesterday"
+                theme={theme}
               />
             </View>
           </View>
@@ -258,16 +247,24 @@ export default function AdminDashboard() {
   );
 }
 
-/* Reusable Activity Item Component */
-function ActivityItem({ icon, color, title, description, time }) {
+function ActivityItem({ icon, color, title, description, time, theme }) {
   return (
-    <View className="flex-row items-center py-3 border-b border-gray-100 last:border-b-0">
-      <Ionicons name={icon} size={24} className={color} />
+    <View
+      style={{ borderBottomColor: theme.gray100 }}
+      className="flex-row items-center py-3 border-b last:border-b-0"
+    >
+      <Ionicons name={icon} size={24} color={color} />
       <View className="ml-3 flex-1">
-        <Text className="font-medium text-gray-800">{title}</Text>
-        <Text className="text-sm text-gray-500">{description}</Text>
+        <Text style={{ color: theme.text }} className="font-medium">
+          {title}
+        </Text>
+        <Text style={{ color: theme.gray500 }} className="text-sm">
+          {description}
+        </Text>
       </View>
-      <Text className="text-xs text-gray-400">{time}</Text>
+      <Text style={{ color: theme.gray400 }} className="text-xs">
+        {time}
+      </Text>
     </View>
   );
 }

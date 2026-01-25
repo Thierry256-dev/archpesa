@@ -1,21 +1,24 @@
+import { useTheme } from "@/context/ThemeProvider";
 import { Ionicons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 
 export default function MemberTabsLayout() {
+  const { theme } = useTheme();
+
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: "white",
+        tabBarActiveTintColor: theme.white,
         tabBarStyle: {
-          backgroundColor: "#07193f",
-          height: "60",
+          backgroundColor: theme.primary,
+          height: 60,
           position: "absolute",
           left: 20,
           right: 20,
           borderRadius: 35,
           elevation: 5,
-          shadowColor: "#000",
+          shadowColor: theme.black,
           shadowOffset: { width: 0, height: 10 },
           shadowOpacity: 0.1,
           shadowRadius: 10,

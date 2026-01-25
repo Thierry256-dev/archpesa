@@ -1,29 +1,48 @@
+import { useTheme } from "@/context/ThemeProvider";
 import { Ionicons } from "@expo/vector-icons";
 import { Text, View } from "react-native";
 
 export default function GuarantorRow({ name, status, amount, isLast }) {
+  const { theme } = useTheme();
   const isApproved = status === "Approved";
+
   return (
     <View
-      className={`flex-row justify-between items-center py-3 ${!isLast ? "border-b border-gray-50" : ""}`}
+      style={{
+        borderBottomColor: theme.gray50,
+        borderBottomWidth: !isLast ? 1 : 0,
+      }}
+      className="flex-row justify-between items-center py-3"
     >
       <View className="flex-row items-center">
         <View
-          className={`w-8 h-8 rounded-full items-center justify-center ${isApproved ? "bg-emerald-100" : "bg-orange-100"}`}
+          style={{
+            backgroundColor: isApproved
+              ? theme.emerald + "20"
+              : theme.orange + "20",
+          }}
+          className="w-8 h-8 rounded-full items-center justify-center"
         >
           <Ionicons
             name={isApproved ? "checkmark" : "time-outline"}
             size={16}
-            color={isApproved ? "#10B981" : "#F59E0B"}
+            color={isApproved ? theme.emerald : theme.orange}
           />
         </View>
         <View className="ml-3">
-          <Text className="font-bold text-slate-800 text-sm">{name}</Text>
-          <Text className="text-gray-400 text-[10px]">{amount} guaranteed</Text>
+          <Text style={{ color: theme.text }} className="font-bold text-sm">
+            {name}
+          </Text>
+          <Text style={{ color: theme.gray400 }} className="text-[10px]">
+            {amount} guaranteed
+          </Text>
         </View>
       </View>
       <Text
-        className={`text-xs font-bold ${isApproved ? "text-emerald-600" : "text-orange-500"}`}
+        style={{
+          color: isApproved ? theme.emerald : theme.orange,
+        }}
+        className="text-xs font-bold"
       >
         {status}
       </Text>

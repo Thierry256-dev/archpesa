@@ -1,31 +1,54 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useTheme } from "../../context/ThemeProvider";
 
 export default function Notifications() {
   const router = useRouter();
+  const { theme } = useTheme();
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView style={{ flex: 1, backgroundColor: theme.background }}>
       {/* HEADER */}
-      <View className="px-6 py-4 border-b border-slate-50 flex-row items-center justify-between">
-        <View className="flex-row items-center">
-          <Pressable onPress={() => router.back()} className="p-2 -ml-2">
-            <Ionicons name="arrow-back" size={24} color="#07193f" />
+      <View
+        style={{
+          paddingHorizontal: 24,
+          paddingVertical: 16,
+          borderBottomWidth: 1,
+          borderBottomColor: theme.border,
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
+          <Pressable
+            onPress={() => router.back()}
+            style={{ padding: 8, marginLeft: -8 }}
+          >
+            <Ionicons name="arrow-back" size={24} color={theme.text} />
           </Pressable>
-          <Text className="text-xl font-black text-slate-900 ml-2">
+          <Text
+            style={{
+              fontSize: 20,
+              fontWeight: "900",
+              color: theme.text,
+              marginLeft: 8,
+            }}
+          >
             Notifications
           </Text>
         </View>
         <Pressable>
-          <Text className="text-blue-600 font-bold text-xs">
+          <Text style={{ color: theme.blue, fontWeight: "bold", fontSize: 12 }}>
             Mark all as read
           </Text>
         </Pressable>
       </View>
 
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
         <NotificationItem
           type="loan"
           title="Loan Approved! 🎉"
@@ -52,38 +75,94 @@ export default function Notifications() {
 }
 
 function NotificationItem({ type, title, desc, time, isUnread }) {
+  const { theme } = useTheme();
   const getIcon = () => {
     if (type === "loan")
-      return { name: "cash-outline", color: "#2563eb", bg: "bg-blue-50" };
+      return { name: "cash-outline", color: theme.blue, bg: theme.background };
     if (type === "savings")
-      return { name: "wallet-outline", color: "#059669", bg: "bg-emerald-50" };
-    return { name: "alert-circle-outline", color: "#e11d48", bg: "bg-rose-50" };
+      return {
+        name: "wallet-outline",
+        color: theme.emerald,
+        bg: theme.background,
+      };
+    return {
+      name: "alert-circle-outline",
+      color: theme.rose,
+      bg: theme.background,
+    };
   };
 
   const icon = getIcon();
 
   return (
     <Pressable
-      className={`flex-row p-6 border-b border-slate-50 ${isUnread ? "bg-blue-50/30" : ""}`}
+      style={{
+        flexDirection: "row",
+        padding: 24,
+        borderBottomWidth: 1,
+        borderBottomColor: theme.border,
+        backgroundColor: isUnread ? theme.blue + "20" : theme.card,
+      }}
     >
       <View
-        className={`${icon.bg} w-12 h-12 rounded-2xl items-center justify-center`}
+        style={{
+          backgroundColor: icon.bg,
+          width: 48,
+          height: 48,
+          borderRadius: 16,
+          alignItems: "center",
+          justifyContent: "center",
+        }}
       >
         <Ionicons name={icon.name} size={24} color={icon.color} />
       </View>
-      <View className="flex-1 ml-4">
-        <View className="flex-row justify-between items-start">
+      <View style={{ flex: 1, marginLeft: 16 }}>
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+          }}
+        >
           <Text
-            className={`text-sm ${isUnread ? "font-black text-slate-900" : "font-bold text-slate-700"}`}
+            style={{
+              fontSize: 14,
+              fontWeight: isUnread ? "900" : "bold",
+              color: isUnread ? theme.text : theme.gray700,
+            }}
           >
             {title}
           </Text>
           {isUnread && (
-            <View className="w-2 h-2 bg-blue-600 rounded-full mt-1.5" />
+            <View
+              style={{
+                width: 8,
+                height: 8,
+                backgroundColor: theme.blue,
+                borderRadius: 4,
+                marginTop: 6,
+              }}
+            />
           )}
         </View>
-        <Text className="text-slate-500 text-xs mt-1 leading-4">{desc}</Text>
-        <Text className="text-slate-400 text-[10px] mt-2 font-medium">
+        <Text
+          style={{
+            color: theme.gray500,
+            fontSize: 12,
+            marginTop: 4,
+            lineHeight: 16,
+          }}
+        >
+          {desc}
+        </Text>
+        <Text
+          style={{
+            color: theme.gray400,
+            fontSize: 10,
+            marginTop: 8,
+            fontWeight: "500",
+          }}
+        >
           {time}
         </Text>
       </View>

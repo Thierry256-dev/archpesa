@@ -1,68 +1,81 @@
+import { useTheme } from "@/context/ThemeProvider";
 import { Ionicons } from "@expo/vector-icons";
 import { Text, View } from "react-native";
 
 export default function TransactionItem({ item }) {
+  const { theme } = useTheme();
+
   const getTransactionStyles = (item) => {
     if (item.type === "credit") {
       return {
         icon: "arrow-up-circle",
-        iconColor: "#10b981", // emerald-500
-        bgColor: "bg-emerald-50",
+        iconColor: theme.emerald,
+        bgColor: theme.emerald + "15",
         amountPrefix: "+",
-        amountColor: "text-emerald-600",
+        amountColor: theme.emerald,
       };
     }
 
-    // Default/Debit styles based on category
     switch (item.category) {
       case "loan":
         return {
           icon: "arrow-down-circle",
-          iconColor: "#475569",
-          bgColor: "bg-slate-100",
+          iconColor: theme.gray600,
+          bgColor: theme.gray100,
           amountPrefix: "-",
-          amountColor: "text-slate-800",
+          amountColor: theme.text,
         };
       case "welfare":
         return {
           icon: "gift-outline",
-          iconColor: "#a855f7",
-          bgColor: "bg-purple-50",
+          iconColor: theme.purple,
+          bgColor: theme.purple + "15",
           amountPrefix: "-",
-          amountColor: "text-slate-600",
+          amountColor: theme.gray600,
         };
       default:
         return {
           icon: "cash-outline",
-          iconColor: "#64748b",
-          bgColor: "bg-gray-100",
+          iconColor: theme.gray500,
+          bgColor: theme.gray100,
           amountPrefix: "-",
-          amountColor: "text-gray-800",
+          amountColor: theme.text,
         };
     }
   };
   const styles = getTransactionStyles(item);
+
   return (
-    <View className="flex-row items-center py-2 border-b border-gray-50 last:border-b-0">
+    <View
+      style={{
+        borderBottomColor: theme.border,
+      }}
+      className="flex-row items-center py-2 border-b last:border-b-0"
+    >
       <View
-        className={`w-12 h-12 rounded-2xl ${styles.bgColor} items-center justify-center`}
+        style={{ backgroundColor: styles.bgColor }}
+        className="w-12 h-12 rounded-2xl items-center justify-center"
       >
         <Ionicons name={styles.icon} size={20} color={styles.iconColor} />
       </View>
 
-      {/* Info */}
       <View className="flex-1 ml-4">
-        <Text className="text-[13px] font-bold text-slate-900">
+        <Text style={{ color: theme.text }} className="text-[13px] font-bold">
           {item.title}
         </Text>
-        <Text className="text-xs font-medium text-slate-400 mt-0.5">
+        <Text
+          style={{ color: theme.gray400 }}
+          className="text-xs font-medium mt-0.5"
+        >
           {item.date}
         </Text>
       </View>
 
-      {/* Amount */}
       <View className="items-end">
-        <Text className={`text-[13px] font-black ${styles.amountColor}`}>
+        <Text
+          style={{ color: styles.amountColor }}
+          className="text-[13px] font-black"
+        >
           {styles.amountPrefix} UGX {item.amount.toLocaleString()}
         </Text>
       </View>

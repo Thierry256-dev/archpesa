@@ -1,3 +1,4 @@
+import { useTheme } from "@/context/ThemeProvider";
 import { Ionicons } from "@expo/vector-icons";
 import { Pressable, Text, View } from "react-native";
 
@@ -11,8 +12,16 @@ export default function AlertCard({
   amount,
   action,
 }) {
+  const { theme } = useTheme();
+
   return (
-    <Pressable className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+    <Pressable
+      style={{
+        backgroundColor: theme.card,
+        borderColor: theme.border,
+      }}
+      className="rounded-xl p-4 shadow-sm border"
+    >
       <View className="flex-row items-center justify-between">
         <View className="flex-row items-center flex-1">
           <View
@@ -21,7 +30,9 @@ export default function AlertCard({
             <Ionicons name={icon} size={22} color={iconColor} />
           </View>
           <View className="flex-1">
-            <Text className="font-bold text-gray-800">{title}</Text>
+            <Text style={{ color: theme.text }} className="font-bold">
+              {title}
+            </Text>
             <Text
               className={`text-sm ${
                 status === "overdue"
@@ -38,12 +49,21 @@ export default function AlertCard({
 
         <View className="items-end">
           {amount ? (
-            <Text className="font-bold text-gray-800 text-sm mb-2">
+            <Text
+              style={{ color: theme.text }}
+              className="font-bold text-sm mb-2"
+            >
               {amount}
             </Text>
           ) : null}
-          <Pressable className="bg-gray-100 px-3 py-1.5 rounded-lg">
-            <Text className="text-sm font-semibold text-arch-blue">
+          <Pressable
+            style={{ backgroundColor: theme.surface }}
+            className="px-3 py-1.5 rounded-lg"
+          >
+            <Text
+              style={{ color: theme.primary }}
+              className="text-sm font-semibold"
+            >
               {action}
             </Text>
           </Pressable>

@@ -1,4 +1,5 @@
 import { useAuth } from "@/context/AuthContext";
+import { useTheme } from "@/context/ThemeProvider";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { Pressable, ScrollView, Text, View } from "react-native";
@@ -7,6 +8,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 export default function Profile() {
   const router = useRouter();
   const { signOut } = useAuth();
+  const { theme, mode, setMode } = useTheme();
 
   const handleLogout = async () => {
     await signOut();
@@ -16,10 +18,19 @@ export default function Profile() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-[#f8fafc]">
+    <SafeAreaView
+      style={{ backgroundColor: theme.background }}
+      className="flex-1"
+    >
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* PROFILE HEADER */}
-        <View className="items-center py-10 bg-white border-b border-slate-100">
+        <View
+          style={{
+            backgroundColor: theme.card,
+            borderBottomColor: theme.border,
+          }}
+          className="items-center py-10 border-b"
+        >
           <Pressable
             onPress={() => router.back()}
             className="absolute top-2 left-5 bg-blue-950/10 p-2 rounded-xl"
@@ -27,17 +38,28 @@ export default function Profile() {
             <Ionicons name="arrow-back" size={20} color="#07193f" />
           </Pressable>
 
-          <View className="w-24 h-24 bg-slate-100 rounded-full items-center justify-center border-4 border-white shadow-sm">
-            <Ionicons name="person" size={50} color="#07193f" />
-            <Pressable className="absolute bottom-0 right-0 bg-[#07193f] p-2 rounded-full border-2 border-white">
+          <View
+            style={{ backgroundColor: theme.card }}
+            className="w-24 h-24 rounded-full items-center justify-center border-4 border-white shadow-sm"
+          >
+            <Ionicons name="person" size={50} color={theme.primary} />
+            <Pressable
+              style={{ backgroundColor: theme.primary }}
+              className="absolute bottom-0 right-0 p-2 rounded-full border-2 border-white"
+            >
               <Ionicons name="camera" size={14} color="white" />
             </Pressable>
           </View>
 
-          <Text className="text-2xl font-black text-slate-900 mt-4">
+          <Text
+            style={{ color: theme.text }}
+            className="text-2xl font-black mt-4"
+          >
             Alex J. Mulyanti
           </Text>
-          <Text className="text-slate-400 font-medium">Member ID: #0428</Text>
+          <Text style={{ color: theme.gray400 }} className="font-medium">
+            Member ID: #0428
+          </Text>
 
           <View className="flex-row mt-4">
             <View className="bg-emerald-100 px-3 py-1 rounded-full border border-emerald-200">
@@ -50,7 +72,10 @@ export default function Profile() {
 
         {/* SETTINGS GROUPS */}
         <View className="px-6 mt-8">
-          <Text className="text-slate-400 text-[10px] font-bold uppercase mb-4 tracking-widest">
+          <Text
+            style={{ color: theme.gray400 }}
+            className="text-[10px] font-bold uppercase mb-4 tracking-widest"
+          >
             Personal Account
           </Text>
 
@@ -58,19 +83,77 @@ export default function Profile() {
           <ProfileMenu icon="shield-checkmark-outline" title="Security & PIN" />
           <ProfileMenu icon="card-outline" title="Linked Bank/Mobile Money" />
 
-          <Text className="text-slate-400 text-[10px] font-bold uppercase mt-8 mb-4 tracking-widest">
+          <Text
+            style={{ color: theme.gray400 }}
+            className="text-[10px] font-bold uppercase mt-8 mb-4 tracking-widest"
+          >
             Preferences
           </Text>
 
           <ProfileMenu icon="notifications-outline" title="Notifications" />
           <ProfileMenu icon="language-outline" title="Language" sub="English" />
 
+          {/* THEME TOGGLE */}
+          <Pressable
+            onPress={() => setMode(mode === "light" ? "dark" : "light")}
+            style={{
+              backgroundColor: theme.card,
+              borderColor: theme.border,
+            }}
+            className="mt-6 p-4 rounded-2xl flex-row items-center mb-3 border shadow-sm"
+          >
+            <View
+              style={{ backgroundColor: theme.surface }}
+              className="p-2.5 rounded-xl mr-4"
+            >
+              <Ionicons
+                name={mode === "light" ? "moon-outline" : "sunny-outline"}
+                size={20}
+                color={mode === "light" ? theme.blue : theme.yellow}
+              />
+            </View>
+            <Text
+              style={{ color: theme.text }}
+              className="flex-1 font-bold text-sm"
+            >
+              {mode === "light" ? "Dark Mode" : "Light Mode"}
+            </Text>
+            <View
+              style={{
+                backgroundColor:
+                  mode === "dark" ? theme.primary : theme.gray300,
+                width: 50,
+                height: 28,
+              }}
+              className="rounded-full items-center justify-center flex-row"
+            >
+              <View
+                style={{
+                  backgroundColor: theme.white,
+                  width: 24,
+                  height: 24,
+                  borderRadius: 12,
+                  marginLeft: mode === "dark" ? 2 : -26,
+                }}
+              />
+            </View>
+          </Pressable>
+
           {/* LOGOUT */}
           <Pressable
             onPress={handleLogout}
-            className="mt-10 py-5 bg-rose-50 rounded-2xl items-center border border-rose-100 mb-20"
+            className="mt-10 py-5 rounded-2xl items-center border mb-20"
+            style={{
+              backgroundColor: mode === "light" ? "#fce7f3" : "#7f1d1d",
+              borderColor: mode === "light" ? "#fbcfe8" : "#991b1b",
+            }}
           >
-            <Text className="text-rose-600 font-black">Log Out</Text>
+            <Text
+              style={{ color: mode === "light" ? "#be123c" : "#fecaca" }}
+              className="font-black"
+            >
+              Log Out
+            </Text>
           </Pressable>
         </View>
       </ScrollView>
@@ -79,14 +162,30 @@ export default function Profile() {
 }
 
 function ProfileMenu({ icon, title, sub }) {
+  const { theme } = useTheme();
   return (
-    <Pressable className="bg-white p-4 rounded-2xl flex-row items-center mb-3 border border-slate-100 shadow-sm shadow-slate-200/50">
-      <View className="bg-slate-50 p-2.5 rounded-xl mr-4">
-        <Ionicons name={icon} size={20} color="#07193f" />
+    <Pressable
+      style={{
+        backgroundColor: theme.card,
+        borderColor: theme.border,
+      }}
+      className="p-4 rounded-2xl flex-row items-center mb-3 border shadow-sm"
+    >
+      <View
+        style={{ backgroundColor: theme.surface }}
+        className="p-2.5 rounded-xl mr-4"
+      >
+        <Ionicons name={icon} size={20} color={theme.primary} />
       </View>
-      <Text className="flex-1 text-slate-800 font-bold text-sm">{title}</Text>
-      {sub && <Text className="text-slate-400 text-xs mr-2">{sub}</Text>}
-      <Ionicons name="chevron-forward" size={18} color="#cbd5e1" />
+      <Text style={{ color: theme.text }} className="flex-1 font-bold text-sm">
+        {title}
+      </Text>
+      {sub && (
+        <Text style={{ color: theme.gray400 }} className="text-xs mr-2">
+          {sub}
+        </Text>
+      )}
+      <Ionicons name="chevron-forward" size={18} color={theme.gray300} />
     </Pressable>
   );
 }

@@ -1,4 +1,5 @@
 import { useAuth } from "@/context/AuthContext";
+import { useTheme } from "@/context/ThemeProvider";
 import { useMemberApplication } from "@/hooks/useMemberApplication";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -11,19 +12,16 @@ import TransactionItem from "../../../components/ui/TransactionItem";
 import { MOCK_TRANSACTIONS } from "../../../constants/data";
 
 export default function MemberDashboard() {
+  const { theme } = useTheme();
   const [showBalance, setShowBalance] = useState(true);
   const [isLoanFormVisible, setIsLoanFormVisible] = useState(false);
   const router = useRouter();
 
-  // Mock Data for "Real World" simulation
   const loanLimit = 5000000;
   const currentLoan = 1200000;
   const progress = (currentLoan / loanLimit) * 100;
 
-  const transactions = MOCK_TRANSACTIONS;
-
   const { user } = useAuth();
-
   const { data: application, isLoading } = useMemberApplication(user?.id);
 
   const applicationStatus = application?.status ?? "pending";
@@ -40,23 +38,30 @@ export default function MemberDashboard() {
     pending: {
       label: "Application Under Review",
       description: "Your SACCO application is being reviewed.",
-      color: "bg-yellow-50 border-yellow-200",
+      color: theme.orange + "15",
+      borderColor: theme.orange + "30",
       icon: "time-outline",
-      iconColor: "#f59e0b",
+      iconColor: theme.orange,
     },
     rejected: {
       label: "Application Requires Update",
       description: "Some details need correction. Tap to update and resubmit.",
-      color: "bg-red-50 border-red-200",
+      color: theme.rose + "15",
+      borderColor: theme.rose + "30",
       icon: "alert-circle-outline",
-      iconColor: "#ef4444",
+      iconColor: theme.rose,
     },
   };
 
   if (isLoading) {
     return (
-      <View className="flex-1 items-center justify-center bg-white">
-        <Text className="text-slate-400 font-medium">Loading dashboard…</Text>
+      <View
+        style={{ backgroundColor: theme.background }}
+        className="flex-1 items-center justify-center"
+      >
+        <Text style={{ color: theme.gray400 }} className="font-medium">
+          Loading dashboard…
+        </Text>
       </View>
     );
   }
@@ -64,21 +69,19 @@ export default function MemberDashboard() {
   const statusUI = statusConfig[applicationStatus];
 
   return (
-    <View className="flex-1 bg-gray-50">
-      {/* 1. HEADER BACKGROUND SECTION */}
+    <View style={{ backgroundColor: theme.background }} className="flex-1">
+      {/* 1. HEADER BACKGROUND */}
       <View className="relative w-full h-80 rounded-b-[20px] overflow-hidden z-0">
         <Image
           source={require("../../../assets/images/welcome.png")}
           className="w-full h-full object-cover"
         />
         <View className="absolute inset-0 bg-black/40" />
-        <View className="absolute bottom-0 w-full h-24 bg-gradient-to-t from-black/40 to-transparent" />
       </View>
 
-      {/* 2. FOREGROUND CONTENT (Profile & Greeting) */}
+      {/* 2. FOREGROUND CONTENT */}
       <SafeAreaView className="absolute top-0 w-full">
         <View className="px-6 pt-4">
-          {/* Top Row: Profile & Notifications */}
           <View className="flex-row items-center justify-between mb-8">
             <Pressable
               onPress={() => router.push("/utilityPages/profile")}
@@ -106,7 +109,6 @@ export default function MemberDashboard() {
             </Pressable>
           </View>
 
-          {/* Hero Greeting Text */}
           <View className="px-2">
             <Text className="text-white/80 font-medium text-base mb-1">
               Your Financial Overview
@@ -122,76 +124,120 @@ export default function MemberDashboard() {
         className="flex-1 -mt-20"
         showsVerticalScrollIndicator={false}
       >
-        {/* 3. THE FLOATING PORTFOLIO CARD */}
+        {/* 3. PORTFOLIO CARD */}
         <View className="mb-6 z-10 mx-6">
-          <View className="bg-white rounded-3xl p-6 shadow-lg shadow-slate-900/5 border border-slate-100">
-            {/* TOP SECTION */}
+          <View
+            style={{
+              backgroundColor: theme.card,
+              borderColor: theme.border,
+              shadowColor: theme.shadow,
+            }}
+            className="rounded-3xl p-6 shadow-lg border"
+          >
             <View className="mb-5">
               <View className="flex-row justify-between items-center mb-1">
-                <Text className="text-slate-500 text-xs font-semibold tracking-wide">
+                <Text
+                  style={{ color: theme.gray500 }}
+                  className="text-xs font-semibold tracking-wide"
+                >
                   Account Summary
                 </Text>
                 <Pressable onPress={() => setShowBalance(!showBalance)}>
                   <Ionicons
                     name={showBalance ? "eye-outline" : "eye-off-outline"}
                     size={18}
-                    color="#94a3b8"
+                    color={theme.gray400}
                   />
                 </Pressable>
               </View>
-
-              <Text className="text-center text-[34px] font-extrabold text-arch-blue tracking-tight">
+              <Text
+                style={{ color: theme.text }}
+                className="text-center text-[34px] font-extrabold tracking-tight"
+              >
                 {showBalance ? dashboardData.balance : "••••••••"}
               </Text>
             </View>
 
-            {/* DIVIDER */}
-            <View className="h-px bg-slate-100 mb-5" />
+            <View
+              style={{
+                backgroundColor: theme.border,
+              }}
+              className="h-px mb-5"
+            />
 
-            {/* BOTTOM ROW */}
             <View className="flex-row justify-between">
-              {/* Savings */}
               <View className="flex-1 flex-row items-center">
-                <View className="bg-slate-100 p-2.5 rounded-xl mr-3">
-                  <Ionicons name="lock-closed" size={18} color="#334155" />
+                <View
+                  style={{ backgroundColor: theme.gray100 }}
+                  className="p-2.5 rounded-xl mr-3"
+                >
+                  <Ionicons
+                    name="lock-closed"
+                    size={18}
+                    color={theme.gray700}
+                  />
                 </View>
                 <View>
-                  <Text className="text-slate-500 text-[11px] font-medium">
+                  <Text
+                    style={{ color: theme.gray500 }}
+                    className="text-[11px] font-medium"
+                  >
                     Locked Savings
                   </Text>
-                  <Text className="text-slate-900 font-semibold text-sm">
+                  <Text
+                    style={{ color: theme.text }}
+                    className="font-semibold text-sm"
+                  >
                     {showBalance ? dashboardData.lockedSavings : "•••"}
                   </Text>
                 </View>
               </View>
 
-              {/* Divider */}
-              <View className="w-px bg-slate-100 mx-3" />
+              <View
+                style={{ backgroundColor: theme.gray100 }}
+                className="w-px mx-3"
+              />
 
-              {/* Loan */}
               <View className="flex-1 flex-row items-center justify-end">
                 <View className="mr-3 items-end">
-                  <Text className="text-slate-500 text-[11px] font-medium">
+                  <Text
+                    style={{ color: theme.gray500 }}
+                    className="text-[11px] font-medium"
+                  >
                     Active Loan
                   </Text>
-                  <Text className="text-slate-900 font-semibold text-sm">
+                  <Text
+                    style={{ color: theme.text }}
+                    className="font-semibold text-sm"
+                  >
                     {showBalance ? dashboardData.activeLoan : "•••"}
                   </Text>
                 </View>
-                <View className="bg-slate-100 p-2.5 rounded-xl">
-                  <Ionicons name="swap-vertical" size={18} color="#334155" />
+                <View
+                  style={{ backgroundColor: theme.gray100 }}
+                  className="p-2.5 rounded-xl"
+                >
+                  <Ionicons
+                    name="swap-vertical"
+                    size={18}
+                    color={theme.gray700}
+                  />
                 </View>
               </View>
             </View>
           </View>
         </View>
 
-        {application?.status === "pending" ||
-        application?.status === "rejected" ? (
+        {/* STATUS ALERT */}
+        {applicationStatus !== "approved" && (
           <Pressable
             disabled={applicationStatus !== "rejected"}
             onPress={() => router.push("/(member)/services/review")}
-            className={`mx-6 mb-6 p-4 rounded-2xl border ${statusUI.color}`}
+            style={{
+              backgroundColor: statusUI.color,
+              borderColor: statusUI.borderColor,
+            }}
+            className="mx-6 mb-6 p-4 rounded-2xl border"
           >
             <View className="flex-row items-center">
               <Ionicons
@@ -201,145 +247,174 @@ export default function MemberDashboard() {
                 style={{ marginRight: 12 }}
               />
               <View className="flex-1">
-                <Text className="font-bold text-slate-800 text-sm">
+                <Text
+                  style={{ color: theme.text }}
+                  className="font-bold text-sm"
+                >
                   {statusUI.label}
                 </Text>
-                <Text className="text-xs text-slate-600 mt-1">
+                <Text style={{ color: theme.gray600 }} className="text-xs mt-1">
                   {statusUI.description}
                 </Text>
               </View>
-
               {applicationStatus === "rejected" && (
-                <Text className="text-red-600 font-semibold text-xs">
+                <Text
+                  style={{ color: theme.rose }}
+                  className="font-semibold text-xs"
+                >
                   Update →
                 </Text>
               )}
             </View>
           </Pressable>
-        ) : (
-          ""
         )}
 
         {/* QUICK ACTIONS */}
-        <View className="mb-8 bg-gray-50 pt-4 rounded-t-3xl px-6">
+        <View
+          style={{ backgroundColor: theme.background }}
+          className="mb-8 pt-4 px-6"
+        >
           <View className="flex-row justify-between items-end mb-4">
-            <Text className="text-lg font-bold text-slate-800">
+            <Text style={{ color: theme.text }} className="text-lg font-bold">
               Member Services
             </Text>
             <Pressable
               onPress={() => router.push("/(member)/services/support")}
             >
-              <Text className="text-xs font-semibold text-[#10b981]">
+              <Text
+                style={{ color: theme.emerald }}
+                className="text-xs font-semibold"
+              >
                 Need Help?
               </Text>
             </Pressable>
           </View>
 
           <View className="flex-row flex-wrap justify-between gap-y-3">
-            {/* ACTION 1: Loan GUARANTOR STATUS */}
             <ServiceCard
               icon="shield-checkmark-outline"
               label="Guarantors"
-              subLabel="Who Approves My loan?"
-              iconColor="#07193f"
-              bg="bg-slate-50"
+              subLabel="Approval Status"
+              iconColor={theme.primary}
               onPress={() => router.push("/(member)/services/guarantors")}
             />
-
-            {/* ACTION 2: DIGITAL STATEMENT  */}
             <ServiceCard
               icon="document-text-outline"
               label="E-Statement"
               subLabel="Download PDF"
-              iconColor="#07193f"
-              bg="bg-slate-50"
+              iconColor={theme.primary}
               onPress={() => router.push("/(member)/services/statement")}
             />
-
-            {/* ACTION 3: BENEFICIARY */}
             <ServiceCard
               icon="people-outline"
               label="Beneficiaries"
               subLabel="Update Records"
-              iconColor="#07193f"
-              bg="bg-slate-50"
+              iconColor={theme.primary}
               onPress={() => router.push("/(member)/services/beneficiary")}
             />
-
-            {/* ACTION 4: SACCO NEWS */}
             <ServiceCard
               icon="megaphone-outline"
               label="Announcements"
               subLabel="SACCO Updates"
-              iconColor="#10b981"
-              bg="bg-emerald-50"
+              iconColor={theme.emerald}
               onPress={() => router.push("/(member)/services/news")}
             />
           </View>
         </View>
 
-        {/* LOAN ELIGIBILITY WIDGET */}
-        <View className="bg-green-50/50 border border-blue-100 rounded-2xl p-4 mb-6 flex-row items-center mx-6">
+        {/* LOAN ELIGIBILITY */}
+        <View
+          style={{
+            backgroundColor: theme.emerald + "10",
+            borderColor: theme.emerald + "30",
+          }}
+          className="border rounded-2xl p-4 mb-6 flex-row items-center mx-6"
+        >
           <View className="flex-1 mr-4">
             <View className="flex-row justify-between mb-2">
-              <Text className="text-green-900 font-bold text-sm">
+              <Text
+                style={{ color: theme.emerald }}
+                className="font-bold text-sm"
+              >
                 Loan Limit
               </Text>
-              <Text className="text-green-700 font-bold text-sm">UGX 5M</Text>
+              <Text
+                style={{ color: theme.emerald }}
+                className="font-bold text-sm"
+              >
+                UGX 5M
+              </Text>
             </View>
-            {/* Progress Bar */}
-            <View className="h-2 bg-green-200 rounded-full overflow-hidden">
+            <View
+              style={{ backgroundColor: theme.emerald + "30" }}
+              className="h-2 rounded-full overflow-hidden"
+            >
               <View
-                className="h-full bg-green-600 rounded-full"
-                style={{ width: `${progress}%` }}
+                style={{
+                  width: `${progress}%`,
+                  backgroundColor: theme.emerald,
+                }}
+                className="h-full rounded-full"
               />
             </View>
-            <Text className="text-green-400 text-[10px] mt-1.5">
+            <Text
+              style={{ color: theme.gray500 }}
+              className="text-[10px] mt-1.5"
+            >
               You can borrow up to{" "}
-              <Text className="font-bold text-green-600">UGX 3.8M</Text> more.
+              <Text style={{ color: theme.emerald }} className="font-bold">
+                UGX 3.8M
+              </Text>{" "}
+              more.
             </Text>
           </View>
           <Pressable
             disabled={!isApproved}
             onPress={() => isApproved && setIsLoanFormVisible(true)}
-            className="bg-green-600 px-4 py-2 rounded-xl shadow-sm shadow-blue-500/30"
+            style={{ backgroundColor: theme.emerald }}
+            className="px-4 py-2 rounded-xl shadow-sm"
           >
             <Text className="text-white font-bold text-xs">Apply</Text>
           </Pressable>
         </View>
 
         {/* RECENT TRANSACTIONS */}
-        <View className="mb-20 bg-white rounded-3xl p-5 shadow-sm mx-6">
-          {/* Header */}
+        <View
+          style={{ backgroundColor: theme.card }}
+          className="mb-20 rounded-3xl p-5 shadow-sm mx-6"
+        >
           <View className="flex-row justify-between items-center mb-4">
-            <Text className="text-lg font-bold text-gray-800">
+            <Text style={{ color: theme.text }} className="text-lg font-bold">
               Recent Activity
             </Text>
-            <Text className="text-arch-blue text-sm font-semibold">
+            <Text
+              style={{ color: theme.primary }}
+              className="text-sm font-semibold"
+            >
               See All
             </Text>
           </View>
-          {/* 3. CONDITIONAL RENDERING */}
-          {transactions?.length !== 0 &&
-            transactions.map((item, index) => (
+          {MOCK_TRANSACTIONS.length > 0 ? (
+            MOCK_TRANSACTIONS.map((item, index) => (
               <TransactionItem key={index} item={item} />
-            ))}
-          {/* 4. EMPTY STATE UI */}
-          {transactions?.length === 0 && (
+            ))
+          ) : (
             <View className="items-center py-10">
-              <View className="w-20 h-20 bg-slate-50 rounded-full items-center justify-center mb-4">
-                <Ionicons name="receipt-outline" size={32} color="#CBD5E1" />
-              </View>
-              <Text className="text-slate-900 font-bold text-base">
+              <Ionicons
+                name="receipt-outline"
+                size={32}
+                color={theme.gray300}
+              />
+              <Text
+                style={{ color: theme.text }}
+                className="font-bold text-base mt-4"
+              >
                 No transactions yet
-              </Text>
-              <Text className="text-slate-400 text-sm text-center mt-1 px-4">
-                Your financial activities will appear here once you start saving
-                or borrowing.
               </Text>
             </View>
           )}
         </View>
+
         <Modal visible={isLoanFormVisible} transparent animationType="slide">
           <LoanApplicationForm onClose={() => setIsLoanFormVisible(false)} />
         </Modal>

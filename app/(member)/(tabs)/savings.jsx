@@ -1,3 +1,4 @@
+import { useTheme } from "@/context/ThemeProvider";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useState } from "react";
@@ -19,6 +20,7 @@ import {
 
 export default function MemberSavings() {
   const router = useRouter();
+  const { theme } = useTheme();
   const [goals, setGoals] = useState(initialGoals);
   const [isGoalModalVisible, setIsGoalModalVisible] = useState(false);
 
@@ -27,9 +29,15 @@ export default function MemberSavings() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50 pb-10">
+    <SafeAreaView
+      style={{ backgroundColor: theme.background }}
+      className="flex-1 pb-10"
+    >
       {/* BACKGROUND HEADER */}
-      <View className="absolute top-0 w-full h-64 bg-arch-blue rounded-b-[40px]" />
+      <View
+        style={{ backgroundColor: theme.primary }}
+        className="absolute top-0 w-full h-64 rounded-b-[40px]"
+      />
 
       {/* HEADER & NAV */}
       <View className="px-6 pt-4 pb-2 flex-row gap-6 items-center">
@@ -37,64 +45,127 @@ export default function MemberSavings() {
           onPress={() => router.back()}
           className="bg-white/20 p-2 rounded-xl"
         >
-          <Ionicons name="arrow-back" size={24} color="#FFF" />
+          <Ionicons name="arrow-back" size={24} color={theme.white} />
         </Pressable>
-        <Text className="text-white text-center text-lg font-bold">
+        <Text
+          style={{ color: theme.white }}
+          className="text-center text-lg font-bold"
+        >
           My Savings
         </Text>
       </View>
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         {/* MAIN CONTENT LAYER */}
-        <View className="bg-gray-50 rounded-t-[30px] px-6 pt-1 pb-10">
-          {/* 1. SAVINGS CATEGORIES (Horizontal Scroll) */}
-          <Text className="text-gray-800 text-lg font-bold mb-4">Accounts</Text>
+        <View
+          style={{ backgroundColor: theme.background }}
+          className="rounded-t-[30px] px-6 pt-1 pb-10"
+        >
+          {/* 1. SAVINGS CATEGORIES  */}
+          <Text
+            style={{ color: theme.text }}
+            className="text-lg font-bold mb-4"
+          >
+            Accounts
+          </Text>
           <View className="mb-8 -mx-6 px-6">
             {/* Ordinary Savings Card */}
-            <View className="bg-arch-blue p-5 rounded-3xl w-full shadow-lg shadow-blue-900/20 mr-4">
+            <View
+              style={{
+                backgroundColor: theme.primary,
+                shadowColor: theme.primary,
+              }}
+              className="p-5 rounded-3xl w-full shadow-lg mr-4"
+            >
               <View className="flex-row justify-between items-start mb-6">
                 <View className="bg-white/20 p-2 rounded-full">
-                  <Ionicons name="wallet-outline" size={24} color="#FFF" />
+                  <Ionicons
+                    name="wallet-outline"
+                    size={24}
+                    color={theme.white}
+                  />
                 </View>
                 <View className="items-end">
-                  <Text className="text-blue-200 text-[10px] tracking-wide">
+                  <Text
+                    style={{ color: theme.gray300 }}
+                    className="text-[10px] tracking-wide"
+                  >
                     LOAN POWER
                   </Text>
-                  <Text className="text-white font-bold text-lg">
+                  <Text
+                    style={{ color: theme.white }}
+                    className="font-bold text-lg"
+                  >
                     x3 Multiplier
                   </Text>
                 </View>
               </View>
-              <Text className="text-blue-200 text-sm font-medium">
+              <Text
+                style={{ color: theme.gray300 }}
+                className="text-sm font-medium"
+              >
                 Ordinary Savings
               </Text>
-              <Text className="text-white text-2xl font-bold mb-1">
+              <Text
+                style={{ color: theme.white }}
+                className="text-2xl font-bold mb-1"
+              >
                 UGX 3,450,000
               </Text>
-              <Text className="text-xs text-blue-100 font-semibold bg-white/10 self-start px-2 py-1 rounded">
+              <Text
+                style={{ color: theme.gray200 }}
+                className="text-xs font-semibold bg-white/10 self-start px-2 py-1 rounded"
+              >
                 Liquid Cash
               </Text>
             </View>
             {/* Share Capital Card */}
-            <View className="bg-white p-5 rounded-3xl w-full shadow-sm mr-4 mt-4 border-t-4 border-amber-400">
+            <View
+              style={{
+                backgroundColor: theme.card,
+                borderTopColor: theme.yellow,
+              }}
+              className="p-5 rounded-3xl w-full shadow-sm mr-4 mt-4 border-t-4"
+            >
               <View className="flex-row justify-between items-start mb-6">
                 <View className="bg-amber-100 p-2 rounded-full">
-                  <Ionicons name="ribbon-outline" size={24} color="#D97706" />
+                  <Ionicons
+                    name="ribbon-outline"
+                    size={24}
+                    color={theme.yellow}
+                  />
                 </View>
                 <View className="items-end">
-                  <Text className="text-gray-400 text-xs font-bold">
+                  <Text
+                    style={{ color: theme.gray400 }}
+                    className="text-xs font-bold"
+                  >
                     SHARES OWNED
                   </Text>
-                  <Text className="text-gray-800 font-bold text-lg">500</Text>
+                  <Text
+                    style={{ color: theme.text }}
+                    className="font-bold text-lg"
+                  >
+                    500
+                  </Text>
                 </View>
               </View>
-              <Text className="text-gray-500 text-sm font-medium">
+              <Text
+                style={{ color: theme.gray500 }}
+                className="text-sm font-medium"
+              >
                 Share Capital
               </Text>
-              <Text className="text-gray-900 text-2xl font-bold mb-1">
+              <Text
+                style={{ color: theme.text }}
+                className="text-2xl font-bold mb-1"
+              >
                 UGX 5,000,000
               </Text>
-              <Text className="text-xs text-amber-600 font-semibold bg-amber-50 self-start px-2 py-1 rounded">
+              <Text
+                style={{ color: theme.yellow }}
+                className="text-xs font-semibold bg-amber-50 self-start px-2 py-1 rounded"
+              >
                 🔒 Non-Withdrawable
               </Text>
             </View>
@@ -102,7 +173,10 @@ export default function MemberSavings() {
 
           {/* 3. SAVINGS GOAL */}
           <View className="mb-8">
-            <Text className="text-gray-800 text-lg font-bold mb-4">
+            <Text
+              style={{ color: theme.text }}
+              className="text-lg font-bold mb-4"
+            >
               Current Goal(s)
             </Text>
             <View>
@@ -115,24 +189,37 @@ export default function MemberSavings() {
           {/* ADD NEW GOAL ACTION CARD */}
           <View className="mb-8">
             <View className="flex-row justify-between items-center mb-4">
-              <Text className="text-gray-800 text-lg font-bold">
+              <Text style={{ color: theme.text }} className="text-lg font-bold">
                 Start a New Goal
               </Text>
             </View>
 
             <Pressable
-              className="bg-white border-2 border-dashed border-gray-200 p-6 rounded-3xl items-center justify-center"
+              style={{
+                backgroundColor: theme.card,
+                borderColor: theme.border,
+              }}
+              className="border-2 border-dashed p-6 rounded-3xl items-center justify-center"
               onPress={() => {
                 setIsGoalModalVisible(true);
               }}
             >
-              <View className="bg-purple-50 p-4 rounded-full mb-3">
-                <Ionicons name="add" size={32} color="#7C3AED" />
+              <View
+                style={{ backgroundColor: theme.gray100 }}
+                className="p-4 rounded-full mb-3"
+              >
+                <Ionicons name="add" size={32} color={theme.purple} />
               </View>
-              <Text className="text-gray-800 font-bold text-base">
+              <Text
+                style={{ color: theme.text }}
+                className="font-bold text-base"
+              >
                 Create a Savings Goal
               </Text>
-              <Text className="text-gray-400 text-xs text-center mt-1 px-6">
+              <Text
+                style={{ color: theme.gray400 }}
+                className="text-xs text-center mt-1 px-6"
+              >
                 Set a target and we&apos;ll help you track how close you are to
                 your dream.
               </Text>
@@ -141,7 +228,10 @@ export default function MemberSavings() {
 
           {/* GOAL TEMPLATES */}
           <View className="mb-10">
-            <Text className="text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-3">
+            <Text
+              style={{ color: theme.gray400 }}
+              className="text-[10px] font-bold uppercase tracking-widest mb-3"
+            >
               Popular Goals
             </Text>
             <ScrollView
@@ -156,15 +246,34 @@ export default function MemberSavings() {
           </View>
 
           {/* 2. GROWTH CHART */}
-          <View className="bg-white p-6 rounded-3xl shadow-sm mb-8 border border-slate-50">
+          <View
+            style={{
+              backgroundColor: theme.card,
+              borderColor: theme.border,
+            }}
+            className="p-6 rounded-3xl shadow-sm mb-8 border"
+          >
             <View className="flex-row justify-between items-center mb-6">
-              <Text className="text-slate-800 font-black text-base">
+              <Text
+                style={{ color: theme.text }}
+                className="font-black text-base"
+              >
                 Growth History
               </Text>
 
-              <View className="flex-row bg-slate-100 rounded-2xl p-2">
-                <Text className="text-xs text-arch-blue px-2">Latest</Text>
-                <Text className="text-xs text-arch-teal font-bold">2.5M</Text>
+              <View
+                style={{ backgroundColor: theme.gray100 }}
+                className="flex-row rounded-2xl p-2"
+              >
+                <Text style={{ color: theme.primary }} className="text-xs px-2">
+                  Latest
+                </Text>
+                <Text
+                  style={{ color: theme.archTeal }}
+                  className="text-xs font-bold"
+                >
+                  2.5M
+                </Text>
               </View>
             </View>
 
@@ -181,7 +290,10 @@ export default function MemberSavings() {
 
           {/* 4. RECENT DEPOSITS */}
           <View>
-            <Text className="text-gray-800 text-lg font-bold mb-4">
+            <Text
+              style={{ color: theme.text }}
+              className="text-lg font-bold mb-4"
+            >
               History
             </Text>
             {savingsTransactions?.map((item, index) => (

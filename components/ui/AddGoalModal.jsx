@@ -1,3 +1,4 @@
+import { useTheme } from "@/context/ThemeProvider"; // Theme Hook
 import { Ionicons } from "@expo/vector-icons";
 import { useRef, useState } from "react";
 import {
@@ -12,6 +13,7 @@ import {
 } from "react-native";
 
 export default function AddGoalModal({ onClose, onAdd }) {
+  const { theme } = useTheme(); // Access Theme
   const [targetAmount, setTargetAmount] = useState("");
   const [title, setTitle] = useState("");
   const [months, setMonths] = useState("12");
@@ -64,6 +66,7 @@ export default function AddGoalModal({ onClose, onAdd }) {
     >
       <Animated.View
         style={{
+          backgroundColor: theme.card,
           transform: [
             {
               translateY: pan.y.interpolate({
@@ -73,62 +76,94 @@ export default function AddGoalModal({ onClose, onAdd }) {
             },
           ],
         }}
-        className="bg-white rounded-t-[40px] p-8"
+        className="rounded-t-[40px] p-8"
       >
         {/* HANDLE BAR AREA - The Gesture Trigger */}
         <View
           {...panResponder.panHandlers}
           className="w-full py-2 -mt-4 mb-4 items-center"
         >
-          <View className="w-12 h-1.5 bg-gray-200 rounded-full" />
+          <View
+            style={{ backgroundColor: theme.gray200 }}
+            className="w-12 h-1.5 rounded-full"
+          />
         </View>
 
         {/* HEADER */}
         <View className="flex-row justify-between items-center mb-6">
           <View>
-            <Text className="text-2xl font-extrabold text-gray-900">
+            <Text
+              style={{ color: theme.text }}
+              className="text-2xl font-extrabold"
+            >
               New Goal
             </Text>
-            <Text className="text-gray-500 text-sm">
+            <Text style={{ color: theme.gray500 }} className="text-sm">
               What are you dreaming of?
             </Text>
           </View>
-          <Pressable onPress={onClose} className="bg-gray-100 p-2 rounded-full">
-            <Ionicons name="close" size={24} color="#64748B" />
+          <Pressable
+            onPress={onClose}
+            style={{ backgroundColor: theme.gray100 }}
+            className="p-2 rounded-full"
+          >
+            <Ionicons name="close" size={24} color={theme.gray500} />
           </Pressable>
         </View>
 
         {/* INPUT: GOAL NAME */}
         <View className="mb-5">
-          <Text className="text-gray-400 text-[10px] font-bold uppercase mb-2 ml-1">
+          <Text
+            style={{ color: theme.gray400 }}
+            className="text-[10px] font-bold uppercase mb-2 ml-1"
+          >
             Goal Name
           </Text>
-          <View className="bg-gray-50 border border-gray-100 rounded-2xl px-4 py-4 flex-row items-center">
-            <Ionicons name="pencil-outline" size={20} color="#94A3B8" />
+          <View
+            style={{
+              backgroundColor: theme.gray50,
+              borderColor: theme.gray100,
+            }}
+            className="border rounded-2xl px-4 py-4 flex-row items-center"
+          >
+            <Ionicons name="pencil-outline" size={20} color={theme.gray400} />
             <TextInput
               value={title}
               onChangeText={(text) => setTitle(text)}
               placeholder="e.g. Buy Land in Mukono"
-              className="flex-1 ml-3 font-semibold text-gray-800"
-              placeholderTextColor="#CBD5E1"
+              className="flex-1 ml-3 font-semibold"
+              style={{ color: theme.text }}
+              placeholderTextColor={theme.gray300}
             />
           </View>
         </View>
 
         {/* INPUT: TARGET AMOUNT */}
         <View className="mb-5">
-          <Text className="text-gray-400 text-[10px] font-bold uppercase mb-2 ml-1">
+          <Text
+            style={{ color: theme.gray400 }}
+            className="text-[10px] font-bold uppercase mb-2 ml-1"
+          >
             Target Amount (UGX)
           </Text>
-          <View className="bg-gray-50 border border-gray-100 rounded-2xl px-4 py-4 flex-row items-center">
-            <Text className="font-bold text-gray-400 mr-2">UGX</Text>
+          <View
+            style={{
+              backgroundColor: theme.gray50,
+              borderColor: theme.gray100,
+            }}
+            className="border rounded-2xl px-4 py-4 flex-row items-center"
+          >
+            <Text style={{ color: theme.gray400 }} className="font-bold mr-2">
+              UGX
+            </Text>
             <TextInput
               keyboardType="numeric"
               value={targetAmount}
               onChangeText={(text) => setTargetAmount(text)}
               placeholder="0.00"
-              className="flex-1 font-bold text-xl text-arch-blue"
-              placeholderTextColor="#CBD5E1"
+              style={{ color: theme.primary }}
+              className="flex-1 font-bold text-xl"
+              placeholderTextColor={theme.gray300}
             />
           </View>
         </View>
@@ -136,16 +171,30 @@ export default function AddGoalModal({ onClose, onAdd }) {
         {/* INPUT: TIME HORIZON */}
         <View className="flex-row gap-x-4 mb-6">
           <View className="flex-1">
-            <Text className="text-gray-400 text-[10px] font-bold uppercase mb-2 ml-1">
+            <Text
+              style={{ color: theme.gray400 }}
+              className="text-[10px] font-bold uppercase mb-2 ml-1"
+            >
               Months to Save
             </Text>
-            <View className="bg-gray-50 border border-gray-100 rounded-2xl px-4 py-4 flex-row items-center">
-              <Ionicons name="calendar-outline" size={20} color="#94A3B8" />
+            <View
+              style={{
+                backgroundColor: theme.gray50,
+                borderColor: theme.gray100,
+              }}
+              className="border rounded-2xl px-4 py-4 flex-row items-center"
+            >
+              <Ionicons
+                name="calendar-outline"
+                size={20}
+                color={theme.gray400}
+              />
               <TextInput
                 keyboardType="numeric"
                 value={months}
                 onChangeText={setMonths}
-                className="flex-1 ml-3 font-bold text-gray-800"
+                style={{ color: theme.text }}
+                className="flex-1 ml-3 font-bold"
               />
             </View>
           </View>
@@ -153,28 +202,47 @@ export default function AddGoalModal({ onClose, onAdd }) {
 
         {/* SMART CALCULATION CARD */}
         {targetAmount > 0 && (
-          <View className="bg-arch-blue rounded-3xl p-5 flex-row items-center mb-8 shadow-lg shadow-blue-900/30">
+          <View
+            style={{
+              backgroundColor: theme.primary,
+              shadowColor: theme.primary,
+            }}
+            className="rounded-3xl p-5 flex-row items-center mb-8 shadow-lg"
+          >
             <View className="bg-white/20 p-3 rounded-2xl mr-4">
-              <Ionicons name="calculator" size={28} color="#FFF" />
+              <Ionicons name="calculator" size={28} color={theme.white} />
             </View>
             <View className="flex-1">
-              <Text className="text-white/70 text-xs font-medium">
+              <Text
+                style={{ color: theme.white }}
+                className="opacity-70 text-xs font-medium"
+              >
                 Monthly commitment
               </Text>
-              <Text className="text-white text-xl font-extrabold">
+              <Text
+                style={{ color: theme.white }}
+                className="text-xl font-extrabold"
+              >
                 UGX {Number(monthlySaving).toLocaleString()}
               </Text>
             </View>
-            <Ionicons name="checkmark-circle" size={24} color="#4ADE80" />
+            <Ionicons name="checkmark-circle" size={24} color={theme.emerald} />
           </View>
         )}
 
         {/* CREATE BUTTON */}
         <Pressable
-          className="bg-emerald-500 py-5 rounded-2xl items-center shadow-md shadow-emerald-500/20"
+          style={{
+            backgroundColor: theme.emerald,
+            shadowColor: theme.emerald,
+          }}
+          className="py-5 rounded-2xl items-center shadow-md"
           onPress={handleAddGoal}
         >
-          <Text className="text-white font-extrabold text-lg">
+          <Text
+            style={{ color: theme.white }}
+            className="font-extrabold text-lg"
+          >
             Activate Goal
           </Text>
         </Pressable>

@@ -1,4 +1,5 @@
 import { useAuth } from "@/context/AuthContext";
+import { useTheme } from "@/context/ThemeProvider";
 import { useMemberApplication } from "@/hooks/useMemberApplication";
 import { supabase } from "@/lib/supabase";
 import { Ionicons } from "@expo/vector-icons";
@@ -20,6 +21,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 export default function ReviewApplication() {
   const { user } = useAuth();
   const router = useRouter();
+  const { theme } = useTheme();
 
   const {
     data: application,
@@ -104,9 +106,12 @@ export default function ReviewApplication() {
 
   if (isLoading) {
     return (
-      <View className="flex-1 items-center justify-center bg-white">
-        <ActivityIndicator size="large" color="#4F46E5" />
-        <Text className="text-slate-400 mt-4 font-medium">
+      <View
+        className="flex-1 items-center justify-center"
+        style={{ backgroundColor: theme.background }}
+      >
+        <ActivityIndicator size="large" color={theme.indigo} />
+        <Text className="mt-4 font-medium" style={{ color: theme.gray400 }}>
           Loading application...
         </Text>
       </View>
@@ -115,8 +120,11 @@ export default function ReviewApplication() {
 
   if (isError || !application) {
     return (
-      <View className="flex-1 items-center justify-center bg-white">
-        <Text className="text-red-500 font-semibold">
+      <View
+        className="flex-1 items-center justify-center"
+        style={{ backgroundColor: theme.background }}
+      >
+        <Text style={{ color: theme.error }} className="font-semibold">
           Failed to load application
         </Text>
       </View>
@@ -124,25 +132,43 @@ export default function ReviewApplication() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-white" edges={["top"]}>
+    <SafeAreaView
+      className="flex-1"
+      style={{ backgroundColor: theme.background }}
+      edges={["top"]}
+    >
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         className="flex-1"
       >
         {/* HEADER */}
-        <View className="px-6 pb-4 border-b border-slate-50 bg-white">
+        <View
+          className="px-6 pb-4 border-b"
+          style={{
+            backgroundColor: theme.card,
+            borderBottomColor: theme.border,
+          }}
+        >
           <View className="flex-row items-center mb-2">
             <Pressable
               onPress={() => router.back()}
-              className="p-2 -ml-2 mr-2 bg-slate-50 rounded-full"
+              className="p-2 -ml-2 mr-2 rounded-full"
+              style={{ backgroundColor: theme.gray50 }}
             >
-              <Ionicons name="arrow-back" size={20} color="#0F172A" />
+              <Ionicons name="arrow-back" size={20} color={theme.gray900} />
             </Pressable>
-            <Text className="text-xl font-black text-slate-900">
+
+            <Text
+              className="text-xl font-black"
+              style={{ color: theme.gray900 }}
+            >
               Review & Edit
             </Text>
           </View>
-          <Text className="text-sm text-slate-500 font-medium">
+          <Text
+            className="text-sm font-medium"
+            style={{ color: theme.gray500 }}
+          >
             Please correct the highlighted information and resubmit.
           </Text>
         </View>
@@ -151,14 +177,26 @@ export default function ReviewApplication() {
           {/* REJECTION REASON */}
           {application.status === "rejected" &&
             application.rejection_reason && (
-              <View className="mb-8 bg-red-50 border border-red-200 rounded-2xl p-4">
+              <View
+                className="mb-8 border rounded-2xl p-4"
+                style={{
+                  backgroundColor: theme.error + "0D",
+                  borderColor: theme.error + "33",
+                }}
+              >
                 <View className="flex-row items-center mb-2">
-                  <Ionicons name="alert-circle" size={20} color="#EF4444" />
-                  <Text className="ml-2 font-bold text-red-600 uppercase tracking-widest text-xs">
+                  <Ionicons name="alert-circle" size={20} color={theme.error} />
+                  <Text
+                    className="ml-2 font-bold uppercase tracking-widest text-xs"
+                    style={{ color: theme.error }}
+                  >
                     Reason for Rejection
                   </Text>
                 </View>
-                <Text className="text-red-700 font-medium leading-6">
+                <Text
+                  className="font-medium leading-6"
+                  style={{ color: theme.error }}
+                >
                   {application.rejection_reason}
                 </Text>
               </View>
@@ -178,6 +216,7 @@ export default function ReviewApplication() {
                   (v) => updateField("title", v),
                   "default",
                   "text-outline",
+                  theme,
                 )}
               </View>
               <View className="flex-1">
@@ -187,6 +226,7 @@ export default function ReviewApplication() {
                   (v) => updateField("gender", v),
                   "default",
                   "male-female-outline",
+                  theme,
                 )}
               </View>
             </View>
@@ -196,6 +236,7 @@ export default function ReviewApplication() {
               (v) => updateField("first_name", v),
               "default",
               "person-outline",
+              theme,
             )}
             {renderInput(
               "Last Name",
@@ -203,6 +244,7 @@ export default function ReviewApplication() {
               (v) => updateField("last_name", v),
               "default",
               "person-outline",
+              theme,
             )}
             {renderInput(
               "Date of Birth (YYYY-MM-DD)",
@@ -210,6 +252,7 @@ export default function ReviewApplication() {
               (v) => updateField("date_of_birth", v),
               "default",
               "calendar-outline",
+              theme,
             )}
             {renderInput(
               "National ID (NIN)",
@@ -217,6 +260,7 @@ export default function ReviewApplication() {
               (v) => updateField("national_id", v),
               "default",
               "card-outline",
+              theme,
             )}
             {renderInput(
               "Passport Number",
@@ -224,6 +268,7 @@ export default function ReviewApplication() {
               (v) => updateField("passport_number", v),
               "default",
               "globe-outline",
+              theme,
             )}
             {renderInput(
               "Marital Status",
@@ -231,6 +276,7 @@ export default function ReviewApplication() {
               (v) => updateField("marital_status", v),
               "default",
               "heart-half-outline",
+              theme,
             )}
             {renderInput(
               "Education Level",
@@ -238,6 +284,7 @@ export default function ReviewApplication() {
               (v) => updateField("education_level", v),
               "default",
               "book-outline",
+              theme,
             )}
           </View>
           {/* SECTION 2: CONTACT & LOCATION */}
@@ -250,6 +297,7 @@ export default function ReviewApplication() {
               (v) => updateField("phone_number", v),
               "phone-pad",
               "call-outline",
+              theme,
             )}
             {renderInput(
               "Email Address",
@@ -257,6 +305,7 @@ export default function ReviewApplication() {
               (v) => updateField("email", v),
               "email-address",
               "mail-outline",
+              theme,
             )}
 
             <View className="h-[1px] bg-slate-100 my-4" />
@@ -267,6 +316,7 @@ export default function ReviewApplication() {
               (v) => updateField("physical_address", v),
               "default",
               "home-outline",
+              theme,
             )}
 
             <View className="flex-row gap-x-3">
@@ -277,6 +327,7 @@ export default function ReviewApplication() {
                   (v) => updateField("district", v),
                   "default",
                   "map-outline",
+                  theme,
                 )}
               </View>
               <View className="flex-1">
@@ -286,6 +337,7 @@ export default function ReviewApplication() {
                   (v) => updateField("sub_county", v),
                   "default",
                   "navigate-circle-outline",
+                  theme,
                 )}
               </View>
             </View>
@@ -298,6 +350,7 @@ export default function ReviewApplication() {
                   (v) => updateField("parish", v),
                   "default",
                   "business-outline",
+                  theme,
                 )}
               </View>
               <View className="flex-1">
@@ -307,6 +360,7 @@ export default function ReviewApplication() {
                   (v) => updateField("village", v),
                   "default",
                   "trail-sign-outline",
+                  theme,
                 )}
               </View>
             </View>
@@ -317,6 +371,7 @@ export default function ReviewApplication() {
               (v) => updateField("resident_type", v),
               "default",
               "home-outline",
+              theme,
             )}
           </View>
 
@@ -333,6 +388,7 @@ export default function ReviewApplication() {
               (v) => updateField("occupation", v),
               "default",
               "id-card-outline",
+              theme,
             )}
             {renderInput(
               "Employer Name",
@@ -340,6 +396,7 @@ export default function ReviewApplication() {
               (v) => updateField("employer_name", v),
               "default",
               "business-outline",
+              theme,
             )}
 
             {renderInput(
@@ -348,6 +405,7 @@ export default function ReviewApplication() {
               (v) => updateField("income_source", v),
               "default",
               "wallet-outline",
+              theme,
             )}
             {renderInput(
               "Monthly Income",
@@ -355,6 +413,7 @@ export default function ReviewApplication() {
               (v) => updateField("monthly_income", v),
               "numeric",
               "cash-outline",
+              theme,
             )}
           </View>
 
@@ -371,6 +430,7 @@ export default function ReviewApplication() {
               (v) => updateField("next_of_kin_name", v),
               "default",
               "person-add-outline",
+              theme,
             )}
             {renderInput(
               "Relationship",
@@ -378,6 +438,7 @@ export default function ReviewApplication() {
               (v) => updateField("next_of_kin_relationship", v),
               "default",
               "heart-outline",
+              theme,
             )}
             {renderInput(
               "Contact Phone",
@@ -385,6 +446,7 @@ export default function ReviewApplication() {
               (v) => updateField("next_of_kin_phone", v),
               "phone-pad",
               "call-outline",
+              theme,
             )}
             {renderInput(
               "Address",
@@ -392,6 +454,7 @@ export default function ReviewApplication() {
               (v) => updateField("next_of_kin_address", v),
               "default",
               "home-outline",
+              theme,
             )}
           </View>
           {/* SUBMIT */}
@@ -423,10 +486,18 @@ export default function ReviewApplication() {
 
 /* ---------------- HELPER COMPONENTS ---------------- */
 function SectionHeader({ title, icon }) {
+  const { theme } = useTheme();
+
   return (
-    <View className="flex-row items-center mb-4 border-b border-slate-100 pb-2">
-      <Ionicons name={icon} size={20} color="#4F46E5" />
-      <Text className="text-sm font-bold text-indigo-900 uppercase tracking-widest ml-2">
+    <View
+      className="flex-row items-center mb-4 pb-2"
+      style={{ borderBottomColor: theme.border, borderBottomWidth: 1 }}
+    >
+      <Ionicons name={icon} size={20} color={theme.indigo} />
+      <Text
+        className="text-sm font-bold uppercase tracking-widest ml-2"
+        style={{ color: theme.indigo }}
+      >
         {title}
       </Text>
     </View>
@@ -439,21 +510,35 @@ function renderInput(
   onChange,
   keyboardType = "default",
   icon = "pencil-outline",
+  theme,
 ) {
   return (
     <View className="mb-4">
-      <Text className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 ml-1">
+      <Text
+        className="text-[11px] font-bold uppercase tracking-widest mb-1.5 ml-1"
+        style={{ color: theme.gray400 }}
+      >
         {label}
       </Text>
-      <View className="flex-row items-center bg-slate-50 border border-slate-200 rounded-2xl px-4 h-14 focus:border-indigo-500">
-        <Ionicons name={icon} size={18} color="#94A3B8" />
+
+      <View
+        className="flex-row items-center rounded-2xl px-4 h-14"
+        style={{
+          backgroundColor: theme.gray50,
+          borderColor: theme.border,
+          borderWidth: 1,
+        }}
+      >
+        <Ionicons name={icon} size={18} color={theme.gray400} />
+
         <TextInput
           value={value}
           onChangeText={onChange}
           keyboardType={keyboardType}
-          placeholderTextColor="#CBD5E1"
-          placeholder={label} // Added placeholder for better UX
-          className="flex-1 ml-3 text-slate-900 font-semibold text-sm h-full"
+          placeholder={label}
+          placeholderTextColor={theme.gray300}
+          className="flex-1 ml-3 font-semibold text-sm h-full"
+          style={{ color: theme.gray900 }}
         />
       </View>
     </View>
