@@ -1,6 +1,7 @@
 import { useAuth } from "@/context/AuthContext";
+import { useMemberApplication } from "@/hooks/useMemberApplication";
 import { supabase } from "@/lib/supabase";
-import { Ionicons } from "@expo/vector-icons"; // Added for professional UI
+import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -17,10 +18,15 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function ReviewApplication() {
-  const { user, application } = useAuth();
+  const { user } = useAuth();
   const router = useRouter();
 
-  const [loading, setLoading] = useState(true);
+  const {
+    data: application,
+    isLoading,
+    isError,
+  } = useMemberApplication(user?.id);
+
   const [submitting, setSubmitting] = useState(false);
 
   const [form, setForm] = useState({
@@ -31,7 +37,8 @@ export default function ReviewApplication() {
     gender: "",
     national_id: "",
     passport_number: "",
-
+    marital_status: "",
+    education_level: "",
     phone_number: "",
     email: "",
     physical_address: "",
@@ -39,44 +46,30 @@ export default function ReviewApplication() {
     sub_county: "",
     parish: "",
     village: "",
-
+    resident_type: "",
     occupation: "",
     employer_name: "",
     income_source: "",
     monthly_income: "",
-
     next_of_kin_name: "",
     next_of_kin_relationship: "",
     next_of_kin_phone: "",
     next_of_kin_address: "",
   });
 
-  /* ---------------- FETCH EXISTING APPLICATION ---------------- */
+  /* ---------------- HYDRATE FORM FROM CACHE ---------------- */
   useEffect(() => {
-    const fetchApplication = async () => {
-      if (!application) return;
-
-      // Ensure we merge existing application data correctly
-      setForm((prev) => ({
-        ...prev,
-        ...application,
-      }));
-
-      setLoading(false);
-    };
-
-    fetchApplication();
+    if (!application) return;
+    setForm((prev) => ({ ...prev, ...application }));
   }, [application]);
 
-  /* ---------------- UPDATE HANDLER ---------------- */
+  /* ---------------- UPDATE HANDLER (MISSING LOGIC) ---------------- */
   const updateField = (key, value) => {
     setForm((prev) => ({ ...prev, [key]: value }));
   };
 
   /* ---------------- RESUBMIT ---------------- */
   const handleResubmit = async () => {
-    if (!user) return;
-
     setSubmitting(true);
 
     const { error } = await supabase
@@ -85,14 +78,15 @@ export default function ReviewApplication() {
         ...form,
         monthly_income: Number(form.monthly_income),
         status: "pending",
-        updated_at: new Date().toISOString(),
+        rejection_reason: null,
+        submitted_at: new Date().toISOString(),
       })
       .eq("user_id", user.id);
 
     setSubmitting(false);
 
     if (error) {
-      Alert.alert("Error", "Failed to resubmit application");
+      Alert.alert("Error", error.message);
       return;
     }
 
@@ -108,13 +102,22 @@ export default function ReviewApplication() {
     );
   };
 
-  /* ---------------- UI ---------------- */
-  if (loading) {
+  if (isLoading) {
     return (
       <View className="flex-1 items-center justify-center bg-white">
         <ActivityIndicator size="large" color="#4F46E5" />
         <Text className="text-slate-400 mt-4 font-medium">
           Loading application...
+        </Text>
+      </View>
+    );
+  }
+
+  if (isError || !application) {
+    return (
+      <View className="flex-1 items-center justify-center bg-white">
+        <Text className="text-red-500 font-semibold">
+          Failed to load application
         </Text>
       </View>
     );
@@ -126,7 +129,8 @@ export default function ReviewApplication() {
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         className="flex-1"
       >
-        <View className="px-6 pb-4 border-b border-slate-50 bg-white z-10">
+        {/* HEADER */}
+        <View className="px-6 pb-4 border-b border-slate-50 bg-white">
           <View className="flex-row items-center mb-2">
             <Pressable
               onPress={() => router.back()}
@@ -144,13 +148,28 @@ export default function ReviewApplication() {
         </View>
 
         <ScrollView className="px-6 pt-6" showsVerticalScrollIndicator={false}>
+          {/* REJECTION REASON */}
+          {application.status === "rejected" &&
+            application.rejection_reason && (
+              <View className="mb-8 bg-red-50 border border-red-200 rounded-2xl p-4">
+                <View className="flex-row items-center mb-2">
+                  <Ionicons name="alert-circle" size={20} color="#EF4444" />
+                  <Text className="ml-2 font-bold text-red-600 uppercase tracking-widest text-xs">
+                    Reason for Rejection
+                  </Text>
+                </View>
+                <Text className="text-red-700 font-medium leading-6">
+                  {application.rejection_reason}
+                </Text>
+              </View>
+            )}
+
           {/* SECTION 1: PERSONAL IDENTITY */}
           <View className="mb-8">
             <SectionHeader
               title="Personal Identity"
               icon="person-circle-outline"
             />
-
             <View className="flex-row gap-x-3">
               <View className="flex-1">
                 {renderInput(
@@ -171,7 +190,6 @@ export default function ReviewApplication() {
                 )}
               </View>
             </View>
-
             {renderInput(
               "First Name",
               form.first_name,
@@ -207,8 +225,21 @@ export default function ReviewApplication() {
               "default",
               "globe-outline",
             )}
+            {renderInput(
+              "Marital Status",
+              form.marital_status,
+              (v) => updateField("marital_status", v),
+              "default",
+              "heart-half-outline",
+            )}
+            {renderInput(
+              "Education Level",
+              form.education_level,
+              (v) => updateField("education_level", v),
+              "default",
+              "book-outline",
+            )}
           </View>
-
           {/* SECTION 2: CONTACT & LOCATION */}
           <View className="mb-8">
             <SectionHeader title="Location & Contact" icon="location-outline" />
@@ -279,6 +310,14 @@ export default function ReviewApplication() {
                 )}
               </View>
             </View>
+
+            {renderInput(
+              "Resident Type",
+              form.resident_type,
+              (v) => updateField("resident_type", v),
+              "default",
+              "home-outline",
+            )}
           </View>
 
           {/* SECTION 3: EMPLOYMENT */}
@@ -302,6 +341,7 @@ export default function ReviewApplication() {
               "default",
               "business-outline",
             )}
+
             {renderInput(
               "Source of Income",
               form.income_source,
@@ -354,30 +394,26 @@ export default function ReviewApplication() {
               "home-outline",
             )}
           </View>
-
-          {/* SUBMIT BUTTON */}
+          {/* SUBMIT */}
           <View className="pb-20">
             <Pressable
               onPress={handleResubmit}
               disabled={submitting}
-              className={`py-4 rounded-2xl flex-row justify-center items-center shadow-lg shadow-indigo-200 ${
-                submitting ? "bg-slate-300" : "bg-brand-primary" // assuming brand-primary is defined in tailwind, else use indigo-600
+              className={`py-4 rounded-2xl flex-row justify-center items-center ${
+                submitting ? "bg-slate-300" : "bg-indigo-600"
               }`}
             >
               {submitting ? (
                 <ActivityIndicator color="white" />
               ) : (
                 <>
-                  <Text className="text-white font-bold text-center text-lg mr-2">
+                  <Text className="text-white font-bold text-lg mr-2">
                     Resubmit Application
                   </Text>
-                  <Ionicons name="check-checkmark" size={20} color="white" />
+                  <Ionicons name="checkmark-circle" size={20} color="white" />
                 </>
               )}
             </Pressable>
-            <Text className="text-center text-slate-400 text-xs mt-4">
-              Updates will be reviewed within 24-48 hours.
-            </Text>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -386,7 +422,6 @@ export default function ReviewApplication() {
 }
 
 /* ---------------- HELPER COMPONENTS ---------------- */
-
 function SectionHeader({ title, icon }) {
   return (
     <View className="flex-row items-center mb-4 border-b border-slate-100 pb-2">

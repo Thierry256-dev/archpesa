@@ -277,6 +277,32 @@ export default function Step1() {
             </View>
 
             <FormField
+              label="Marital Status"
+              placeholder="e.g. Single"
+              icon="heart-half-outline"
+              value={formData.marital_status}
+              onChange={(v) => {
+                updateForm("marital_status", v);
+                if (errors.marital_status)
+                  setErrors({ ...errors, marital_status: null });
+              }}
+              error={errors.marital_status}
+            />
+
+            <FormField
+              label="Education Level"
+              placeholder="e.g. Campus"
+              icon="book-outline"
+              value={formData.education_level}
+              onChange={(v) => {
+                updateForm("education_level", v);
+                if (errors.education_level)
+                  setErrors({ ...errors, education_level: null });
+              }}
+              error={errors.education_level}
+            />
+
+            <FormField
               label="National ID (NIN)"
               placeholder="CM00000000XXXX"
               icon="card-outline"

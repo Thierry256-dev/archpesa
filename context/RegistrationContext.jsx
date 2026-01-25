@@ -7,6 +7,8 @@ const initialFormState = {
   last_name: "",
   date_of_birth: "",
   gender: "",
+  marital_status: "",
+  education_level: "",
   national_id: "",
   passport_number: "",
 
@@ -17,6 +19,7 @@ const initialFormState = {
   sub_county: "",
   parish: "",
   village: "",
+  resident_type: "",
 
   occupation: "",
   employer_name: "",

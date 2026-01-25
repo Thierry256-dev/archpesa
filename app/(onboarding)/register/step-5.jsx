@@ -144,6 +144,8 @@ export default function Step5() {
             />
             <DataRow label="Date of Birth" value={formData.date_of_birth} />
             <DataRow label="Gender" value={formData.gender} />
+            <DataRow label="Marital Status" value={formData.marital_status} />
+            <DataRow label="Education Level" value={formData.education_level} />
             <DataRow label="National ID (NIN)" value={formData.national_id} />
             {formData.passport_number !== "" && (
               <DataRow label="Gender" value={formData.gender} />
@@ -166,6 +168,7 @@ export default function Step5() {
             <DataRow label="Sub-County" value={formData.sub_county} />
             <DataRow label="Parish" value={formData.parish} />
             <DataRow label="Village" value={formData.village} />
+            <DataRow label="Resident Type" value={formData.resident_type} />
           </View>
 
           <SectionHeader

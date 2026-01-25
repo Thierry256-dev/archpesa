@@ -202,6 +202,13 @@ export default function Step2() {
             value={formData.village}
             onChange={(v) => updateForm("village", v)}
           />
+          <FormField
+            label="Resident Type"
+            placeholder="e.g. Permanent"
+            icon="home-outline"
+            value={formData.resident_type}
+            onChange={(v) => updateForm("resident_type", v)}
+          />
         </KeyboardAvoidingView>
 
         {/* HELPER TEXT */}
