@@ -140,8 +140,9 @@ export default function AdminDashboard() {
                   />
                   <QuickAction
                     icon="person-add-outline"
-                    label="Add Member"
+                    label="Register Forms"
                     color="#7C3AED"
+                    onPress={() => router.push("/(admin)/applications")}
                   />
                   <QuickAction
                     icon="bar-chart-outline"
@@ -160,8 +161,9 @@ export default function AdminDashboard() {
                   />
                   <QuickAction
                     icon="person-add-outline"
-                    label="Add Member"
+                    label="Register Forms"
                     color="#7C3AED"
+                    onPress={() => router.push("/(admin)/applications")}
                   />
                   <QuickAction
                     icon="bar-chart-outline"

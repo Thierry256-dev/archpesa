@@ -38,8 +38,6 @@ export function AuthProvider({ children }) {
     return data;
   };
 
-  const userType = appUser?.type ?? null;
-
   useEffect(() => {
     let isMounted = true;
     let subscription;
@@ -56,10 +54,12 @@ export function AuthProvider({ children }) {
 
         setRememberMeState(true);
 
-        const { data: sessionData } = await supabase.auth.getSession();
+        const { data } = await supabase.auth.getSession();
+        const authUser = data?.session?.user ?? null;
 
-        if (sessionData?.session?.user) {
-          setUser(sessionData.session.user);
+        setUser(authUser);
+
+        if (authUser) {
           const context = await fetchUserContext();
           if (isMounted) setAppUser(context);
         }
@@ -69,19 +69,21 @@ export function AuthProvider({ children }) {
         } = supabase.auth.onAuthStateChange(async (_event, session) => {
           if (!isMounted) return;
 
-          const authUser = session?.user ?? null;
-          setUser(authUser);
+          const nextUser = session?.user ?? null;
+          setUser(nextUser);
 
-          if (!authUser) {
+          if (!nextUser) {
             setAppUser(null);
             setLoading(false);
             return;
           }
 
-          const context = await fetchUserContext();
-          if (!isMounted) return;
+          // Only fetch if we don’t already have context
+          if (!appUser || appUser.auth_user_id !== nextUser.id) {
+            const context = await fetchUserContext();
+            if (isMounted) setAppUser(context);
+          }
 
-          setAppUser(context);
           setLoading(false);
         });
 
@@ -108,7 +110,7 @@ export function AuthProvider({ children }) {
       value={{
         user,
         appUser,
-        userType,
+        userType: appUser?.type ?? null,
         loading,
         rememberMe,
         setRememberMe,
