@@ -9,7 +9,7 @@ export function useMemberApplication(userId) {
       const { data, error } = await supabase
         .from("member_applications")
         .select("*")
-        .eq("user_id", userId)
+        .eq("auth_user_id", userId)
         .single();
 
       if (error) throw error;

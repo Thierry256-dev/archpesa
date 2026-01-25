@@ -1,4 +1,5 @@
 import { useAuth } from "@/context/AuthContext";
+import { useMemberApplication } from "@/hooks/useMemberApplication";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useState } from "react";
@@ -21,10 +22,11 @@ export default function MemberDashboard() {
 
   const transactions = MOCK_TRANSACTIONS;
 
-  const { application } = useAuth();
+  const { user } = useAuth();
+
+  const { data: application, isLoading } = useMemberApplication(user?.id);
 
   const applicationStatus = application?.status ?? "pending";
-
   const isApproved = applicationStatus === "approved";
 
   const dashboardData = {
@@ -50,6 +52,14 @@ export default function MemberDashboard() {
       iconColor: "#ef4444",
     },
   };
+
+  if (isLoading) {
+    return (
+      <View className="flex-1 items-center justify-center bg-white">
+        <Text className="text-slate-400 font-medium">Loading dashboard…</Text>
+      </View>
+    );
+  }
 
   const statusUI = statusConfig[applicationStatus];
 
