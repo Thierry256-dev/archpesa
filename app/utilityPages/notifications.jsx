@@ -1,6 +1,9 @@
+import { useAuth } from "@/context/AuthContext";
+import { useMarkAllNotificationsRead } from "@/hooks/useMarkAllNotificationsRead";
+import { useMarkNotificationRead } from "@/hooks/useMarkNotificationRead";
+import { useNotifications } from "@/hooks/useNotifications";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../../context/ThemeProvider";
@@ -8,6 +11,30 @@ import { useTheme } from "../../context/ThemeProvider";
 export default function Notifications() {
   const router = useRouter();
   const { theme } = useTheme();
+  const { user } = useAuth();
+  const { data: notifications = [] } = useNotifications(user?.id);
+
+  const markOneRead = useMarkNotificationRead();
+  const markAllRead = useMarkAllNotificationsRead();
+
+  const formatTimeAgo = (date) => {
+    const now = new Date();
+    const past = new Date(date);
+    const diffInSeconds = Math.floor((now - past) / 1000);
+
+    if (diffInSeconds < 60) return "Just now";
+
+    const diffInMinutes = Math.floor(diffInSeconds / 60);
+    if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
+
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    if (diffInHours < 24) return `${diffInHours}h ago`;
+
+    const diffInDays = Math.floor(diffInHours / 24);
+    if (diffInDays < 7) return `${diffInDays}d ago`;
+
+    return past.toLocaleDateString();
+  };
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.background }}>
@@ -41,40 +68,92 @@ export default function Notifications() {
             Notifications
           </Text>
         </View>
-        <Pressable>
-          <Text style={{ color: theme.blue, fontWeight: "bold", fontSize: 12 }}>
-            Mark all as read
-          </Text>
-        </Pressable>
+        {notifications.length > 0 && (
+          <Pressable onPress={() => markAllRead.mutate()}>
+            <Text
+              style={{ color: theme.blue, fontWeight: "bold", fontSize: 12 }}
+            >
+              Mark all as read
+            </Text>
+          </Pressable>
+        )}
       </View>
 
       <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
-        <NotificationItem
-          type="loan"
-          title="Loan Approved! 🎉"
-          desc="Your Emergency Loan of UGX 500k has been approved by the President."
-          time="2 mins ago"
-          isUnread
-        />
-        <NotificationItem
-          type="savings"
-          title="Deposit Confirmed"
-          desc="Your monthly savings contribution of UGX 50,000 has been received."
-          time="1 hour ago"
-          isUnread
-        />
-        <NotificationItem
-          type="alert"
-          title="Payment Reminder"
-          desc="Your loan installment of UGX 120,000 is due in 3 days."
-          time="Yesterday"
-        />
+        {notifications.length > 0 ? (
+          notifications.map((n) => (
+            <NotificationItem
+              key={n.id}
+              type={n.type}
+              title={n.title}
+              desc={n.body}
+              time={formatTimeAgo(n.created_at)}
+              isUnread={!n.is_read}
+              onPress={() => {
+                if (!n.is_read) {
+                  markOneRead.mutate(n.id);
+                }
+              }}
+            />
+          ))
+        ) : (
+          /* EMPTY STATE */
+          <View
+            style={{
+              flex: 1,
+              alignItems: "center",
+              justifyContent: "center",
+              marginTop: 100,
+              paddingHorizontal: 40,
+            }}
+          >
+            <View
+              style={{
+                width: 80,
+                height: 80,
+                borderRadius: 40,
+                backgroundColor: theme.card,
+                alignItems: "center",
+                justifyContent: "center",
+                marginBottom: 20,
+              }}
+            >
+              <Ionicons
+                name="notifications-off-outline"
+                size={40}
+                color={theme.gray400}
+              />
+            </View>
+            <Text
+              style={{
+                fontSize: 18,
+                fontWeight: "bold",
+                color: theme.text,
+                textAlign: "center",
+              }}
+            >
+              No notifications yet
+            </Text>
+            <Text
+              style={{
+                fontSize: 14,
+                color: theme.gray500,
+                textAlign: "center",
+                marginTop: 8,
+                lineHeight: 20,
+              }}
+            >
+              We&quot;ll notify you when something important happens, like
+              account updates or new messages.
+            </Text>
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-function NotificationItem({ type, title, desc, time, isUnread }) {
+function NotificationItem({ type, title, desc, time, isUnread, onPress }) {
   const { theme } = useTheme();
   const getIcon = () => {
     if (type === "loan")
@@ -96,6 +175,7 @@ function NotificationItem({ type, title, desc, time, isUnread }) {
 
   return (
     <Pressable
+      onPress={onPress}
       style={{
         flexDirection: "row",
         padding: 24,

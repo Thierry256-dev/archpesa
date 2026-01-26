@@ -1,6 +1,7 @@
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeProvider";
 import { useMemberApplication } from "@/hooks/useMemberApplication";
+import { useUnreadNotificationCount } from "@/hooks/useUnreadNotificationCount";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useState } from "react";
@@ -10,29 +11,26 @@ import ServiceCard from "../../../components/cards/ServiceCard";
 import LoanApplicationForm from "../../../components/forms/LoanApplicationForm";
 import TransactionItem from "../../../components/ui/TransactionItem";
 import { MOCK_TRANSACTIONS } from "../../../constants/data";
+import { useMemberAllInfo } from "../../../hooks/useMemberAllInfo";
 
 export default function MemberDashboard() {
   const { theme } = useTheme();
   const [showBalance, setShowBalance] = useState(true);
   const [isLoanFormVisible, setIsLoanFormVisible] = useState(false);
+  const unreadCount = useUnreadNotificationCount();
   const router = useRouter();
+
+  const { profile, balances } = useMemberAllInfo();
 
   const loanLimit = 5000000;
   const currentLoan = 1200000;
   const progress = (currentLoan / loanLimit) * 100;
 
   const { user } = useAuth();
-  const { data: application, isLoading } = useMemberApplication(user?.id);
+  const { data: application } = useMemberApplication(user?.id);
 
   const applicationStatus = application?.status ?? "pending";
   const isApproved = applicationStatus === "approved";
-
-  const dashboardData = {
-    name: application?.first_name || "Member",
-    balance: isApproved ? "UGX 4.5M" : "UGX 0",
-    lockedSavings: isApproved ? "UGX 1.5M" : "UGX 0",
-    activeLoan: isApproved ? "UGX 1.2M" : "UGX 0",
-  };
 
   const statusConfig = {
     pending: {
@@ -53,20 +51,14 @@ export default function MemberDashboard() {
     },
   };
 
-  if (isLoading) {
-    return (
-      <View
-        style={{ backgroundColor: theme.background }}
-        className="flex-1 items-center justify-center"
-      >
-        <Text style={{ color: theme.gray400 }} className="font-medium">
-          Loading dashboard…
-        </Text>
-      </View>
-    );
-  }
-
   const statusUI = statusConfig[applicationStatus];
+
+  const dashboardData = {
+    name: profile?.first_name,
+    totalBalance: balances.Savings + balances.Shares + balances.Fixed_Deposit,
+    lockedSavings: balances?.Fixed_Deposit,
+    activeLoan: isApproved ? "UGX 1.2M" : "UGX 0",
+  };
 
   return (
     <View style={{ backgroundColor: theme.background }} className="flex-1">
@@ -104,7 +96,13 @@ export default function MemberDashboard() {
               onPress={() => router.push("/utilityPages/notifications")}
               className="bg-white/20 p-2.5 rounded-full relative backdrop-blur-md border border-white/10"
             >
-              <View className="absolute top-2.5 right-2.5 w-2.5 h-2.5 bg-red-500 rounded-full z-10 border border-white/20" />
+              {unreadCount > 0 && (
+                <View className="absolute -top-1 -right-1 bg-red-500 rounded-full px-1.5">
+                  <Text className="text-white text-[10px] font-bold">
+                    {unreadCount}
+                  </Text>
+                </View>
+              )}
               <Ionicons name="notifications-outline" size={24} color="#FFF" />
             </Pressable>
           </View>
@@ -154,7 +152,7 @@ export default function MemberDashboard() {
                 style={{ color: theme.text }}
                 className="text-center text-[34px] font-extrabold tracking-tight"
               >
-                {showBalance ? dashboardData.balance : "••••••••"}
+                {showBalance ? "UGX " + dashboardData.totalBalance : "••••••••"}
               </Text>
             </View>
 
@@ -188,7 +186,7 @@ export default function MemberDashboard() {
                     style={{ color: theme.text }}
                     className="font-semibold text-sm"
                   >
-                    {showBalance ? dashboardData.lockedSavings : "•••"}
+                    {showBalance ? "UGX " + dashboardData.lockedSavings : "•••"}
                   </Text>
                 </View>
               </View>

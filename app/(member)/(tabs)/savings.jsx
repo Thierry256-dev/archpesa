@@ -17,12 +17,15 @@ import {
   popularGoals,
   savingsTransactions,
 } from "../../../constants/data";
+import { useMemberAllInfo } from "../../../hooks/useMemberAllInfo";
 
 export default function MemberSavings() {
   const router = useRouter();
   const { theme } = useTheme();
   const [goals, setGoals] = useState(initialGoals);
   const [isGoalModalVisible, setIsGoalModalVisible] = useState(false);
+
+  const { balances } = useMemberAllInfo();
 
   const addNewGoal = (newGoal) => {
     setGoals((prevGoals) => [newGoal, ...prevGoals]);
@@ -110,7 +113,7 @@ export default function MemberSavings() {
                 style={{ color: theme.white }}
                 className="text-2xl font-bold mb-1"
               >
-                UGX 3,450,000
+                UGX {balances.Savings}
               </Text>
               <Text
                 style={{ color: theme.gray200 }}
@@ -150,18 +153,38 @@ export default function MemberSavings() {
                   </Text>
                 </View>
               </View>
-              <Text
-                style={{ color: theme.gray500 }}
-                className="text-sm font-medium"
-              >
-                Share Capital
-              </Text>
-              <Text
-                style={{ color: theme.text }}
-                className="text-2xl font-bold mb-1"
-              >
-                UGX 5,000,000
-              </Text>
+              <View className="flex-row justify-between">
+                <View>
+                  {" "}
+                  <Text
+                    style={{ color: theme.gray500 }}
+                    className="text-sm font-medium"
+                  >
+                    Fixed Deposit
+                  </Text>
+                  <Text
+                    style={{ color: theme.text }}
+                    className="text-2xl font-bold mb-1"
+                  >
+                    UGX {balances.Fixed_Deposit}
+                  </Text>
+                </View>
+                <View>
+                  {" "}
+                  <Text
+                    style={{ color: theme.gray500 }}
+                    className="text-sm font-medium"
+                  >
+                    Share Capital
+                  </Text>
+                  <Text
+                    style={{ color: theme.text }}
+                    className="text-2xl font-bold mb-1"
+                  >
+                    UGX {balances.Shares}
+                  </Text>
+                </View>
+              </View>
               <Text
                 style={{ color: theme.yellow }}
                 className="text-xs font-semibold bg-amber-50 self-start px-2 py-1 rounded"

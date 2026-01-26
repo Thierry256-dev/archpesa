@@ -4,16 +4,18 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useMemberAllInfo } from "../../hooks/useMemberAllInfo";
 
 export default function Profile() {
   const router = useRouter();
   const { signOut } = useAuth();
   const { theme, mode, setMode } = useTheme();
 
+  const { profile } = useMemberAllInfo();
+
   const handleLogout = async () => {
     await signOut();
 
-    // Hard replace to prevent back navigation
     router.replace("/(auth)/login");
   };
 
@@ -35,14 +37,14 @@ export default function Profile() {
             onPress={() => router.back()}
             className="absolute top-2 left-5 bg-blue-950/10 p-2 rounded-xl"
           >
-            <Ionicons name="arrow-back" size={20} color="#07193f" />
+            <Ionicons name="arrow-back" size={20} color={theme.text} />
           </Pressable>
 
           <View
             style={{ backgroundColor: theme.card }}
             className="w-24 h-24 rounded-full items-center justify-center border-4 border-white shadow-sm"
           >
-            <Ionicons name="person" size={50} color={theme.primary} />
+            <Ionicons name="person" size={50} color={theme.text} />
             <Pressable
               style={{ backgroundColor: theme.primary }}
               className="absolute bottom-0 right-0 p-2 rounded-full border-2 border-white"
@@ -55,16 +57,16 @@ export default function Profile() {
             style={{ color: theme.text }}
             className="text-2xl font-black mt-4"
           >
-            Alex J. Mulyanti
+            {profile?.first_name} {profile?.last_name}
           </Text>
           <Text style={{ color: theme.gray400 }} className="font-medium">
-            Member ID: #0428
+            Member ID: {profile?.membership_no}
           </Text>
 
           <View className="flex-row mt-4">
             <View className="bg-emerald-100 px-3 py-1 rounded-full border border-emerald-200">
               <Text className="text-emerald-700 text-[10px] font-black uppercase tracking-widest">
-                Active Member
+                {profile?.member_status} Member
               </Text>
             </View>
           </View>
@@ -90,7 +92,11 @@ export default function Profile() {
             Preferences
           </Text>
 
-          <ProfileMenu icon="notifications-outline" title="Notifications" />
+          <ProfileMenu
+            onPress={() => router.push("/utilityPages/notifications")}
+            icon="notifications-outline"
+            title="Notifications"
+          />
           <ProfileMenu icon="language-outline" title="Language" sub="English" />
 
           {/* THEME TOGGLE */}
@@ -100,7 +106,7 @@ export default function Profile() {
               backgroundColor: theme.card,
               borderColor: theme.border,
             }}
-            className="mt-6 p-4 rounded-2xl flex-row items-center mb-3 border shadow-sm"
+            className="p-4 rounded-2xl flex-row items-center mb-3 border shadow-sm"
           >
             <View
               style={{ backgroundColor: theme.surface }}
@@ -161,10 +167,11 @@ export default function Profile() {
   );
 }
 
-function ProfileMenu({ icon, title, sub }) {
+function ProfileMenu({ icon, title, sub, onPress }) {
   const { theme } = useTheme();
   return (
     <Pressable
+      onPress={onPress}
       style={{
         backgroundColor: theme.card,
         borderColor: theme.border,
@@ -175,7 +182,7 @@ function ProfileMenu({ icon, title, sub }) {
         style={{ backgroundColor: theme.surface }}
         className="p-2.5 rounded-xl mr-4"
       >
-        <Ionicons name={icon} size={20} color={theme.primary} />
+        <Ionicons name={icon} size={20} color={theme.text} />
       </View>
       <Text style={{ color: theme.text }} className="flex-1 font-bold text-sm">
         {title}

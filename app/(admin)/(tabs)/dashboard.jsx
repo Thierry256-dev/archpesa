@@ -1,4 +1,5 @@
 import { useTheme } from "@/context/ThemeProvider";
+import { useUnreadNotificationCount } from "@/hooks/useUnreadNotificationCount";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useState } from "react";
@@ -10,6 +11,7 @@ import { ROLE_CONFIG } from "../../../constants/roles";
 
 export default function AdminDashboard() {
   const { theme } = useTheme();
+  const unreadCount = useUnreadNotificationCount();
   const [showBalance, setShowBalance] = useState(true);
   const router = useRouter();
   const adminRole = "treasurer";
@@ -57,7 +59,13 @@ export default function AdminDashboard() {
               onPress={() => router.push("/utilityPages/notifications")}
               className="bg-white/20 p-2.5 rounded-full relative backdrop-blur-md border border-white/10"
             >
-              <View className="absolute top-2.5 right-2.5 w-2.5 h-2.5 bg-red-500 rounded-full z-10 border border-white/20" />
+              {unreadCount > 0 && (
+                <View className="absolute -top-1 -right-1 bg-red-500 rounded-full px-1.5">
+                  <Text className="text-white text-[10px] font-bold">
+                    {unreadCount}
+                  </Text>
+                </View>
+              )}
               <Ionicons name="notifications-outline" size={24} color="#FFF" />
             </Pressable>
           </View>

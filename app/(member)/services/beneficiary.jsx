@@ -4,11 +4,14 @@ import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useMemberAllInfo } from "../../../hooks/useMemberAllInfo";
 
 export default function Beneficiary() {
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
   const { theme } = useTheme();
+
+  const { profile } = useMemberAllInfo();
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.background }}>
@@ -70,22 +73,22 @@ export default function Beneficiary() {
           <View className="space-y-5">
             <InfoField
               label="Full Name"
-              value="Sarah Namuli"
+              value={profile?.next_of_kin_name}
               isEditing={isEditing}
             />
             <InfoField
               label="Relationship"
-              value="Spouse"
+              value={profile?.next_of_kin_relationship}
               isEditing={isEditing}
             />
             <InfoField
               label="Phone Number"
-              value="+256 700 000 000"
+              value={profile?.next_of_kin_phone}
               isEditing={isEditing}
             />
             <InfoField
-              label="National ID / NIN"
-              value="CM920384756TH"
+              label="Address"
+              value={profile?.next_of_kin_address}
               isEditing={isEditing}
             />
           </View>
