@@ -13,7 +13,7 @@ export function useMemberProfile() {
         .select("*")
         .eq("auth_user_id", user.id)
         .maybeSingle();
-      console.log(data);
+
       if (error) throw error;
       return data;
     },

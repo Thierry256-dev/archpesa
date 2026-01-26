@@ -2,7 +2,14 @@ import { useTheme } from "@/context/ThemeProvider";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Modal, Pressable, ScrollView, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  Modal,
+  Pressable,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AddGoalModal from "../../../components/ui/AddGoalModal";
 import {
@@ -13,22 +20,44 @@ import {
 } from "../../../components/ui/savingsSmallComponents";
 import {
   chartData,
-  savingGoals as initialGoals,
   popularGoals,
   savingsTransactions,
 } from "../../../constants/data";
 import { useMemberAllInfo } from "../../../hooks/useMemberAllInfo";
+import { useSavingsGoals } from "../../../hooks/useSavingsGoals";
 
 export default function MemberSavings() {
   const router = useRouter();
   const { theme } = useTheme();
-  const [goals, setGoals] = useState(initialGoals);
+
   const [isGoalModalVisible, setIsGoalModalVisible] = useState(false);
 
   const { balances } = useMemberAllInfo();
+  const { goals, loading: goalsLoading, addGoal } = useSavingsGoals();
 
-  const addNewGoal = (newGoal) => {
-    setGoals((prevGoals) => [newGoal, ...prevGoals]);
+  const calculateGoalProgress = (goalTarget) => {
+    if (!goals || goals.length === 0) return { saved: 0, percent: 0 };
+
+    const totalTargetSum = goals.reduce(
+      (sum, g) => sum + Number(g.target_amount),
+      0,
+    );
+
+    const currentSavings = Number(
+      String(balances.Savings || "0").replace(/,/g, ""),
+    );
+
+    if (totalTargetSum === 0) return { saved: 0, percent: 0 };
+
+    const fundedRatio = Math.min(currentSavings / totalTargetSum, 1);
+
+    const allocatedAmount = goalTarget * fundedRatio;
+    const percent = Math.round(fundedRatio * 100);
+
+    return {
+      saved: allocatedAmount,
+      percent: percent,
+    };
   };
 
   return (
@@ -145,17 +174,10 @@ export default function MemberSavings() {
                   >
                     SHARES OWNED
                   </Text>
-                  <Text
-                    style={{ color: theme.text }}
-                    className="font-bold text-lg"
-                  >
-                    500
-                  </Text>
                 </View>
               </View>
               <View className="flex-row justify-between">
                 <View>
-                  {" "}
                   <Text
                     style={{ color: theme.gray500 }}
                     className="text-sm font-medium"
@@ -170,7 +192,6 @@ export default function MemberSavings() {
                   </Text>
                 </View>
                 <View>
-                  {" "}
                   <Text
                     style={{ color: theme.gray500 }}
                     className="text-sm font-medium"
@@ -203,52 +224,128 @@ export default function MemberSavings() {
               Current Goal(s)
             </Text>
             <View>
-              {goals?.map((item, index) => (
-                <CurrentGoal key={index} {...item} />
-              ))}
+              {goalsLoading ? (
+                <ActivityIndicator color={theme.primary} />
+              ) : !goals || goals.length === 0 ? (
+                <View
+                  style={{
+                    borderColor: theme.border,
+                    backgroundColor: theme.card, // Using card color instead of plain gray
+                    borderStyle: "dashed",
+                    borderWidth: 2,
+                  }}
+                  className="p-10 rounded-[32px] items-center justify-center mt-4"
+                >
+                  {/* Icon with soft background circle */}
+                  <View
+                    style={{ backgroundColor: theme.primary + "15" }}
+                    className="w-20 h-20 rounded-full items-center justify-center mb-6"
+                  >
+                    <Ionicons
+                      name="sparkles-outline"
+                      size={40}
+                      color={theme.primary}
+                    />
+                  </View>
+
+                  {/* Text Content */}
+                  <Text
+                    style={{ color: theme.text }}
+                    className="text-xl font-bold text-center mb-2"
+                  >
+                    Visualize Your Future
+                  </Text>
+
+                  <Text
+                    style={{ color: theme.gray500 }}
+                    className="text-sm text-center px-6 leading-5 mb-8"
+                  >
+                    You have not set any savings goals yet. Create one to start
+                    tracking your journey towards your dreams.
+                  </Text>
+
+                  {/* Inline Action Button */}
+                  <Pressable
+                    onPress={() => setIsGoalModalVisible(true)}
+                    style={{ backgroundColor: theme.primary }}
+                    className="px-8 py-3 rounded-2xl flex-row items-center shadow-sm"
+                  >
+                    <Ionicons
+                      name="add-circle"
+                      size={20}
+                      color="white"
+                      className="mr-2"
+                    />
+                    <Text className="text-white font-bold ml-2">
+                      Create First Goal
+                    </Text>
+                  </Pressable>
+                </View>
+              ) : (
+                <View>
+                  {goals.map((item, index) => {
+                    const stats = calculateGoalProgress(item.target_amount);
+
+                    return (
+                      <CurrentGoal
+                        key={item.id || index}
+                        title={item.goal_name}
+                        target={item.target_amount}
+                        saved={stats.saved}
+                        percentage={stats.percent}
+                        {...item}
+                      />
+                    );
+                  })}
+                </View>
+              )}
             </View>
           </View>
 
           {/* ADD NEW GOAL ACTION CARD */}
-          <View className="mb-8">
-            <View className="flex-row justify-between items-center mb-4">
-              <Text style={{ color: theme.text }} className="text-lg font-bold">
-                Start a New Goal
-              </Text>
-            </View>
-
-            <Pressable
-              style={{
-                backgroundColor: theme.card,
-                borderColor: theme.border,
-              }}
-              className="border-2 border-dashed p-6 rounded-3xl items-center justify-center"
-              onPress={() => {
-                setIsGoalModalVisible(true);
-              }}
-            >
-              <View
-                style={{ backgroundColor: theme.gray100 }}
-                className="p-4 rounded-full mb-3"
-              >
-                <Ionicons name="add" size={32} color={theme.purple} />
+          {goals?.length > 0 && (
+            <View className="mb-8">
+              <View className="flex-row justify-between items-center mb-4">
+                <Text
+                  style={{ color: theme.text }}
+                  className="text-lg font-bold"
+                >
+                  Start a New Goal
+                </Text>
               </View>
-              <Text
-                style={{ color: theme.text }}
-                className="font-bold text-base"
-              >
-                Create a Savings Goal
-              </Text>
-              <Text
-                style={{ color: theme.gray400 }}
-                className="text-xs text-center mt-1 px-6"
-              >
-                Set a target and we&apos;ll help you track how close you are to
-                your dream.
-              </Text>
-            </Pressable>
-          </View>
 
+              <Pressable
+                style={{
+                  backgroundColor: theme.card,
+                  borderColor: theme.border,
+                }}
+                className="border-2 border-dashed p-6 rounded-3xl items-center justify-center"
+                onPress={() => {
+                  setIsGoalModalVisible(true);
+                }}
+              >
+                <View
+                  style={{ backgroundColor: theme.gray100 }}
+                  className="p-4 rounded-full mb-3"
+                >
+                  <Ionicons name="add" size={32} color={theme.purple} />
+                </View>
+                <Text
+                  style={{ color: theme.text }}
+                  className="font-bold text-base"
+                >
+                  Create a Savings Goal
+                </Text>
+                <Text
+                  style={{ color: theme.gray400 }}
+                  className="text-xs text-center mt-1 px-6"
+                >
+                  Set a target and we&apos;ll help you track how close you are
+                  to your dream.
+                </Text>
+              </Pressable>
+            </View>
+          )}
           {/* GOAL TEMPLATES */}
           <View className="mb-10">
             <Text
@@ -332,7 +429,10 @@ export default function MemberSavings() {
         onRequestClose={() => setIsGoalModalVisible(false)}
       >
         <AddGoalModal
-          onAdd={addNewGoal}
+          onAdd={async (data) => {
+            const success = await addGoal(data);
+            if (success) setIsGoalModalVisible(false);
+          }}
           onClose={() => setIsGoalModalVisible(false)}
         />
       </Modal>

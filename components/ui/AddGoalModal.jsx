@@ -1,7 +1,8 @@
-import { useTheme } from "@/context/ThemeProvider"; // Theme Hook
+import { useTheme } from "@/context/ThemeProvider";
 import { Ionicons } from "@expo/vector-icons";
 import { useRef, useState } from "react";
 import {
+  Alert,
   Animated,
   KeyboardAvoidingView,
   PanResponder,
@@ -13,12 +14,12 @@ import {
 } from "react-native";
 
 export default function AddGoalModal({ onClose, onAdd }) {
-  const { theme } = useTheme(); // Access Theme
+  const { theme } = useTheme();
   const [targetAmount, setTargetAmount] = useState("");
   const [title, setTitle] = useState("");
   const [months, setMonths] = useState("12");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // --- GESTURE LOGIC ---
   const pan = useRef(new Animated.ValueXY()).current;
 
   const panResponder = useRef(
@@ -40,23 +41,35 @@ export default function AddGoalModal({ onClose, onAdd }) {
     }),
   ).current;
 
-  const monthlySaving = targetAmount
-    ? (parseInt(targetAmount) / parseInt(months)).toFixed(0)
-    : 0;
+  const getRawAmount = (val) => (val ? parseFloat(val.replace(/,/g, "")) : 0);
 
-  function handleAddGoal() {
-    if (!title || !targetAmount) return;
+  const rawTarget = getRawAmount(targetAmount);
+  const monthlySaving =
+    rawTarget && months ? (rawTarget / parseInt(months)).toFixed(0) : 0;
 
-    const newGoal = {
-      icon: "flag",
-      target: targetAmount,
-      title: title,
-      completed: Number(Math.floor(Math.random() * 100)),
-      remaining: 0,
+  async function handleAddGoal() {
+    if (!title.trim() || !rawTarget || rawTarget <= 0) {
+      Alert.alert(
+        "Validation Error",
+        "Please enter a goal name and valid target amount.",
+      );
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    const goalData = {
+      title: title.trim(),
+      targetAmount: rawTarget,
     };
-    newGoal.remaining = 100 - newGoal.completed;
-    onAdd(newGoal);
-    onClose();
+
+    try {
+      await onAdd(goalData);
+      setTargetAmount("");
+      setTitle("");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -129,7 +142,7 @@ export default function AddGoalModal({ onClose, onAdd }) {
             <Ionicons name="pencil-outline" size={20} color={theme.gray400} />
             <TextInput
               value={title}
-              onChangeText={(text) => setTitle(text)}
+              onChangeText={setTitle}
               placeholder="e.g. Buy Land in Mukono"
               className="flex-1 ml-3 font-semibold"
               style={{ color: theme.text }}
@@ -159,7 +172,7 @@ export default function AddGoalModal({ onClose, onAdd }) {
             <TextInput
               keyboardType="numeric"
               value={targetAmount}
-              onChangeText={(text) => setTargetAmount(text)}
+              onChangeText={setTargetAmount}
               placeholder="0.00"
               style={{ color: theme.primary }}
               className="flex-1 font-bold text-xl"
@@ -168,7 +181,7 @@ export default function AddGoalModal({ onClose, onAdd }) {
           </View>
         </View>
 
-        {/* INPUT: TIME HORIZON */}
+        {/* INPUT: TIME HORIZON (Visual Calculator Only) */}
         <View className="flex-row gap-x-4 mb-6">
           <View className="flex-1">
             <Text
@@ -201,7 +214,7 @@ export default function AddGoalModal({ onClose, onAdd }) {
         </View>
 
         {/* SMART CALCULATION CARD */}
-        {targetAmount > 0 && (
+        {rawTarget > 0 && (
           <View
             style={{
               backgroundColor: theme.primary,
@@ -233,9 +246,10 @@ export default function AddGoalModal({ onClose, onAdd }) {
         {/* CREATE BUTTON */}
         <Pressable
           style={{
-            backgroundColor: theme.emerald,
-            shadowColor: theme.emerald,
+            backgroundColor: isSubmitting ? theme.gray400 : theme.emerald,
+            shadowColor: isSubmitting ? "transparent" : theme.emerald,
           }}
+          disabled={isSubmitting}
           className="py-5 rounded-2xl items-center shadow-md"
           onPress={handleAddGoal}
         >
@@ -243,7 +257,7 @@ export default function AddGoalModal({ onClose, onAdd }) {
             style={{ color: theme.white }}
             className="font-extrabold text-lg"
           >
-            Activate Goal
+            {isSubmitting ? "Creating..." : "Activate Goal"}
           </Text>
         </Pressable>
         <View className="h-6" />

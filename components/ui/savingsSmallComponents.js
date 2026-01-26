@@ -86,7 +86,7 @@ export function GoalTemplate({ icon, label, color, iconColor }) {
   );
 }
 
-export function CurrentGoal({ icon, title, target, completed, remaining }) {
+export function CurrentGoal({ title, target, saved, percentage }) {
   const { theme } = useTheme();
 
   return (
@@ -103,19 +103,19 @@ export function CurrentGoal({ icon, title, target, completed, remaining }) {
             style={{ backgroundColor: theme.purple + "20" }}
             className="p-2 rounded-lg mr-3"
           >
-            <Ionicons name={icon} size={20} color={theme.purple} />
+            <Ionicons name="rocket-outline" size={20} color={theme.purple} />
           </View>
           <View>
             <Text style={{ color: theme.text }} className="font-bold">
               {title}
             </Text>
             <Text style={{ color: theme.gray500 }} className="text-xs">
-              Target: UGX {target}M
+              Target: UGX {target}
             </Text>
           </View>
         </View>
         <Text style={{ color: theme.purple }} className="font-bold">
-          {completed}%
+          {percentage}%
         </Text>
       </View>
       {/* Progress Bar */}
@@ -125,7 +125,7 @@ export function CurrentGoal({ icon, title, target, completed, remaining }) {
       >
         <View
           style={{
-            width: `${completed}%`,
+            width: `${percentage}%`,
             backgroundColor: theme.purple,
           }}
           className="h-full rounded-full"
@@ -133,7 +133,7 @@ export function CurrentGoal({ icon, title, target, completed, remaining }) {
       </View>
       <Text style={{ color: theme.gray400 }} className="text-xs mt-2">
         <Text style={{ color: theme.text }} className="font-bold">
-          UGX {remaining}M
+          UGX {target - saved}
         </Text>{" "}
         remaining to reach target.
       </Text>
