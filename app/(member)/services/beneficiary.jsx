@@ -106,13 +106,6 @@ export default function Beneficiary() {
             hours to be legally processed.
           </Text>
         </View>
-
-        <Pressable className="mt-8 flex-row items-center justify-center py-4 bg-white border border-slate-200 rounded-2xl mb-10">
-          <Ionicons name="add-circle-outline" size={20} color="#64748b" />
-          <Text className="text-slate-500 font-bold ml-2">
-            Add Secondary Beneficiary
-          </Text>
-        </Pressable>
       </ScrollView>
     </SafeAreaView>
   );

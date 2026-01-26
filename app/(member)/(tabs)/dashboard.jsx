@@ -22,10 +22,6 @@ export default function MemberDashboard() {
 
   const { profile, balances } = useMemberAllInfo();
 
-  const loanLimit = 5000000;
-  const currentLoan = 1200000;
-  const progress = (currentLoan / loanLimit) * 100;
-
   const { user } = useAuth();
   const { data: application } = useMemberApplication(user?.id);
 
@@ -57,7 +53,10 @@ export default function MemberDashboard() {
     name: profile?.first_name,
     totalBalance: balances.Savings + balances.Shares + balances.Fixed_Deposit,
     lockedSavings: balances?.Fixed_Deposit,
-    activeLoan: isApproved ? "UGX 1.2M" : "UGX 0",
+    activeLoan: balances?.Loan,
+    loanLimit: balances.Savings / 2,
+    currentLoan: balances.Loan,
+    progress: (balances.Loan / (balances.Savings / 2)) * 100,
   };
 
   return (
@@ -208,7 +207,7 @@ export default function MemberDashboard() {
                     style={{ color: theme.text }}
                     className="font-semibold text-sm"
                   >
-                    {showBalance ? dashboardData.activeLoan : "•••"}
+                    {showBalance ? "UGX " + dashboardData.activeLoan : "•••"}
                   </Text>
                 </View>
                 <View
@@ -340,7 +339,7 @@ export default function MemberDashboard() {
                 style={{ color: theme.emerald }}
                 className="font-bold text-sm"
               >
-                UGX 5M
+                UGX {dashboardData.loanLimit}
               </Text>
             </View>
             <View
@@ -349,7 +348,7 @@ export default function MemberDashboard() {
             >
               <View
                 style={{
-                  width: `${progress}%`,
+                  width: `${dashboardData.progress}%`,
                   backgroundColor: theme.emerald,
                 }}
                 className="h-full rounded-full"
@@ -359,15 +358,15 @@ export default function MemberDashboard() {
               style={{ color: theme.gray500 }}
               className="text-[10px] mt-1.5"
             >
-              You can borrow up to{" "}
+              You can borrow up to
               <Text style={{ color: theme.emerald }} className="font-bold">
-                UGX 3.8M
+                UGX {dashboardData.loanLimit - balances.Loan}
               </Text>{" "}
               more.
             </Text>
           </View>
           <Pressable
-            disabled={!isApproved}
+            disabled={!isApproved || balances.Loan > balances.Savings / 2}
             onPress={() => isApproved && setIsLoanFormVisible(true)}
             style={{ backgroundColor: theme.emerald }}
             className="px-4 py-2 rounded-xl shadow-sm"

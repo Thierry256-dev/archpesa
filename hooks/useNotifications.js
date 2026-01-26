@@ -1,7 +1,11 @@
+import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { useQuery } from "@tanstack/react-query";
 
-export function useNotifications(userId) {
+export function useNotifications() {
+  const { user } = useAuth();
+  const userId = user?.auth_user_id;
+
   return useQuery({
     queryKey: ["notifications", userId],
     enabled: !!userId,

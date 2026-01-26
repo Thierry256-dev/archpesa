@@ -16,6 +16,5 @@ export function useMemberAccounts(userId) {
 
       return data;
     },
-    staleTime: 30 * 1000,
   });
 }

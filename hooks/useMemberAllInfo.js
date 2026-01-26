@@ -7,13 +7,14 @@ export function useMemberAllInfo() {
   const { user } = useAuth();
 
   const { data: profile } = useMemberProfile(user?.id);
-  const { data: accounts } = useMemberAccounts(profile?.id);
+  const { data: accounts } = useMemberAccounts(profile?.auth_user_id);
 
   const balances = useMemo(() => {
     const map = {
       Savings: 0,
       Shares: 0,
       Fixed_Deposit: 0,
+      Loan: 0,
     };
 
     accounts?.forEach((acc) => {
