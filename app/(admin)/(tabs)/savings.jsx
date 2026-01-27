@@ -1,3 +1,7 @@
+import {
+  generateSaccoExcel,
+  generateSaccoSavingsReport,
+} from "@/utils/reports/generateSaccoDocument";
 import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useMemo, useState } from "react";
@@ -12,10 +16,6 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { TransactionRow } from "../../../components/ui/adminSavingsSubComponents";
 import { SAVINGS_LEDGER } from "../../../constants/data";
-import {
-  generateSaccoExcel,
-  generateSaccoSavingsReport,
-} from "../../../constants/generateSaccoDocument";
 
 export default function SavingsLedgerPage() {
   const [filterType, setFilterType] = useState("all");

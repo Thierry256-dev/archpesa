@@ -8,7 +8,7 @@ import {
   StatCard,
 } from "../../../components/ui/membersSmallComponents";
 import { MEMBERS_DATA } from "../../../constants/data";
-import { generateAllMembersReportPdf } from "../../../constants/generateSaccoDocument";
+import { generateAllMembersReportPdf } from "../../../utils/reports/generateSaccoDocument";
 
 export default function Members() {
   const [search, setSearch] = useState("");

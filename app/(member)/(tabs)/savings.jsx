@@ -12,18 +12,15 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AddGoalModal from "../../../components/ui/AddGoalModal";
+import TransactionItem from "../../../components/ui/TransactionItem";
 import {
   ChartBar,
   CurrentGoal,
   GoalTemplate,
-  TransactionRow,
 } from "../../../components/ui/savingsSmallComponents";
-import {
-  chartData,
-  popularGoals,
-  savingsTransactions,
-} from "../../../constants/data";
+import { popularGoals } from "../../../constants/data";
 import { useMemberAllInfo } from "../../../hooks/useMemberAllInfo";
+import { useGrowthData } from "../../../hooks/useMemberGrowthData";
 import { useSavingsGoals } from "../../../hooks/useSavingsGoals";
 
 export default function MemberSavings() {
@@ -32,7 +29,13 @@ export default function MemberSavings() {
 
   const [isGoalModalVisible, setIsGoalModalVisible] = useState(false);
 
-  const { balances } = useMemberAllInfo();
+  const { balances, transactions } = useMemberAllInfo();
+  const savingsTransactions = transactions?.filter((tx) =>
+    ["Savings_Deposit", "Savings_Withdraw"].includes(tx.transaction_type),
+  );
+  const sortedTx = [...savingsTransactions].sort(
+    (a, b) => new Date(b.created_at) - new Date(a.created_at),
+  );
   const { goals, loading: goalsLoading, addGoal } = useSavingsGoals();
 
   const calculateGoalProgress = (goalTarget) => {
@@ -59,6 +62,15 @@ export default function MemberSavings() {
       percent: percent,
     };
   };
+
+  const growthData = useGrowthData(transactions);
+
+  const chartData = growthData.map((item) => ({
+    value: item.closingBalance,
+    label: item.month,
+    dataPointText: item.closingBalance.toLocaleString(),
+  }));
+  const maxValue = Math.max(...chartData.map((d) => d.value), 0);
 
   return (
     <SafeAreaView
@@ -142,7 +154,7 @@ export default function MemberSavings() {
                 style={{ color: theme.white }}
                 className="text-2xl font-bold mb-1"
               >
-                UGX {balances.Savings}
+                UGX {balances.Savings.toLocaleString()}
               </Text>
               <Text
                 style={{ color: theme.gray200 }}
@@ -188,7 +200,7 @@ export default function MemberSavings() {
                     style={{ color: theme.text }}
                     className="text-2xl font-bold mb-1"
                   >
-                    UGX {balances.Fixed_Deposit}
+                    UGX {balances.Fixed_Deposit.toLocaleString()}
                   </Text>
                 </View>
                 <View>
@@ -202,7 +214,7 @@ export default function MemberSavings() {
                     style={{ color: theme.text }}
                     className="text-2xl font-bold mb-1"
                   >
-                    UGX {balances.Shares}
+                    UGX {balances.Shares.toLocaleString()}
                   </Text>
                 </View>
               </View>
@@ -386,13 +398,13 @@ export default function MemberSavings() {
                 className="flex-row rounded-2xl p-2"
               >
                 <Text style={{ color: theme.primary }} className="text-xs px-2">
-                  Latest
+                  Maximum
                 </Text>
                 <Text
                   style={{ color: theme.archTeal }}
                   className="text-xs font-bold"
                 >
-                  2.5M
+                  {maxValue}
                 </Text>
               </View>
             </View>
@@ -403,7 +415,13 @@ export default function MemberSavings() {
               style={{ height: 180, zIndex: 10 }}
             >
               {chartData?.map((item, index) => (
-                <ChartBar key={index} {...item} />
+                <ChartBar
+                  key={index}
+                  label={item.label}
+                  value={item.value}
+                  dataPointText={item.dataPointText}
+                  maxValue={maxValue}
+                />
               ))}
             </View>
           </View>
@@ -416,8 +434,8 @@ export default function MemberSavings() {
             >
               History
             </Text>
-            {savingsTransactions?.map((item, index) => (
-              <TransactionRow key={index} {...item} />
+            {sortedTx?.map((item, index) => (
+              <TransactionItem key={index} item={item} />
             ))}
           </View>
         </View>

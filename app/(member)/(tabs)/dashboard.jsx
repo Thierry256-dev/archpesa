@@ -4,29 +4,41 @@ import { useMemberApplication } from "@/hooks/useMemberApplication";
 import { useUnreadNotificationCount } from "@/hooks/useUnreadNotificationCount";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Image, Modal, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import ServiceCard from "../../../components/cards/ServiceCard";
 import LoanApplicationForm from "../../../components/forms/LoanApplicationForm";
 import TransactionItem from "../../../components/ui/TransactionItem";
-import { MOCK_TRANSACTIONS } from "../../../constants/data";
 import { useMemberAllInfo } from "../../../hooks/useMemberAllInfo";
 
 export default function MemberDashboard() {
   const { theme } = useTheme();
   const [showBalance, setShowBalance] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
   const [isLoanFormVisible, setIsLoanFormVisible] = useState(false);
   const unreadCount = useUnreadNotificationCount();
   const router = useRouter();
 
-  const { profile, balances } = useMemberAllInfo();
+  const { profile, balances, transactions } = useMemberAllInfo();
 
   const { user } = useAuth();
   const { data: application } = useMemberApplication(user?.id);
 
   const applicationStatus = application?.status ?? "pending";
   const isApproved = applicationStatus === "approved";
+
+  const PREVIEW_LIMIT = 3;
+
+  const displayedTransactions = useMemo(() => {
+    if (!transactions) return [];
+
+    return isExpanded ? transactions : transactions.slice(0, PREVIEW_LIMIT);
+  }, [transactions, isExpanded]); // Re-calculate only when data or toggle changes
+
+  const toggleExpand = () => {
+    setIsExpanded((prev) => !prev);
+  };
 
   const statusConfig = {
     pending: {
@@ -151,7 +163,9 @@ export default function MemberDashboard() {
                 style={{ color: theme.text }}
                 className="text-center text-[34px] font-extrabold tracking-tight"
               >
-                {showBalance ? "UGX " + dashboardData.totalBalance : "••••••••"}
+                {showBalance
+                  ? "UGX " + dashboardData.totalBalance.toLocaleString()
+                  : "••••••••"}
               </Text>
             </View>
 
@@ -185,7 +199,9 @@ export default function MemberDashboard() {
                     style={{ color: theme.text }}
                     className="font-semibold text-sm"
                   >
-                    {showBalance ? "UGX " + dashboardData.lockedSavings : "•••"}
+                    {showBalance
+                      ? "UGX " + dashboardData.lockedSavings.toLocaleString()
+                      : "•••"}
                   </Text>
                 </View>
               </View>
@@ -207,7 +223,9 @@ export default function MemberDashboard() {
                     style={{ color: theme.text }}
                     className="font-semibold text-sm"
                   >
-                    {showBalance ? "UGX " + dashboardData.activeLoan : "•••"}
+                    {showBalance
+                      ? "UGX " + dashboardData.activeLoan.toLocaleString()
+                      : "•••"}
                   </Text>
                 </View>
                 <View
@@ -339,7 +357,7 @@ export default function MemberDashboard() {
                 style={{ color: theme.emerald }}
                 className="font-bold text-sm"
               >
-                UGX {dashboardData.loanLimit}
+                UGX {dashboardData.loanLimit.toLocaleString()}
               </Text>
             </View>
             <View
@@ -360,7 +378,7 @@ export default function MemberDashboard() {
             >
               You can borrow up to
               <Text style={{ color: theme.emerald }} className="font-bold">
-                UGX {dashboardData.loanLimit - balances.Loan}
+                UGX {(dashboardData.loanLimit - balances.Loan).toLocaleString()}
               </Text>{" "}
               more.
             </Text>
@@ -380,33 +398,75 @@ export default function MemberDashboard() {
           style={{ backgroundColor: theme.card }}
           className="mb-20 rounded-3xl p-5 shadow-sm mx-6"
         >
-          <View className="flex-row justify-between items-center mb-4">
+          {/* HEADER */}
+          <View className="flex-row justify-between items-center mb-6">
             <Text style={{ color: theme.text }} className="text-lg font-bold">
               Recent Activity
             </Text>
-            <Text
-              style={{ color: theme.primary }}
-              className="text-sm font-semibold"
-            >
-              See All
-            </Text>
+
+            {transactions?.length > PREVIEW_LIMIT && (
+              <Pressable
+                onPress={toggleExpand}
+                hitSlop={15}
+                className="bg-primary/10 px-3 py-1 rounded-full"
+                style={{ backgroundColor: theme.primary + "15" }}
+              >
+                <Text
+                  style={{ color: theme.primary }}
+                  className="text-xs font-bold"
+                >
+                  {isExpanded ? "Show Less" : "See All"}
+                </Text>
+              </Pressable>
+            )}
           </View>
-          {MOCK_TRANSACTIONS.length > 0 ? (
-            MOCK_TRANSACTIONS.map((item, index) => (
-              <TransactionItem key={index} item={item} />
-            ))
+
+          {/* TRANSACTION LIST */}
+          {transactions?.length > 0 ? (
+            <View>
+              {displayedTransactions?.map((item, index) => (
+                <TransactionItem key={item.id || index} item={item} />
+              ))}
+
+              {isExpanded && transactions?.length > PREVIEW_LIMIT && (
+                <Pressable onPress={toggleExpand} className="items-center pt-4">
+                  <View
+                    style={{ backgroundColor: theme.gray100 }}
+                    className="h-1 w-10 rounded-full mb-1"
+                  />
+                  <Text
+                    style={{ color: theme.gray400 }}
+                    className="text-[10px] uppercase font-bold tracking-widest"
+                  >
+                    End of transactions
+                  </Text>
+                </Pressable>
+              )}
+            </View>
           ) : (
+            /* EMPTY STATE */
             <View className="items-center py-10">
-              <Ionicons
-                name="receipt-outline"
-                size={32}
-                color={theme.gray300}
-              />
+              <View
+                style={{ backgroundColor: theme.gray50 }}
+                className="p-4 rounded-full mb-4"
+              >
+                <Ionicons
+                  name="receipt-outline"
+                  size={32}
+                  color={theme.gray300}
+                />
+              </View>
               <Text
                 style={{ color: theme.text }}
-                className="font-bold text-base mt-4"
+                className="font-bold text-base"
               >
                 No transactions yet
+              </Text>
+              <Text
+                style={{ color: theme.gray400 }}
+                className="text-xs text-center px-10 mt-1"
+              >
+                Your financial activity will appear here once you start saving.
               </Text>
             </View>
           )}

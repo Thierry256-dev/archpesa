@@ -2,39 +2,51 @@ import { useTheme } from "@/context/ThemeProvider";
 import { Ionicons } from "@expo/vector-icons";
 import { Pressable, Text, View } from "react-native";
 
-export function ChartBar({ label, height, active }) {
+export function ChartBar({ label, value, dataPointText, maxValue }) {
   const { theme } = useTheme();
-  const rawHeight = height || 0;
-  const barHeight = height ? height * 4 : rawHeight;
-  const isActive = active;
+
+  const MAX_BAR_HEIGHT = 150;
+
+  const barHeight = maxValue > 0 ? (value / maxValue) * MAX_BAR_HEIGHT : 0;
+
+  const isActive = value === maxValue;
 
   return (
-    <Pressable className="items-center w-8 h-full justify-end">
+    <Pressable className="items-center w-12 h-full justify-end">
       {isActive && (
         <View
-          style={{ backgroundColor: theme.gray800 }}
-          className="px-2 pt-4 rounded mb-2 shadow-sm"
+          style={{
+            backgroundColor: theme.gray800,
+            bottom: barHeight + 25,
+          }}
+          className="w-16 px-2 py-1 rounded mb-1 shadow-sm absolute"
         >
+          <Text className="text-white text-[10px] font-bold">
+            {dataPointText}
+          </Text>
           <View
             style={{ backgroundColor: theme.gray800 }}
-            className="absolute -bottom-1 left-1 w-2 h-2 rotate-45"
+            className="absolute -bottom-1 left-7 w-2 h-2 rotate-45"
           />
         </View>
       )}
+
       <View
-        className={`w-3`}
+        className="w-4"
         style={{
           height: barHeight,
-          backgroundColor: isActive ? theme.primary : theme.gray300,
-          borderTopRightRadius: 20,
-          borderTopLeftRadius: 20,
+          backgroundColor: isActive ? theme.primary : theme.gray200,
+          borderTopRightRadius: 6,
+          borderTopLeftRadius: 6,
+          opacity: value === maxValue ? 1 : 0.7,
         }}
       />
+
       <Text
         style={{ color: theme.gray400 }}
-        className="text-[10px] mt-2 font-medium"
+        className="text-[10px] mt-2 font-bold uppercase"
       >
-        {label}
+        {label.substring(0, 3)}
       </Text>
     </Pressable>
   );

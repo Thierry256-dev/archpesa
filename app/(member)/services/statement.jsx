@@ -10,11 +10,8 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import {
-  LOAN_TRANSACTIONS,
-  SAVINGS_TRANSACTIONS,
-} from "../../../constants/data";
-import { generateMemberStatementPdf } from "../../../constants/generateSaccoDocument";
+import { useMemberAllInfo } from "../../../hooks/useMemberAllInfo";
+import { generateMemberStatementPdf } from "../../../utils/reports/generateSaccoDocument";
 
 const formatDate = (date) => {
   return date.toLocaleDateString("en-US", {
@@ -28,11 +25,12 @@ export default function Statement() {
   const router = useRouter();
   const { theme } = useTheme();
   const [loading, setLoading] = useState(false);
-  const [selectedRange, setSelectedRange] = useState("3M"); // 3M, 6M, 1Y, Custom
+  const [selectedRange, setSelectedRange] = useState("3M");
   const [statementType, setStatementType] = useState("standard");
+  const { profile, transactions } = useMemberAllInfo();
 
   const dateRange = useMemo(() => {
-    const toDate = new Date(); // Current Date (Today)
+    const toDate = new Date();
     const fromDate = new Date();
 
     if (selectedRange === "3M") {
@@ -44,21 +42,43 @@ export default function Statement() {
     }
 
     return {
+      fromDate,
+      toDate,
       from: formatDate(fromDate),
       to: formatDate(toDate),
     };
   }, [selectedRange]);
+
+  const filteredTransactions = useMemo(() => {
+    if (!transactions) return [];
+
+    return transactions.filter((tx) => {
+      const isLoanTx = ["Loan_Repayment", "Loan_Disbursement"].includes(
+        tx.transaction_type,
+      );
+
+      if (statementType === "loan" && !isLoanTx) return false;
+      if (statementType === "standard" && isLoanTx) return false;
+
+      const txDate = new Date(tx.created_at);
+
+      if (isNaN(txDate.getTime())) return false;
+
+      return txDate >= dateRange.fromDate && txDate <= dateRange.toDate;
+    });
+  }, [transactions, statementType, dateRange]);
 
   const handleDownload = async () => {
     setLoading(true);
 
     await generateMemberStatementPdf({
       member: {
-        id: "M-001",
-        name: "John Mugisha",
+        id: profile.membership_no,
+        first_name: profile.first_name,
+        last_name: profile.last_name,
+        phone: profile.phone_number,
       },
-      transactions:
-        statementType === "loan" ? LOAN_TRANSACTIONS : SAVINGS_TRANSACTIONS,
+      transactions: filteredTransactions,
       period: dateRange,
     });
 

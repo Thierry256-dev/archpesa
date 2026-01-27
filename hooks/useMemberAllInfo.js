@@ -2,12 +2,14 @@ import { useAuth } from "@/context/AuthContext";
 import { useMemo } from "react";
 import { useMemberAccounts } from "./useMemberAccounts";
 import { useMemberProfile } from "./useMemberProfile";
+import { useMemberTransactions } from "./useMemberTransactions";
 
 export function useMemberAllInfo() {
   const { user } = useAuth();
 
   const { data: profile } = useMemberProfile(user?.id);
   const { data: accounts } = useMemberAccounts(profile?.auth_user_id);
+  const { data: transactions } = useMemberTransactions(profile?.auth_user_id);
 
   const balances = useMemo(() => {
     const map = {
@@ -27,5 +29,6 @@ export function useMemberAllInfo() {
   return {
     profile,
     balances,
+    transactions,
   };
 }

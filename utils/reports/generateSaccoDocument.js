@@ -3,10 +3,8 @@ import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
 import { Alert, Platform } from "react-native";
 import * as XLSX from "xlsx";
-import {
-  saveExcelToDownloads,
-  savePdfToDownloads,
-} from "../utils/saveToStorage";
+import { formatDateFull } from "../formatDateFull";
+import { saveExcelToDownloads, savePdfToDownloads } from "../saveToStorage";
 
 /**
  * Professional SACCO PDF Engine
@@ -419,144 +417,265 @@ export const generateSaccoExcel = async (title, data = [], meta = {}) => {
 
 export const generateMemberStatementPdf = async ({
   member,
-  transactions,
+  transactions = [],
   period,
 }) => {
-  /* 1. Compute Balances */
-  const openingBalance = transactions[0]?.balanceAfter ?? 0;
+  const sortedTx = [...transactions].sort(
+    (a, b) => new Date(a.created_at) - new Date(b.created_at),
+  );
+
+  // 2. Calculate Statement Totals
+  const openingBalance = sortedTx.length > 0 ? sortedTx[0].balance_before : 0;
   const closingBalance =
-    transactions[transactions.length - 1]?.balanceAfter ?? 0;
+    sortedTx.length > 0 ? sortedTx[sortedTx.length - 1].balance_after : 0;
 
-  const category =
-    transactions.length > 0
-      ? transactions[0].category.toUpperCase()
-      : "GENERAL";
+  const totals = sortedTx.reduce(
+    (acc, tx) => {
+      if (tx.direction === "Credit") {
+        acc.moneyIn += Number(tx.amount);
+      } else {
+        acc.moneyOut += Number(tx.amount);
+      }
+      return acc;
+    },
+    { moneyIn: 0, moneyOut: 0 },
+  );
 
-  /* 2. Build Table Rows */
-  const rows = transactions
-    .map(
-      (tx, index) => `
-      <tr style="background:${index % 2 === 0 ? "#ffffff" : "#f8fafc"};">
-        <td>${tx.date}</td>
-        <td>${tx.reference}</td>
-        <td>${tx.type.toUpperCase()}</td>
-        <td style="text-align:right; color:${
-          tx.type === "deposit" ? "#059669" : "#dc2626"
-        };">
-          ${tx.type === "deposit" ? "+" : "-"}${Number(
-            tx.amount,
-          ).toLocaleString()}
+  // 3. Generate Table Rows
+  const tableRows = sortedTx
+    .map((tx, index) => {
+      const isCredit = tx.direction === "Credit";
+      const amountColor = isCredit ? "#059669" : "#dc2626"; // Emerald vs Red
+      const sign = isCredit ? "+" : "-";
+
+      return `
+      <tr class="${index % 2 === 0 ? "row-even" : "row-odd"}">
+        <td class="col-date">${formatDateFull(tx.created_at)}</td>
+        <td class="col-desc">
+          <div class="tx-type">${tx.transaction_type.replace(/_/g, " ")}</div>
+          <div class="tx-notes">${tx.notes || "-"}</div>
+          <div class="tx-ref">${tx.external_reference || tx.reference_id || "Ref: " + tx.id.substring(0, 8)}</div>
         </td>
-        <td style="text-align:right;">
-          ${Number(tx.balanceAfter).toLocaleString()}
+        <td class="col-method">
+          ${tx.payment_method}
+        </td>
+        <td class="col-status">
+          ${tx.status}
+        </td>
+        <td class="col-amount" style="color: ${amountColor};">
+          ${sign}${Number(tx.amount).toLocaleString()}
+        </td>
+        <td class="col-balance">
+          ${Number(tx.balance_after).toLocaleString()}
         </td>
       </tr>
-    `,
-    )
+    `;
+    })
     .join("");
 
-  /* 3. HTML Template */
+  // 4. The Professional HTML Template
   const html = `
   <!DOCTYPE html>
   <html>
     <head>
+      <meta charset="utf-8" />
       <style>
-        @page { margin: 40px; }
-        body { font-family: Helvetica, Arial, sans-serif; color: #1e293b; }
-
-        .header {
-          text-align: center;
-          border-bottom: 3px solid #07193f;
-          padding-bottom: 10px;
-          margin-bottom: 20px;
-        }
-
-        .title { font-size: 22px; font-weight: 900; color: #07193f; }
-        .subtitle { font-size: 11px; color: #64748b; }
-
-        .member-box {
-          background: #f1f5f9;
-          padding: 12px;
-          border-radius: 8px;
-          margin-bottom: 20px;
-          font-size: 11px;
-        }
-
-        .summary {
-          display: flex;
-          justify-content: space-between;
-          margin-bottom: 20px;
-          font-size: 11px;
-        }
-
-        table {
-          width: 100%;
-          border-collapse: collapse;
+        @page { margin: 40px; size: A4; }
+        * { box-sizing: border-box; }
+        
+        body { 
+          font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; 
+          color: #1e293b; 
+          line-height: 1.4;
           font-size: 10px;
         }
 
+        /* --- HEADER SECTION --- */
+        .header-container {
+          display: flex;
+          justify-content: space-between;
+          border-bottom: 2px solid #0f172a;
+          padding-bottom: 20px;
+          margin-bottom: 30px;
+        }
+        
+        .brand-section h1 {
+          font-size: 26px;
+          color: #0f172a;
+          margin: 0 0 5px 0;
+          letter-spacing: -0.5px;
+          text-transform: uppercase;
+        }
+        
+        .brand-section p { margin: 0; color: #64748b; font-size: 9px; }
+
+        .statement-label {
+          text-align: right;
+        }
+        .statement-label h2 {
+          font-size: 18px;
+          color: #64748b;
+          margin: 0 0 5px 0;
+          text-transform: uppercase;
+          font-weight: 400;
+        }
+        .statement-label .period { font-weight: bold; color: #0f172a; font-size: 11px; }
+
+        /* --- INFO GRID --- */
+        .info-grid {
+          display: flex;
+          margin-bottom: 30px;
+          gap: 40px;
+        }
+        
+        .info-box { flex: 1; }
+        .info-title { 
+          font-size: 8px; 
+          text-transform: uppercase; 
+          color: #94a3b8; 
+          font-weight: bold; 
+          margin-bottom: 4px;
+          letter-spacing: 0.5px;
+        }
+        .info-value { font-size: 11px; font-weight: 600; color: #0f172a; }
+        .info-address { font-size: 10px; color: #334155; margin-top: 2px; }
+
+        /* --- FINANCIAL SUMMARY CARDS --- */
+        .summary-strip {
+          display: flex;
+          background-color: #f8fafc;
+          border: 1px solid #e2e8f0;
+          border-radius: 8px;
+          padding: 15px;
+          margin-bottom: 30px;
+          justify-content: space-between;
+        }
+        
+        .sum-item { text-align: left; }
+        .sum-label { font-size: 8px; color: #64748b; text-transform: uppercase; margin-bottom: 4px; font-weight: bold; }
+        .sum-value { font-size: 14px; font-weight: bold; color: #0f172a; }
+        .sum-value.green { color: #059669; }
+        .sum-value.red { color: #dc2626; }
+
+        /* --- TABLE --- */
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        
         th {
-          background: #07193f;
-          color: white;
-          padding: 8px;
           text-align: left;
+          font-size: 9px;
+          text-transform: uppercase;
+          background-color: #1e293b; 
+          color: #ffffff; 
+          border-bottom: 2px solid #e2e8f0;
+          padding: 10px 8px;
+          font-weight: 700;
         }
+        
+        td { padding: 12px 8px; vertical-align: top; }
+        .row-even { background-color: #ffffff; }
+        .row-odd { background-color: #f8fafc; }
 
-        td {
-          padding: 8px;
-          border-bottom: 0.5px solid #e2e8f0;
-        }
+        /* Column Specifics */
+        .col-date { width: 15%; color: #475569; font-weight: 500; }
+        .col-desc { width: 35%; }
+        .col-method { width: 20%; }
+        .col-status { width: 10%; }
+        .col-amount { width: 10%; text-align: right; font-weight: 700; }
+        .col-balance { width: 10%; text-align: right; font-weight: 700; color: #0f172a; }
 
+        .tx-type { font-weight: 700; color: #334155; font-size: 10px; margin-bottom: 2px; }
+        .tx-notes { font-size: 9px; color: #64748b; margin-bottom: 2px; font-style: italic; }
+        .tx-ref { font-size: 8px; color: #94a3b9; font-family: 'Courier New', monospace; }
+
+        /* --- FOOTER --- */
         .footer {
-          margin-top: 40px;
-          text-align: center;
+          margin-top: 50px;
+          border-top: 1px solid #e2e8f0;
+          padding-top: 15px;
+          display: flex;
+          justify-content: space-between;
           font-size: 8px;
           color: #94a3b8;
         }
       </style>
     </head>
     <body>
-      <div class="header">
-        <div class="title">UMOJA SACCO LTD</div>
-        <div class="subtitle">Member Financial Statement</div>
-        <div class="subtitle">${category}</div>
+      
+      <div class="header-container">
+        <div class="brand-section">
+          <h1>Umoja SACCO Society</h1>
+          <p>Plot 42, Kampala Road, Kampala, Uganda</p>
+          <p>support@umojasacco.co.ug | +256 700 000 000</p>
+        </div>
+        <div class="statement-label">
+          <h2>Statement of Account</h2>
+          <div class="period">${period.from} to ${period.to}</div>
+        </div>
       </div>
 
-      <div class="member-box">
-        <strong>Member:</strong> ${member.name}<br/>
-        <strong>Member ID:</strong> ${member.id}<br/>
-        <strong>Period:</strong> ${period.from} – ${period.to}
+      <div class="info-grid">
+        <div class="info-box">
+          <div class="info-title">Account Holder</div>
+          <div class="info-value">${member.first_name} ${member.last_name}</div>
+          <div class="info-address">Member ID: ${member.id}</div>
+          <div class="info-address">Phone: ${member.phone || "N/A"}</div>
+        </div>
+        <div class="info-box">
+          <div class="info-title">Account Summary</div>
+          <div class="info-address">Currency: <strong>UGX (Ugandan Shilling)</strong></div>
+          <div class="info-address">Generated: ${new Date().toLocaleString()}</div>
+        </div>
       </div>
 
-      <div class="summary">
-        <div><strong>Opening Balance:</strong> UGX ${openingBalance.toLocaleString()}</div>
-        <div><strong>Closing Balance:</strong> UGX ${closingBalance.toLocaleString()}</div>
+      <div class="summary-strip">
+        <div class="sum-item">
+          <div class="sum-label">Opening Balance</div>
+          <div class="sum-value">${Number(openingBalance).toLocaleString()}</div>
+        </div>
+        <div class="sum-item">
+          <div class="sum-label">Total Deposits</div>
+          <div class="sum-value green">+${Number(totals.moneyIn).toLocaleString()}</div>
+        </div>
+        <div class="sum-item">
+          <div class="sum-label">Total Withdrawals</div>
+          <div class="sum-value red">-${Number(totals.moneyOut).toLocaleString()}</div>
+        </div>
+        <div class="sum-item" style="text-align: right;">
+          <div class="sum-label">Closing Balance</div>
+          <div class="sum-value" style="font-size: 16px;">${Number(closingBalance).toLocaleString()}</div>
+        </div>
       </div>
 
       <table>
         <thead>
           <tr>
             <th>Date</th>
-            <th>Reference</th>
-            <th>Type</th>
-            <th>Amount</th>
-            <th>Balance</th>
+            <th>Description / Reference</th>
+            <th>Payment Method</th>
+            <th>Status</th>
+            <th style="text-align: right;">Amount</th>
+            <th style="text-align: right;">Running Balance</th>
           </tr>
         </thead>
         <tbody>
-          ${rows}
+          ${tableRows}
         </tbody>
       </table>
 
       <div class="footer">
-        This is an electronically generated statement and is valid without a signature.<br/>
-        Generated on ${new Date().toLocaleString()}
+        <div>
+          <strong>Computer Generated Document</strong><br/>
+          This statement is valid without a physical signature.
+        </div>
+        <div>
+          Page 1 of 1
+        </div>
       </div>
+
     </body>
   </html>
   `;
 
-  /* 4. Generate & Download */
   try {
     const { uri } = await Print.printToFileAsync({ html });
 
@@ -567,6 +686,7 @@ export const generateMemberStatementPdf = async ({
 
       await savePdfToDownloads(
         `STATEMENT_${member.id}_${Date.now()}.pdf`,
+
         base64,
       );
 
@@ -578,6 +698,7 @@ export const generateMemberStatementPdf = async ({
     }
   } catch (error) {
     console.error("Member Statement Error:", error);
+
     Alert.alert("Error", "Failed to generate statement.");
   }
 };
