@@ -1,4 +1,5 @@
 import { useTheme } from "@/context/ThemeProvider";
+import { supabase } from "@/lib/supabase";
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import {
@@ -27,6 +28,7 @@ export default function MemberLoans() {
   const { theme } = useTheme();
   const [isLoanFormVisible, setIsLoanFormVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [rejectedGuarantor, setRejectedGuarantor] = useState([]);
 
   const { isSearching, searchResults } = useSearchMemberProfiles(searchQuery);
 
@@ -38,13 +40,29 @@ export default function MemberLoans() {
 
   const [isReplaceModalVisible, setIsReplaceModalVisible] = useState(false);
 
-  const rejectedRequests = loanGuarantors.filter(
+  const rejectedRequests = loanGuarantors?.filter(
     (g) => g.status === "rejected",
   );
 
-  const handleReplaceGuarantor = (newMember) => {
+  const filteredRequests = loanGuarantors?.filter(
+    (g) => g.status === "pending" || g.status === "accepted",
+  );
+
+  const handleReplaceGuarantor = async (
+    newMember = {},
+    loanId,
+    rejectedGuarantorId,
+  ) => {
     setIsReplaceModalVisible(false);
-    alert(`Replacement request sent to ${newMember.name}`);
+
+    await supabase.rpc("replace_rejected_guarantor", {
+      p_loan_application_id: loanId,
+      p_rejected_guarantor_id: rejectedGuarantorId,
+      p_new_first_name: newMember.first_name,
+      p_new_last_name: newMember.last_name,
+    });
+
+    alert(`Replacement request sent to ${newMember.first_name}`);
   };
 
   return (
@@ -294,8 +312,8 @@ export default function MemberLoans() {
                     }}
                     className="rounded-3xl p-5 shadow-sm border"
                   >
-                    {loanGuarantors.length > 0 &&
-                      loanGuarantors.map((gtr, index) => (
+                    {filteredRequests.length > 0 &&
+                      filteredRequests.map((gtr, index) => (
                         <GuarantorStatusRow
                           key={index}
                           name={gtr.guarantor_full_name}
@@ -306,12 +324,13 @@ export default function MemberLoans() {
                   </View>
 
                   {/* Conditional Alert if someone rejected */}
-                  {!rejectedRequests.length > 0 &&
+                  {rejectedRequests.length > 0 &&
                     rejectedRequests.map((r, index) => (
                       <Pressable
                         key={index}
                         onPress={() => {
                           setIsReplaceModalVisible(true);
+                          setRejectedGuarantor(r);
                         }}
                         className="mt-4 bg-red-50 p-4 rounded-3xl flex-row items-center border border-red-100 active:bg-red-100"
                       >
@@ -330,11 +349,10 @@ export default function MemberLoans() {
                             style={{ color: theme.red }}
                             className="text-xs font-bold"
                           >
-                            Guarantor Rejected
+                            {r.guarantor_full_name} Rejected
                           </Text>
                           <Text className="text-red-600/70 text-[10px]">
-                            Tap to find a replacement for{" "}
-                            {r.guarantor_full_name}
+                            Tap to find a replacement.
                           </Text>
                         </View>
                         <Ionicons
@@ -480,11 +498,11 @@ export default function MemberLoans() {
         <LoanApplicationForm onClose={() => setIsLoanFormVisible(false)} />
       </Modal>
       {/* REPLACEMENT SEARCH MODAL */}
-      <Modal visible={isReplaceModalVisible} animationType="slide" transparent>
-        <View className="flex-1 justify-end bg-black/50">
+      <Modal visible={isReplaceModalVisible} animationType="fade" transparent>
+        <View className="flex-1 items-center justify-center bg-black/50">
           <View
             style={{ backgroundColor: theme.card }}
-            className="rounded-t-[40px] h-[70%] p-8"
+            className="rounded-[40px] h-[50%] w-[90%] p-8"
           >
             {/* Modal Header */}
             <View className="flex-row justify-between items-center mb-6">
@@ -493,7 +511,7 @@ export default function MemberLoans() {
                   style={{ color: theme.text }}
                   className="text-xl font-black"
                 >
-                  Replace Guarantor
+                  Replace {rejectedGuarantor.guarantor_full_name}
                 </Text>
                 <Text style={{ color: theme.gray400 }} className="text-xs">
                   Search for a new member to pledge
@@ -529,14 +547,14 @@ export default function MemberLoans() {
             </View>
 
             <ScrollView showsVerticalScrollIndicator={false}>
+              <Text
+                style={{ color: theme.gray400 }}
+                className="text-[10px] font-bold uppercase mb-4 ml-1"
+              >
+                Search Results
+              </Text>
               {isSearching ? (
                 <>
-                  <Text
-                    style={{ color: theme.gray400 }}
-                    className="text-[10px] font-bold uppercase mb-4 ml-1"
-                  >
-                    Search Results
-                  </Text>
                   <Text
                     style={{ color: theme.text }}
                     className="text-xs text-center py-4 mb-4"
@@ -549,20 +567,20 @@ export default function MemberLoans() {
                   <ReplacementItem
                     key={index}
                     name={`${result.first_name} ${result.last_name}`}
-                    memberId={result.membership_no}
+                    id={result.membership_no}
+                    onSelect={() =>
+                      handleReplaceGuarantor(
+                        {
+                          first_name: result.first_name,
+                          last_name: result.last_name,
+                        },
+                        rejectedGuarantor?.loan_application_id,
+                        rejectedGuarantor?.guarantor_user_id,
+                      )
+                    }
                   />
                 ))
               )}
-              <ReplacementItem
-                name="Peter Sempala"
-                id="M-202"
-                onSelect={() =>
-                  handleReplaceGuarantor({
-                    name: "Peter Sempala",
-                    memberId: "M-202",
-                  })
-                }
-              />
             </ScrollView>
           </View>
         </View>

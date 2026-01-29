@@ -148,7 +148,7 @@ export default function Guarantors() {
               <View className="items-center justify-center mt-20">
                 <View className="bg-slate-100 p-6 rounded-full mb-4">
                   <Ionicons
-                    name="mail-closed-outline"
+                    name="mail-outline"
                     size={60}
                     color={theme.gray400}
                   />

@@ -1,10 +1,16 @@
 import { supabase } from "@/lib/supabase";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
+import { subscribeToTable } from "../lib/supabaseRealtime";
 
 export function useMemberTransactions(userId) {
-  return useQuery({
-    queryKey: ["member-transactions", userId],
+  const QUERY_KEY = ["member-transactions"];
+  const queryClient = useQueryClient();
+
+  const query = useQuery({
+    queryKey: QUERY_KEY,
     enabled: !!userId,
+    staleTime: Infinity,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("member_transactions")
@@ -16,4 +22,23 @@ export function useMemberTransactions(userId) {
       return data;
     },
   });
+
+  useEffect(() => {
+    if (!userId) return;
+
+    const unsubscribe = subscribeToTable({
+      table: "member_transactions",
+      filter: `user_id=eq.${userId}`,
+      onChange: (payload) => {
+        console.log("Realtime update:", payload);
+        queryClient.invalidateQueries({ queryKey: QUERY_KEY });
+      },
+    });
+
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+  }, [userId, queryClient]);
+
+  return query;
 }

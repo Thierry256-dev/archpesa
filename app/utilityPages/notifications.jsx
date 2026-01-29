@@ -1,4 +1,3 @@
-import { useAuth } from "@/context/AuthContext";
 import { useMarkAllNotificationsRead } from "@/hooks/useMarkAllNotificationsRead";
 import { useMarkNotificationRead } from "@/hooks/useMarkNotificationRead";
 import { useNotifications } from "@/hooks/useNotifications";
@@ -11,8 +10,8 @@ import { useTheme } from "../../context/ThemeProvider";
 export default function Notifications() {
   const router = useRouter();
   const { theme } = useTheme();
-  const { user } = useAuth();
-  const { data: notifications = [] } = useNotifications(user?.id);
+
+  const { data: notifications = [] } = useNotifications();
 
   const markOneRead = useMarkNotificationRead();
   const markAllRead = useMarkAllNotificationsRead();
