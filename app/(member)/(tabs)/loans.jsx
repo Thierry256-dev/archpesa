@@ -19,14 +19,28 @@ import {
   ReplacementItem,
   TabButton,
 } from "../../../components/ui/loansSmallComponents";
+import { useMemberAllInfo } from "../../../hooks/useMemberAllInfo";
+import { useSearchMemberProfiles } from "../../../hooks/useSearchMemberProfiles";
+import { formatDateFull } from "../../../utils/formatDateFull";
 
 export default function MemberLoans() {
   const { theme } = useTheme();
-  const [activeTab, setActiveTab] = useState("pending");
   const [isLoanFormVisible, setIsLoanFormVisible] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const { isSearching, searchResults } = useSearchMemberProfiles(searchQuery);
+
+  const { pendingLoanApplication, loanGuarantors } = useMemberAllInfo();
+
+  const [activeTab, setActiveTab] = useState(
+    pendingLoanApplication ? "pending" : "history",
+  );
 
   const [isReplaceModalVisible, setIsReplaceModalVisible] = useState(false);
-  const [targetRejectionId, setTargetRejectionId] = useState(null);
+
+  const rejectedRequests = loanGuarantors.filter(
+    (g) => g.status === "rejected",
+  );
 
   const handleReplaceGuarantor = (newMember) => {
     setIsReplaceModalVisible(false);
@@ -141,20 +155,28 @@ export default function MemberLoans() {
             className="flex-row mx-6 mt-4 bg-black/5 p-1 rounded-2xl border"
           >
             <TabButton
-              label="Pending"
-              name="pending"
+              label={pendingLoanApplication ? "Pending" : "Loan History"}
+              name={pendingLoanApplication ? "pending" : "history"}
               activeTab={activeTab}
-              onPress={() => setActiveTab("pending")}
+              onPress={() =>
+                pendingLoanApplication
+                  ? setActiveTab("pending")
+                  : setActiveTab("history")
+              }
             />
             <TabButton
-              label="Loan History"
-              name="history"
+              label={pendingLoanApplication ? "Loan History" : "Pending"}
+              name={pendingLoanApplication ? "history" : "pending"}
               activeTab={activeTab}
-              onPress={() => setActiveTab("history")}
+              onPress={() =>
+                pendingLoanApplication
+                  ? setActiveTab("history")
+                  : setActiveTab("pending")
+              }
             />
           </View>
           {/* 3. GUARANTOR STATUS */}
-          {activeTab === "pending" && (
+          {pendingLoanApplication && activeTab === "pending" && (
             <>
               <View className="px-6 mt-6 animate-in fade-in duration-500">
                 <View
@@ -174,7 +196,8 @@ export default function MemberLoans() {
                       style={{ color: theme.gray400 }}
                       className="text-xs font-medium"
                     >
-                      Applied: Jan 12, 2026
+                      Applied:{" "}
+                      {formatDateFull(pendingLoanApplication.created_at)}
                     </Text>
                   </View>
                   <Text
@@ -187,17 +210,68 @@ export default function MemberLoans() {
                     style={{ color: theme.text }}
                     className="text-lg font-black"
                   >
-                    UGX 2,500,000
+                    UGX {pendingLoanApplication.requested_amount}
                   </Text>
 
                   <Text
                     style={{ color: theme.gray500 }}
                     className="pt-1 text-xs italic"
                   >
-                    &quot;Business expansion for retail shop inventory.&quot;
+                    &quot;{pendingLoanApplication.purpose}.&quot;
                   </Text>
                 </View>
-                {/* 4. GUARANTOR TRACKING (NEW SECTION) */}
+
+                {!pendingLoanApplication && activeTab === "pending" && (
+                  <View className="px-6 mt-6 animate-in fade-in duration-500">
+                    <View
+                      style={{
+                        backgroundColor: theme.card,
+                        borderColor: theme.border,
+                      }}
+                      className="rounded-3xl p-6 shadow-sm border"
+                    >
+                      <View className="items-center py-6">
+                        <View
+                          style={{ backgroundColor: theme.gray100 }}
+                          className="p-4 rounded-full mb-4"
+                        >
+                          <Ionicons
+                            name="document-text-outline"
+                            size={28}
+                            color={theme.gray500}
+                          />
+                        </View>
+
+                        <Text
+                          style={{ color: theme.text }}
+                          className="text-lg font-black text-center"
+                        >
+                          No Pending Loan Applications
+                        </Text>
+
+                        <Text
+                          style={{ color: theme.gray400 }}
+                          className="text-xs text-center mt-2 px-6"
+                        >
+                          You don’t have any active loan requests at the moment.
+                          Apply for a loan and track approvals here.
+                        </Text>
+
+                        <Pressable
+                          onPress={() => setIsLoanFormVisible(true)}
+                          style={{ backgroundColor: theme.primary }}
+                          className="mt-6 px-6 py-3 rounded-full active:opacity-90"
+                        >
+                          <Text className="text-white font-bold text-xs">
+                            Apply for a Loan
+                          </Text>
+                        </Pressable>
+                      </View>
+                    </View>
+                  </View>
+                )}
+
+                {/* 4. GUARANTOR TRACKING */}
                 <View className="mb-6">
                   <View className="flex-row justify-between items-center mb-4 px-1">
                     <Text
@@ -220,61 +294,56 @@ export default function MemberLoans() {
                     }}
                     className="rounded-3xl p-5 shadow-sm border"
                   >
-                    <GuarantorStatusRow
-                      name="Sarah Namuli"
-                      memberId="M-042"
-                      status="Accepted"
-                      pledge="UGX 1,250,000"
-                    />
-                    <GuarantorStatusRow
-                      name="John Bosco"
-                      memberId="M-115"
-                      status="Pending"
-                      pledge="UGX 1,250,000"
-                    />
-                    <GuarantorStatusRow
-                      name="Grace Akello"
-                      memberId="M-089"
-                      status="Rejected"
-                      isLast
-                    />
+                    {loanGuarantors.length > 0 &&
+                      loanGuarantors.map((gtr, index) => (
+                        <GuarantorStatusRow
+                          key={index}
+                          name={gtr.guarantor_full_name}
+                          status={gtr.status}
+                          pledge={gtr.guaranteed_amount}
+                        />
+                      ))}
                   </View>
 
                   {/* Conditional Alert if someone rejected */}
-                  <Pressable
-                    onPress={() => {
-                      setTargetRejectionId("M-089"); // The ID of Grace Akello who rejected
-                      setIsReplaceModalVisible(true);
-                    }}
-                    className="mt-4 bg-red-50 p-4 rounded-3xl flex-row items-center border border-red-100 active:bg-red-100"
-                  >
-                    <View
-                      style={{ backgroundColor: theme.red }}
-                      className="p-2 rounded-full"
-                    >
-                      <Ionicons
-                        name="swap-horizontal"
-                        size={16}
-                        color={theme.white}
-                      />
-                    </View>
-                    <View className="ml-3 flex-1">
-                      <Text
-                        style={{ color: theme.red }}
-                        className="text-xs font-bold"
+                  {!rejectedRequests.length > 0 &&
+                    rejectedRequests.map((r, index) => (
+                      <Pressable
+                        key={index}
+                        onPress={() => {
+                          setIsReplaceModalVisible(true);
+                        }}
+                        className="mt-4 bg-red-50 p-4 rounded-3xl flex-row items-center border border-red-100 active:bg-red-100"
                       >
-                        Guarantor Rejected
-                      </Text>
-                      <Text className="text-red-600/70 text-[10px]">
-                        Tap to find a replacement for Grace Akello
-                      </Text>
-                    </View>
-                    <Ionicons
-                      name="chevron-forward"
-                      size={16}
-                      color={theme.red}
-                    />
-                  </Pressable>
+                        <View
+                          style={{ backgroundColor: theme.red }}
+                          className="p-2 rounded-full"
+                        >
+                          <Ionicons
+                            name="swap-horizontal"
+                            size={16}
+                            color={theme.white}
+                          />
+                        </View>
+                        <View className="ml-3 flex-1">
+                          <Text
+                            style={{ color: theme.red }}
+                            className="text-xs font-bold"
+                          >
+                            Guarantor Rejected
+                          </Text>
+                          <Text className="text-red-600/70 text-[10px]">
+                            Tap to find a replacement for{" "}
+                            {r.guarantor_full_name}
+                          </Text>
+                        </View>
+                        <Ionicons
+                          name="chevron-forward"
+                          size={16}
+                          color={theme.red}
+                        />
+                      </Pressable>
+                    ))}
                 </View>
                 <View className="flex-row justify-between items-center mb-4 px-1">
                   <Text
@@ -449,7 +518,9 @@ export default function MemberLoans() {
             >
               <Ionicons name="search" size={20} color={theme.gray400} />
               <TextInput
-                placeholder="Enter Name or Member ID..."
+                onChangeText={(text) => setSearchQuery(text)}
+                value={searchQuery}
+                placeholder="Enter Name"
                 style={{ color: theme.text }}
                 placeholderTextColor={theme.gray400}
                 className="flex-1 ml-3 font-bold"
@@ -458,14 +529,30 @@ export default function MemberLoans() {
             </View>
 
             <ScrollView showsVerticalScrollIndicator={false}>
-              <Text
-                style={{ color: theme.gray400 }}
-                className="text-[10px] font-bold uppercase mb-4 ml-1"
-              >
-                Suggested Members
-              </Text>
-
-              {/* Mock Search Results */}
+              {isSearching ? (
+                <>
+                  <Text
+                    style={{ color: theme.gray400 }}
+                    className="text-[10px] font-bold uppercase mb-4 ml-1"
+                  >
+                    Search Results
+                  </Text>
+                  <Text
+                    style={{ color: theme.text }}
+                    className="text-xs text-center py-4 mb-4"
+                  >
+                    Searching..
+                  </Text>
+                </>
+              ) : (
+                searchResults.map((result, index) => (
+                  <ReplacementItem
+                    key={index}
+                    name={`${result.first_name} ${result.last_name}`}
+                    memberId={result.membership_no}
+                  />
+                ))
+              )}
               <ReplacementItem
                 name="Peter Sempala"
                 id="M-202"
@@ -473,16 +560,6 @@ export default function MemberLoans() {
                   handleReplaceGuarantor({
                     name: "Peter Sempala",
                     memberId: "M-202",
-                  })
-                }
-              />
-              <ReplacementItem
-                name="Doreen Lwanga"
-                id="M-156"
-                onSelect={() =>
-                  handleReplaceGuarantor({
-                    name: "Doreen Lwanga",
-                    memberId: "M-156",
                   })
                 }
               />

@@ -2,18 +2,18 @@ import { useTheme } from "@/context/ThemeProvider";
 import { Ionicons } from "@expo/vector-icons";
 import { Pressable, Text, View } from "react-native";
 
-export function GuarantorStatusRow({ name, memberId, status, pledge, isLast }) {
+export function GuarantorStatusRow({ name, status, pledge }) {
   const { theme } = useTheme();
 
   const getStatusStyle = () => {
     switch (status) {
-      case "Accepted":
+      case "accepted":
         return {
           textColor: theme.emerald,
           bgColor: theme.emerald + "15",
           icon: "checkmark-circle",
         };
-      case "Rejected":
+      case "rejected":
         return {
           textColor: theme.rose,
           bgColor: theme.rose + "15",
@@ -34,9 +34,9 @@ export function GuarantorStatusRow({ name, memberId, status, pledge, isLast }) {
     <View
       style={{
         borderBottomColor: theme.border,
-        borderBottomWidth: !isLast ? 1 : 0,
+        borderBottomWidth: 1,
       }}
-      className="flex-row items-center py-3"
+      className="flex-row items-center py-3 "
     >
       {/* Avatar/Initial */}
       <View
@@ -51,12 +51,6 @@ export function GuarantorStatusRow({ name, memberId, status, pledge, isLast }) {
       <View className="flex-1 ml-3">
         <Text style={{ color: theme.text }} className="text-sm font-bold">
           {name}
-        </Text>
-        <Text
-          style={{ color: theme.gray400 }}
-          className="text-[10px] font-medium"
-        >
-          ID: {memberId}
         </Text>
       </View>
 
@@ -73,14 +67,10 @@ export function GuarantorStatusRow({ name, memberId, status, pledge, isLast }) {
             {status}
           </Text>
         </View>
-        {status === "Accepted" && (
-          <Text
-            style={{ color: theme.gray500 }}
-            className="font-bold text-[9px]"
-          >
-            {pledge}
-          </Text>
-        )}
+
+        <Text style={{ color: theme.gray500 }} className="font-bold text-[9px]">
+          UGX {Number(pledge).toFixed(0)}
+        </Text>
       </View>
     </View>
   );

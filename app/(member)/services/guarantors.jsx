@@ -1,4 +1,5 @@
 import { useTheme } from "@/context/ThemeProvider";
+import { supabase } from "@/lib/supabase";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useState } from "react";
@@ -6,6 +7,7 @@ import { Modal, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import RequestCard from "../../../components/cards/RequestCard";
 import GuarantorItem from "../../../components/ui/GuarantorItem";
+import { useMemberAllInfo } from "../../../hooks/useMemberAllInfo";
 
 export default function Guarantors() {
   const router = useRouter();
@@ -13,39 +15,42 @@ export default function Guarantors() {
   const [activeTab, setActiveTab] = useState("backing");
   const [confirmingRequest, setConfirmingRequest] = useState(null);
 
-  const [requests, setRequests] = useState([
-    {
-      id: "1",
-      sender: "Musa Johnson",
-      memberId: "MEM-0921",
-      loanAmount: "UGX 4,500,000",
-      pledgeAmount: "UGX 1,500,000",
-      purpose: "Expansion of poultry farm inventory",
-      date: "2h ago",
-    },
-    {
-      id: "2",
-      sender: "Jane Katushabe",
-      memberId: "MEM-1102",
-      loanAmount: "UGX 800,000",
-      pledgeAmount: "UGX 200,000",
-      purpose: "Emergency medical bills",
-      date: "5h ago",
-    },
-  ]);
+  const { guarantorRequests } = useMemberAllInfo();
 
-  const handleAction = (id, action) => {
-    setRequests((prev) => prev.filter((req) => req.id !== id));
-    alert(
-      `${action === "accept" ? "Accepted" : "Rejected"} request from member.`,
-    );
+  const acceptedRequests = guarantorRequests.filter(
+    (r) => r.status === "accepted",
+  );
+
+  const pendingRequests = guarantorRequests.filter(
+    (r) => r.status === "pending",
+  );
+
+  const calculateTotalGuaranteed = (data) => {
+    if (!data || !Array.isArray(data)) return 0;
+
+    return data.reduce((sum, item) => {
+      const amount = Number(item.guaranteed_amount) || 0;
+      return Math.floor(sum + amount).toLocaleString();
+    }, 0);
   };
 
-  const handleFinalAccept = () => {
-    setRequests((prev) =>
-      prev.filter((req) => req.id !== confirmingRequest.id),
-    );
+  const handleReject = async (guarantor_user_id, loan_application_id) => {
+    await supabase.rpc("reject_loan_guarantee_request", {
+      p_guarantor_user_id: guarantor_user_id,
+      p_loan_application_id: loan_application_id,
+    });
+
+    alert(`Rejected guarantorship request from member.`);
+  };
+
+  const handleFinalAccept = async (guarantor_user_id, loan_application_id) => {
+    await supabase.rpc("accept_loan_guarantee_request", {
+      p_guarantor_user_id: guarantor_user_id,
+      p_loan_application_id: loan_application_id,
+    });
+
     setConfirmingRequest(null);
+
     alert("Success! Your savings have been pledged as collateral.");
   };
 
@@ -82,7 +87,9 @@ export default function Guarantors() {
             <Text className="text-white/60 text-[10px] uppercase font-bold">
               Total Pledged
             </Text>
-            <Text className="text-white text-lg font-bold">UGX 1,500,000</Text>
+            <Text className="text-white text-lg font-bold">
+              UGX {calculateTotalGuaranteed(acceptedRequests)}
+            </Text>
           </View>
           <View className="items-end">
             <Text className="text-white/60 text-[10px] uppercase font-bold">
@@ -126,32 +133,47 @@ export default function Guarantors() {
         showsVerticalScrollIndicator={false}
       >
         {activeTab === "backing" ? (
-          <>
-            <GuarantorItem
-              name="Sarah Namuli"
-              loanType="Business Loan"
-              amount="UGX 500,000"
-              status="On Track"
-              date="Due: Dec 2026"
-            />
-            <GuarantorItem
-              name="John Bosco"
-              loanType="Emergency Loan"
-              amount="UGX 1,000,000"
-              status="Overdue"
-              isWarning
-              date="Due: Oct 2025"
-            />
-          </>
+          <View>
+            {acceptedRequests.length > 0 ? (
+              acceptedRequests?.map((guarantee, index) => (
+                <GuarantorItem
+                  key={index}
+                  name={guarantee.guarantor_full_name}
+                  amount={guarantee.guaranteed_amount}
+                  date={guarantee.created_at}
+                  status={guarantee.status}
+                />
+              ))
+            ) : (
+              <View className="items-center justify-center mt-20">
+                <View className="bg-slate-100 p-6 rounded-full mb-4">
+                  <Ionicons
+                    name="mail-closed-outline"
+                    size={60}
+                    color={theme.gray400}
+                  />
+                </View>
+                <Text className="text-slate-800 font-bold text-lg">
+                  No Guarantees attached to you
+                </Text>
+                <Text className="text-slate-400 text-sm text-center px-10 mt-2">
+                  When you accept a member quarantorship request, it will appear
+                  here.
+                </Text>
+              </View>
+            )}
+          </View>
         ) : (
           <View>
-            {requests.length > 0 ? (
-              requests.map((req) => (
+            {pendingRequests.length > 0 ? (
+              pendingRequests.map((req) => (
                 <RequestCard
                   key={req.id}
                   data={req}
                   onAccept={() => setConfirmingRequest(req)}
-                  onReject={() => handleAction(req.id, "reject")}
+                  onReject={() =>
+                    handleReject(req.guarantor_user_id, req.loan_application_id)
+                  }
                 />
               ))
             ) : (
@@ -159,7 +181,7 @@ export default function Guarantors() {
                 <View className="bg-slate-100 p-6 rounded-full mb-4">
                   <Ionicons
                     name="mail-open-outline"
-                    size={40}
+                    size={60}
                     color={theme.gray400}
                   />
                 </View>
@@ -201,13 +223,13 @@ export default function Guarantors() {
             <Text className="text-slate-500 text-center text-sm leading-5 mb-6">
               By accepting,{" "}
               <Text style={{ color: theme.text, fontWeight: "bold" }}>
-                {confirmingRequest?.pledgeAmount}
+                UGX {Math.floor(confirmingRequest?.guaranteed_amount)}
               </Text>{" "}
               of your savings will be{" "}
               <Text style={{ color: theme.error, fontWeight: "bold" }}>
                 locked
               </Text>{" "}
-              as collateral for {confirmingRequest?.sender}.
+              as collateral for {confirmingRequest?.guarantor_full_name}.
             </Text>
 
             <View className="bg-slate-50 p-4 rounded-2xl mb-8 border border-slate-100">
@@ -235,7 +257,12 @@ export default function Guarantors() {
                 </Text>
               </Pressable>
               <Pressable
-                onPress={handleFinalAccept}
+                onPress={() =>
+                  handleFinalAccept(
+                    confirmingRequest?.guarantor_user_id,
+                    confirmingRequest?.loan_application_id,
+                  )
+                }
                 className="flex-1 py-4 rounded-2xl items-center"
                 style={{ backgroundColor: theme.primary }}
               >

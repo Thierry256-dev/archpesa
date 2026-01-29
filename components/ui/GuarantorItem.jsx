@@ -1,10 +1,11 @@
 import { useTheme } from "@/context/ThemeProvider";
 import { Ionicons } from "@expo/vector-icons";
 import { Text, View } from "react-native";
+import { formatTimeAgo } from "../../utils/formatTimeAgo";
 
 export default function GuarantorItem({
   name,
-  loanType,
+
   amount,
   status,
   date,
@@ -33,9 +34,6 @@ export default function GuarantorItem({
             <Text style={{ color: theme.text }} className="font-bold">
               {name}
             </Text>
-            <Text style={{ color: theme.gray400 }} className="text-[10px]">
-              {loanType}
-            </Text>
           </View>
         </View>
         <View
@@ -52,7 +50,7 @@ export default function GuarantorItem({
             }}
             className="text-[10px] font-bold"
           >
-            {status}
+            {status === "accepted" ? "Active" : ""}
           </Text>
         </View>
       </View>
@@ -71,14 +69,14 @@ export default function GuarantorItem({
             Pledged Amount
           </Text>
           <Text style={{ color: theme.primary }} className="font-bold">
-            {amount}
+            UGX {Math.floor(amount)}
           </Text>
         </View>
         <Text
           style={{ color: theme.gray400 }}
           className="text-[10px] font-medium"
         >
-          {date}
+          {formatTimeAgo(date)}
         </Text>
       </View>
     </View>

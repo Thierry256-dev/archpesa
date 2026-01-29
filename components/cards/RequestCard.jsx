@@ -1,6 +1,7 @@
 import { useTheme } from "@/context/ThemeProvider";
 import { Ionicons } from "@expo/vector-icons";
 import { Pressable, Text, View } from "react-native";
+import { formatTimeAgo } from "../../utils/formatTimeAgo";
 
 export default function RequestCard({ data, onAccept, onReject }) {
   const { theme } = useTheme();
@@ -21,7 +22,7 @@ export default function RequestCard({ data, onAccept, onReject }) {
             className="w-12 h-12 rounded-2xl items-center justify-center"
           >
             <Text style={{ color: theme.text }} className="text-lg font-bold">
-              {data.sender.charAt(0)}
+              {data.guarantor_full_name.charAt(0)}
             </Text>
           </View>
           <View className="ml-3">
@@ -29,13 +30,7 @@ export default function RequestCard({ data, onAccept, onReject }) {
               style={{ color: theme.text }}
               className="font-black text-base"
             >
-              {data.sender}
-            </Text>
-            <Text
-              style={{ color: theme.gray400 }}
-              className="text-[10px] font-bold"
-            >
-              MEMBER ID: {data.memberId}
+              {data.guarantor_full_name}
             </Text>
           </View>
         </View>
@@ -47,7 +42,7 @@ export default function RequestCard({ data, onAccept, onReject }) {
             style={{ color: theme.gray500 }}
             className="text-[9px] font-bold"
           >
-            {data.date}
+            {formatTimeAgo(data.created_at)}
           </Text>
         </View>
       </View>
@@ -66,24 +61,13 @@ export default function RequestCard({ data, onAccept, onReject }) {
               style={{ color: theme.gray400 }}
               className="text-[10px] uppercase font-bold"
             >
-              Total Loan
-            </Text>
-            <Text style={{ color: theme.text }} className="font-bold text-sm">
-              {data.loanAmount}
-            </Text>
-          </View>
-          <View className="items-end">
-            <Text
-              style={{ color: theme.primary }}
-              className="text-[10px] uppercase font-bold"
-            >
-              Your Pledge
+              Pledge Amount
             </Text>
             <Text
               style={{ color: theme.primary }}
               className="font-black text-sm"
             >
-              {data.pledgeAmount}
+              UGX {Math.floor(data.guaranteed_amount).toLocaleString()}
             </Text>
           </View>
         </View>
@@ -97,7 +81,7 @@ export default function RequestCard({ data, onAccept, onReject }) {
           style={{ color: theme.gray600 }}
           className="text-xs italic leading-4"
         >
-          &quot;Purpose: {data.purpose}&quot;
+          &quot;Purpose: {data.purpose} &quot;
         </Text>
       </View>
 
@@ -114,7 +98,7 @@ export default function RequestCard({ data, onAccept, onReject }) {
         >
           Accepting will lock{" "}
           <Text style={{ color: theme.gray600 }} className="font-bold">
-            {data.pledgeAmount}
+            UGX {Math.floor(data.guaranteed_amount).toLocaleString()}
           </Text>{" "}
           from your withdrawable savings.
         </Text>
