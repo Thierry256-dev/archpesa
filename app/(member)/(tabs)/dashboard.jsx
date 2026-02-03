@@ -20,7 +20,7 @@ export default function MemberDashboard() {
   const unreadCount = useUnreadNotificationCount();
   const router = useRouter();
 
-  const { profile, balances, transactions } = useMemberAllInfo();
+  const { profile, balances, transactions, loans } = useMemberAllInfo();
 
   const { user } = useAuth();
   const { data: application } = useMemberApplication(user?.id);
@@ -61,14 +61,20 @@ export default function MemberDashboard() {
 
   const statusUI = statusConfig[applicationStatus];
 
+  const activeLoanObj = loans?.find((l) => l.status === "Approved");
+
   const dashboardData = {
-    name: profile?.first_name,
-    totalBalance: balances.Savings + balances.Shares + balances.Fixed_Deposit,
-    lockedSavings: balances?.Fixed_Deposit,
-    activeLoan: balances?.Loan,
-    loanLimit: balances.Savings / 2,
-    currentLoan: balances.Loan,
-    progress: (balances.Loan / (balances.Savings / 2)) * 100,
+    name: profile?.first_name || user.full_name || "Member",
+    totalBalance:
+      balances.Savings + balances.Shares + balances.Fixed_Deposit || 0,
+    lockedSavings: balances?.Fixed_Deposit || 0,
+    activeLoan: activeLoanObj.outstanding_balance || 0,
+    loanLimit: balances.Savings + balances.Savings / 2 || 0,
+    currentLoan: activeLoanObj.outstanding_balance || 0,
+    progress:
+      (activeLoanObj.outstanding_balance /
+        (balances.Savings + balances.Savings / 2)) *
+        100 || 0,
   };
 
   return (
@@ -357,7 +363,7 @@ export default function MemberDashboard() {
                 style={{ color: theme.emerald }}
                 className="font-bold text-sm"
               >
-                UGX {dashboardData.loanLimit.toLocaleString()}
+                UGX {dashboardData.loanLimit.toLocaleString() || 0}
               </Text>
             </View>
             <View
@@ -378,7 +384,10 @@ export default function MemberDashboard() {
             >
               You can borrow up to
               <Text style={{ color: theme.emerald }} className="font-bold">
-                UGX {(dashboardData.loanLimit - balances.Loan).toLocaleString()}
+                UGX{" "}
+                {(
+                  dashboardData.loanLimit - activeLoanObj.outstanding_balance
+                ).toLocaleString() || 0}
               </Text>{" "}
               more.
             </Text>

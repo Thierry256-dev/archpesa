@@ -125,7 +125,8 @@ export default function Membeaoans() {
                 style={{ color: theme.text }}
                 className="text-3xl font-extrabold"
               >
-                UGX {Number(currentLoan.outstanding_balance).toLocaleString()}
+                UGX{" "}
+                {Number(currentLoan.outstanding_balance).toLocaleString() || 0}
               </Text>
             </View>
             <View className="bg-amber-50 px-2 py-1 rounded-lg">
@@ -145,7 +146,7 @@ export default function Membeaoans() {
                 Repayment Progress
               </Text>
               <Text style={{ color: theme.text }} className="text-xs font-bold">
-                {loanProgress}% Paid
+                {loanProgress || 0}% Paid
               </Text>
             </View>
             <View
@@ -177,7 +178,7 @@ export default function Membeaoans() {
                 UGX{" "}
                 {Math.floor(
                   currentLoan.outstanding_balance / currentLoan.tenure_months,
-                ).toLocaleString()}
+                ).toLocaleString() || 0}
               </Text>
             </View>
             <View className="items-end">
@@ -188,7 +189,7 @@ export default function Membeaoans() {
                 Due Date
               </Text>
               <Text style={{ color: theme.orange }} className="font-bold">
-                {getNextDate(currentLoan.disbursed_at)}
+                {getNextDate(currentLoan.disbursed_at) || "Y/M/D"}
               </Text>
             </View>
           </View>

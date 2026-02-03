@@ -140,7 +140,7 @@ export default function MemberSavings() {
                     style={{ color: theme.white }}
                     className="font-bold text-lg"
                   >
-                    x3 Multiplier
+                    x1.5 Multiplier
                   </Text>
                 </View>
               </View>
@@ -154,7 +154,7 @@ export default function MemberSavings() {
                 style={{ color: theme.white }}
                 className="text-2xl font-bold mb-1"
               >
-                UGX {balances.Savings.toLocaleString()}
+                UGX {balances.Savings.toLocaleString() || 0}
               </Text>
               <Text
                 style={{ color: theme.gray200 }}
@@ -186,6 +186,12 @@ export default function MemberSavings() {
                   >
                     SHARES OWNED
                   </Text>
+                  <Text
+                    style={{ color: theme.text }}
+                    className="text-2xl font-bold mb-1"
+                  >
+                    {Number(balances.Shares / 10000).toLocaleString() || 0}
+                  </Text>
                 </View>
               </View>
               <View className="flex-row justify-between">
@@ -200,21 +206,7 @@ export default function MemberSavings() {
                     style={{ color: theme.text }}
                     className="text-2xl font-bold mb-1"
                   >
-                    UGX {balances.Fixed_Deposit.toLocaleString()}
-                  </Text>
-                </View>
-                <View>
-                  <Text
-                    style={{ color: theme.gray500 }}
-                    className="text-sm font-medium"
-                  >
-                    Share Capital
-                  </Text>
-                  <Text
-                    style={{ color: theme.text }}
-                    className="text-2xl font-bold mb-1"
-                  >
-                    UGX {balances.Shares.toLocaleString()}
+                    UGX {balances.Fixed_Deposit.toLocaleString() || 0}
                   </Text>
                 </View>
               </View>
