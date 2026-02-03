@@ -1,6 +1,6 @@
 export const ROLE_CONFIG = {
-  president: {
-    label: "President",
+  chairperson: {
+    label: "Chairperson",
     badge: "Final Authority",
     theme: "bg-indigo-600",
     actions: ["reports", "finalApproval"],

@@ -5,8 +5,10 @@ import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Image, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import AlertCard from "../../../components/ui/AlertCard";
-import QuickAction from "../../../components/ui/QuickAction";
+import {
+  AlertCard,
+  QuickAction,
+} from "../../../components/ui/adminDasboardSubComponents";
 import { ROLE_CONFIG } from "../../../constants/roles";
 
 export default function AdminDashboard() {
@@ -171,9 +173,19 @@ export default function AdminDashboard() {
               ))}
               <QuickAction
                 icon="person-add-outline"
-                label="Applications"
+                label="Register Forms"
                 color={theme.purple}
-                onPress={() => router.push("/(admin)/applications")}
+                onPress={() =>
+                  router.push("/(admin)/applications/memberRegistration")
+                }
+              />
+              <QuickAction
+                icon="cash-outline"
+                label="Loan Forms"
+                color={theme.orange}
+                onPress={() =>
+                  router.push("/(admin)/applications/loanApplications")
+                }
               />
             </View>
           </View>

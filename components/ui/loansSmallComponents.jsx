@@ -1,6 +1,7 @@
 import { useTheme } from "@/context/ThemeProvider";
 import { Ionicons } from "@expo/vector-icons";
 import { Pressable, Text, View } from "react-native";
+import { formatDateFull } from "../../utils/formatDateFull";
 
 export function GuarantorStatusRow({ name, status, pledge }) {
   const { theme } = useTheme();
@@ -207,7 +208,7 @@ export function ApproverRow({ name, person, status, icon, isLast }) {
   );
 }
 
-export function HistoryItem({ title, amount, date, status }) {
+export function HistoryItem({ title, amount, date, status, reason }) {
   const { theme } = useTheme();
 
   return (
@@ -216,30 +217,52 @@ export function HistoryItem({ title, amount, date, status }) {
         backgroundColor: theme.card,
         borderColor: theme.border,
       }}
-      className="mb-3 p-4 rounded-2xl flex-row justify-between items-center border"
+      className="mb-3 p-4 rounded-2xl flex-col border"
     >
-      <View>
-        <Text style={{ color: theme.text }} className="font-bold">
-          {title}
-        </Text>
-        <Text style={{ color: theme.gray400 }} className="text-xs">
-          {date}
-        </Text>
-      </View>
-      <View className="items-end">
-        <Text style={{ color: theme.text }} className="font-black">
-          {amount}
-        </Text>
-        <View className="flex-row items-center">
-          <Ionicons name="checkmark-done" size={14} color={theme.emerald} />
-          <Text
-            style={{ color: theme.emerald }}
-            className="text-[10px] font-bold ml-1"
-          >
-            {status}
+      <View className="flex-row justify-between">
+        <View className="justify-center">
+          <Text style={{ color: theme.text }} className="font-bold">
+            {title}
+          </Text>
+          <Text style={{ color: theme.gray400 }} className="text-xs">
+            {date}
           </Text>
         </View>
+        <View>
+          <Text style={{ color: theme.text }} className="font-black">
+            UGX {Number(amount).toLocaleString()}
+          </Text>
+          <View className="flex-row items-center">
+            {status === "Completed" ? (
+              <Ionicons name="checkmark-done" size={14} color={theme.emerald} />
+            ) : (
+              <Ionicons
+                name="close-circle-outline"
+                size={14}
+                color={theme.red}
+              />
+            )}
+            <Text
+              style={{
+                color: status === "completed" ? theme.emerald : theme.red,
+              }}
+              className="text-[10px] font-bold ml-1"
+            >
+              {status}
+            </Text>
+          </View>
+        </View>
       </View>
+      {status === "rejected" && (
+        <View className="pt-4">
+          <Text style={{ color: theme.red }} className="text-[12px]">
+            Reason
+          </Text>
+          <Text style={{ color: theme.text }} className="text-xs font-semibold">
+            {reason}
+          </Text>
+        </View>
+      )}
     </View>
   );
 }
@@ -254,23 +277,62 @@ export function LoanActionCard({ title, icon, color, desc }) {
         borderColor: theme.border,
         shadowColor: theme.gray200,
       }}
-      className="w-[48%] flex-1 p-4 rounded-3xl border shadow-sm"
+      className="w-[48%%] flex-row items-center justify-between p-4 rounded-3xl border shadow-sm"
     >
       <View
         className={`${color} w-10 h-10 rounded-2xl items-center justify-center mb-3`}
       >
         <Ionicons name={icon} size={20} color="white" />
       </View>
-      <Text
-        numberOfLines={1}
-        style={{ color: theme.text }}
-        className="font-bold text-sm"
-      >
-        {title}
-      </Text>
-      <Text style={{ color: theme.gray400 }} className="text-[10px] mt-1">
-        {desc}
-      </Text>
+      <View className="flex-col items-center gap-3">
+        <Text
+          numberOfLines={1}
+          style={{ color: theme.text }}
+          className="font-bold text-sm"
+        >
+          {title}
+        </Text>
+        <Text style={{ color: theme.gray400 }} className="text-[10px] mt-1">
+          {desc}
+        </Text>
+      </View>
     </Pressable>
+  );
+}
+
+export function LoanStatusCard({ app }) {
+  const { theme } = useTheme();
+  return (
+    <View
+      style={{
+        backgroundColor: theme.card,
+        borderColor: theme.border,
+      }}
+      className="rounded-3xl p-6 shadow-sm border mb-6"
+    >
+      <View className="flex-row justify-between items-center mb-4">
+        <View className="bg-orange-100 px-3 py-1 rounded-full">
+          <Text className="text-orange-600 font-bold text-[10px] uppercase">
+            Awaiting Approval
+          </Text>
+        </View>
+        <Text style={{ color: theme.gray400 }} className="text-xs font-medium">
+          Applied: {formatDateFull(app.created_at)}
+        </Text>
+      </View>
+      <Text
+        style={{ color: theme.gray500 }}
+        className="text-xs font-bold uppercase tracking-wider"
+      >
+        Requested Amount
+      </Text>
+      <Text style={{ color: theme.text }} className="text-lg font-black">
+        UGX {app.requested_amount}
+      </Text>
+
+      <Text style={{ color: theme.gray500 }} className="pt-1 text-xs italic">
+        &quot;{app.purpose}.&quot;
+      </Text>
+    </View>
   );
 }

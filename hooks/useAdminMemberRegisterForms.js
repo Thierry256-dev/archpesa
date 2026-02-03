@@ -1,36 +1,42 @@
 import { supabase } from "@/lib/supabase";
+import { subscribeToTable } from "@/lib/supabaseRealtime";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
-import { subscribeToTable } from "../lib/supabaseRealtime";
 
-export function useMemberProfile(userId) {
-  const QUERY_KEY = ["member-profile"];
+export function useAdminMemberRegisterForms() {
   const queryClient = useQueryClient();
+  const QUERY_KEY = ["member-register-forms"];
 
   const query = useQuery({
     queryKey: QUERY_KEY,
-    enabled: !!userId,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("users")
-        .select("*")
-        .eq("auth_user_id", userId)
-        .maybeSingle();
+        .from("member_applications")
+        .select(
+          `
+          id,
+          first_name,
+          last_name,
+          phone_number,
+          district,
+          submitted_at
+        `,
+        )
+        .eq("status", "pending")
+        .order("submitted_at", { ascending: false });
 
       if (error) throw error;
       return data;
     },
+
     staleTime: Infinity,
   });
 
   useEffect(() => {
-    if (!userId) return;
-
     const unsubscribe = subscribeToTable({
-      table: "users",
-      filter: `auth_user_id=eq.${userId}`,
+      table: "member_applications",
       onChange: (payload) => {
-        console.log("Realtime update:", payload);
+        console.log("Admin realtime update:", payload.eventType);
         queryClient.invalidateQueries({ queryKey: QUERY_KEY });
       },
     });
@@ -38,7 +44,7 @@ export function useMemberProfile(userId) {
     return () => {
       if (unsubscribe) unsubscribe();
     };
-  }, [userId, queryClient]);
+  }, [queryClient]);
 
   return query;
 }

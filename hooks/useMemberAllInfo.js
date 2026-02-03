@@ -1,13 +1,14 @@
 import { useAuth } from "@/context/AuthContext";
 import { useMemo } from "react";
-import { useMemberAccounts } from "./useMemberAccounts";
-import { useMemberProfile } from "./useMemberProfile";
-import { useMemberTransactions } from "./useMemberTransactions";
 import {
+  useLoanApplication,
   useLoanApplicationGuarantors,
   useLoanGuarantorRequest,
-  usePendingLoanApplication,
-} from "./usePendingLoanApplications";
+} from "./useLoanApplications";
+import { useMemberAccounts } from "./useMemberAccounts";
+import { useMemberLoanFetch } from "./useMemberLoanFetch";
+import { useMemberProfile } from "./useMemberProfile";
+import { useMemberTransactions } from "./useMemberTransactions";
 
 export function useMemberAllInfo() {
   const { user } = useAuth();
@@ -17,46 +18,50 @@ export function useMemberAllInfo() {
   const transactionsQuery = useMemberTransactions(
     profileQuery.data?.auth_user_id,
   );
-  const pendingLoanQuery = usePendingLoanApplication(
+  const loanApplicationQuery = useLoanApplication(
     profileQuery.data?.auth_user_id,
   );
   const guarantorsQuery = useLoanApplicationGuarantors(
-    pendingLoanQuery.data?.id,
+    loanApplicationQuery.data?.id,
   );
   const guarantorRequestQuery = useLoanGuarantorRequest(profileQuery.data?.id);
+  const memberLoanQuery = useMemberLoanFetch(profileQuery.data?.id);
 
   const resolvedData = useMemo(() => {
     return {
       profile: profileQuery.data ?? null,
       accounts: accountsQuery.data ?? [],
       transactions: transactionsQuery.data ?? [],
-      pendingLoanApplication: pendingLoanQuery.data ?? null,
+      pendingLoanApplication: loanApplicationQuery.data ?? null,
       loanGuarantors: guarantorsQuery.data ?? [],
       guarantorRequests: guarantorRequestQuery.data ?? [],
-
+      memberLoan: memberLoanQuery.data ?? [],
       isLoading:
         profileQuery.isLoading ||
         accountsQuery.isLoading ||
         transactionsQuery.isLoading ||
-        pendingLoanQuery.isLoading ||
+        loanApplicationQuery.isLoading ||
         guarantorsQuery.isLoading ||
-        guarantorRequestQuery.isLoading,
+        guarantorRequestQuery.isLoading ||
+        memberLoanQuery.isLoading,
 
       isError:
         profileQuery.isError ||
         accountsQuery.isError ||
         transactionsQuery.isError ||
-        pendingLoanQuery.isError ||
+        loanApplicationQuery.isError ||
         guarantorsQuery.isError ||
-        guarantorRequestQuery.isError,
+        guarantorRequestQuery.isError ||
+        memberLoanQuery.isError,
     };
   }, [
     profileQuery,
     accountsQuery,
     transactionsQuery,
-    pendingLoanQuery,
+    loanApplicationQuery,
     guarantorsQuery,
     guarantorRequestQuery,
+    memberLoanQuery,
   ]);
 
   const balances = useMemo(() => {
@@ -78,10 +83,10 @@ export function useMemberAllInfo() {
     profile: resolvedData.profile,
     balances,
     transactions: resolvedData.transactions,
-    pendingLoanApplication: resolvedData.pendingLoanApplication,
+    loanApplications: resolvedData.pendingLoanApplication,
     loanGuarantors: resolvedData.loanGuarantors,
     guarantorRequests: resolvedData.guarantorRequests,
-    guarantees: resolvedData.guarantees,
+    loans: resolvedData.memberLoan,
     isLoading: resolvedData.isLoading,
     isError: resolvedData.isError,
   };

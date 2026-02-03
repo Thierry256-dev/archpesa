@@ -1,3 +1,4 @@
+import { queryClient } from "@/lib/queryClient";
 import { supabase } from "@/lib/supabase";
 import * as SecureStore from "expo-secure-store";
 import { createContext, useContext, useEffect, useState } from "react";
@@ -20,88 +21,83 @@ export function AuthProvider({ children }) {
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
-    await SecureStore.deleteItemAsync("rememberMe");
-    setUser(null);
-    setAppUser(null);
+    try {
+      queryClient.clear();
+      await supabase.auth.signOut();
+      await SecureStore.deleteItemAsync("rememberMe");
+      setUser(null);
+      setAppUser(null);
+    } catch (error) {
+      console.error("Error during sign out:", error);
+    }
   };
 
-  //Fetch User Context
   const fetchUserContext = async () => {
     const { data, error } = await supabase.rpc("get_user_context");
-
     if (error) {
       console.error("User context error:", error);
       return null;
     }
-
     return data;
   };
 
   useEffect(() => {
     let isMounted = true;
-    let subscription;
+    let authSubscription = null;
 
     const initAuth = async () => {
       try {
         const remember = await SecureStore.getItemAsync("rememberMe");
-
-        if (remember !== "1") {
-          await supabase.auth.signOut();
-          if (isMounted) setLoading(false);
-          return;
-        }
-
-        setRememberMeState(true);
+        const shouldRemember = remember === "1";
+        if (isMounted) setRememberMeState(shouldRemember);
 
         const { data } = await supabase.auth.getSession();
-        const authUser = data?.session?.user ?? null;
+        let sessionUser = data?.session?.user ?? null;
 
-        setUser(authUser);
+        if (sessionUser && !shouldRemember) {
+          await supabase.auth.signOut();
+          sessionUser = null;
+        }
 
-        if (authUser) {
+        if (isMounted) setUser(sessionUser);
+
+        if (sessionUser) {
           const context = await fetchUserContext();
           if (isMounted) setAppUser(context);
         }
 
-        const {
-          data: { subscription: authSubscription },
-        } = supabase.auth.onAuthStateChange(async (_event, session) => {
-          if (!isMounted) return;
+        const { data: subData } = supabase.auth.onAuthStateChange(
+          async (_event, session) => {
+            if (!isMounted) return;
 
-          const nextUser = session?.user ?? null;
-          setUser(nextUser);
+            const nextUser = session?.user ?? null;
+            setUser(nextUser);
 
-          if (!nextUser) {
-            setAppUser(null);
-            setLoading(false);
-            return;
-          }
+            if (!nextUser) {
+              setAppUser(null);
+              setLoading(false);
+              return;
+            }
 
-          // Only fetch if we don’t already have context
-          if (!appUser || appUser.auth_user_id !== nextUser.id) {
             const context = await fetchUserContext();
             if (isMounted) setAppUser(context);
-          }
 
-          setLoading(false);
-        });
-
-        subscription = authSubscription;
-
-        if (isMounted) setLoading(false);
+            setLoading(false);
+          },
+        );
+        authSubscription = subData.subscription;
       } catch (error) {
-        console.error("Auth initialization error:", error);
+        console.error("Auth init failed:", error);
+      } finally {
         if (isMounted) setLoading(false);
       }
     };
 
     initAuth();
 
-    // Cleanup on unmount
     return () => {
       isMounted = false;
-      subscription?.unsubscribe();
+      authSubscription?.unsubscribe();
     };
   }, []);
 

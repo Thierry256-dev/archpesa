@@ -3,9 +3,9 @@ import { subscribeToTable } from "@/lib/supabaseRealtime";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 
-export function usePendingLoanApplication(userId) {
+export function useLoanApplication(userId) {
   const queryClient = useQueryClient();
-  const QUERY_KEY = ["pending-loan", userId];
+  const QUERY_KEY = ["loan-application", userId];
 
   const query = useQuery({
     queryKey: QUERY_KEY,
@@ -14,9 +14,7 @@ export function usePendingLoanApplication(userId) {
       const { data, error } = await supabase
         .from("loan_applications")
         .select("*")
-        .eq("user_id", userId)
-        .eq("status", "pending")
-        .maybeSingle();
+        .eq("user_id", userId);
 
       if (error) throw error;
       return data;
@@ -60,7 +58,7 @@ export function useLoanApplicationGuarantors(loan_application_id) {
         .limit(3);
 
       if (error) {
-        console.error("Failed to fetch pending loan:", error);
+        console.error("Failed to fetch application guarantors:", error);
         throw error;
       }
 

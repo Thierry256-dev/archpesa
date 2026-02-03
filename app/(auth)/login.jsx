@@ -83,7 +83,7 @@ export default function Login() {
             <Text className="text-xs font-semibold text-gray-500 uppercase ml-1 mb-2">
               Email Address
             </Text>
-            <View className="flex-row items-center bg-gray-50 border border-gray-200 rounded-2xl px-4 h-14 focus:border-brand-primary transition-colors">
+            <View className="flex-row items-center bg-gray-50 border border-gray-200 rounded-2xl px-4 h-14 transition-colors">
               <Ionicons name="mail-outline" size={20} color="#64748B" />
               <TextInput
                 placeholder="name@example.com"

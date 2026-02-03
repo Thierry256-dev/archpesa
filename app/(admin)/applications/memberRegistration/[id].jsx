@@ -89,7 +89,7 @@ export default function ApplicationDetail() {
     if (error) {
       Alert.alert("Action Failed", error.message);
     } else {
-      router.replace("/(admin)/applications");
+      router.back();
     }
   };
 

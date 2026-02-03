@@ -16,7 +16,7 @@ export default function Profile() {
   const handleLogout = async () => {
     await signOut();
 
-    router.replace("/(auth)/login");
+    router.replace("/");
   };
 
   return (

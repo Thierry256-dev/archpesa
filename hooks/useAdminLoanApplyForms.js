@@ -1,36 +1,33 @@
 import { supabase } from "@/lib/supabase";
+import { subscribeToTable } from "@/lib/supabaseRealtime";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
-import { subscribeToTable } from "../lib/supabaseRealtime";
 
-export function useMemberProfile(userId) {
-  const QUERY_KEY = ["member-profile"];
+export function useAdminLoanForms() {
   const queryClient = useQueryClient();
+  const QUERY_KEY = ["member-loan-forms"];
 
   const query = useQuery({
     queryKey: QUERY_KEY,
-    enabled: !!userId,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("users")
+        .from("loan_applications")
         .select("*")
-        .eq("auth_user_id", userId)
-        .maybeSingle();
+        .eq("status", "pending")
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
       return data;
     },
+
     staleTime: Infinity,
   });
 
   useEffect(() => {
-    if (!userId) return;
-
     const unsubscribe = subscribeToTable({
-      table: "users",
-      filter: `auth_user_id=eq.${userId}`,
+      table: "loan_applications",
       onChange: (payload) => {
-        console.log("Realtime update:", payload);
+        console.log("Admin realtime update:", payload.eventType);
         queryClient.invalidateQueries({ queryKey: QUERY_KEY });
       },
     });
@@ -38,7 +35,7 @@ export function useMemberProfile(userId) {
     return () => {
       if (unsubscribe) unsubscribe();
     };
-  }, [userId, queryClient]);
+  }, [queryClient]);
 
   return query;
 }
