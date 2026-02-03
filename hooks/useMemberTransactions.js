@@ -12,6 +12,10 @@ export function useMemberTransactions(userId, options = {}) {
     enabled: !!userId && options.enabled !== false,
     staleTime: Infinity,
     queryFn: async () => {
+      if (!userId) {
+        return [];
+      }
+
       const { data, error } = await supabase
         .from("member_transactions")
         .select("*")

@@ -3,14 +3,18 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { subscribeToTable } from "../lib/supabaseRealtime";
 
-export function useMemberProfile(userId, options = {}) {
+export function useMemberProfile(userId) {
   const QUERY_KEY = ["member-profile"];
   const queryClient = useQueryClient();
 
   const query = useQuery({
     queryKey: QUERY_KEY,
-    enabled: !!userId && options.enabled !== false,
+    enabled: !!userId,
     queryFn: async () => {
+      if (!userId) {
+        return [];
+      }
+
       const { data, error } = await supabase
         .from("users")
         .select("*")

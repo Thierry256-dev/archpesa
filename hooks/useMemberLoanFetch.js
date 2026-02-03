@@ -11,6 +11,10 @@ export function useMemberLoanFetch(userId, options = {}) {
     queryKey: QUERY_KEY,
     enabled: !!userId && options.enabled !== false,
     queryFn: async () => {
+      if (!userId) {
+        return [];
+      }
+
       const { data, error } = await supabase
         .from("loans")
         .select("*")

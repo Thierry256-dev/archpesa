@@ -15,8 +15,8 @@ export function useMemberAllInfo() {
 
   const profileQuery = useMemberProfile(user?.id);
 
-  const authId = profileQuery.data.auth_user_id;
-  const userId = profileQuery.data.id;
+  const authId = profileQuery?.data?.auth_user_id;
+  const userId = profileQuery?.data?.id;
 
   const accountsQuery = useMemberAccounts(authId, { enabled: !!authId });
   const transactionsQuery = useMemberTransactions(authId, {
@@ -26,7 +26,7 @@ export function useMemberAllInfo() {
     enabled: !!authId,
   });
 
-  const loanAppId = loanApplicationQuery.data.id;
+  const loanAppId = loanApplicationQuery?.data?.id;
 
   const guarantorsQuery = useLoanApplicationGuarantors(loanAppId, {
     enabled: !!loanAppId,

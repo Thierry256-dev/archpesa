@@ -16,6 +16,10 @@ export function useNotifications() {
     refetchOnWindowFocus: false,
 
     queryFn: async () => {
+      if (!userId) {
+        return [];
+      }
+
       const { data, error } = await supabase
         .from("notifications")
         .select("*")

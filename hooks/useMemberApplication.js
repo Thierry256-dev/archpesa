@@ -15,6 +15,10 @@ export function useMemberApplication(userId, options = {}) {
     staleTime: Infinity,
 
     queryFn: async () => {
+      if (!userId) {
+        return [];
+      }
+
       const { data, error } = await supabase
         .from("member_applications")
         .select("*")

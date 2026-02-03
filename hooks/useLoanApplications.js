@@ -11,6 +11,10 @@ export function useLoanApplication(userId, options = {}) {
     queryKey: QUERY_KEY,
     enabled: !!userId && options.enabled !== false,
     queryFn: async () => {
+      if (!userId) {
+        return [];
+      }
+
       const { data, error } = await supabase
         .from("loan_applications")
         .select("*")
@@ -50,6 +54,10 @@ export function useLoanApplicationGuarantors(loan_application_id) {
   const query = useQuery({
     queryKey: QUERY_KEY,
     queryFn: async () => {
+      if (!loan_application_id) {
+        return [];
+      }
+
       const { data, error } = await supabase
         .from("loan_guarantors")
         .select("*")
@@ -94,6 +102,10 @@ export function useLoanGuarantorRequest(userId) {
   const query = useQuery({
     queryKey: QUERY_KEY,
     queryFn: async () => {
+      if (!userId) {
+        return [];
+      }
+
       const { data, error } = await supabase
         .from("loan_guarantors")
         .select("*")
