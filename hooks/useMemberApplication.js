@@ -3,13 +3,13 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { subscribeToTable } from "../lib/supabaseRealtime";
 
-export function useMemberApplication(userId) {
+export function useMemberApplication(userId, options = {}) {
   const queryClient = useQueryClient();
   const QUERY_KEY = ["member-application"];
 
   const query = useQuery({
-    queryKey: ["member-application", userId],
-    enabled: !!userId,
+    queryKey: QUERY_KEY,
+    enabled: !!userId && options.enabled !== false,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
     staleTime: Infinity,

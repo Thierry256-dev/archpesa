@@ -14,18 +14,27 @@ export function useMemberAllInfo() {
   const { user } = useAuth();
 
   const profileQuery = useMemberProfile(user?.id);
-  const accountsQuery = useMemberAccounts(profileQuery.data?.auth_user_id);
-  const transactionsQuery = useMemberTransactions(
-    profileQuery.data?.auth_user_id,
-  );
-  const loanApplicationQuery = useLoanApplication(
-    profileQuery.data?.auth_user_id,
-  );
-  const guarantorsQuery = useLoanApplicationGuarantors(
-    loanApplicationQuery.data?.id,
-  );
-  const guarantorRequestQuery = useLoanGuarantorRequest(profileQuery.data?.id);
-  const memberLoanQuery = useMemberLoanFetch(profileQuery.data?.id);
+
+  const authId = profileQuery.data.auth_user_id;
+  const userId = profileQuery.data.id;
+
+  const accountsQuery = useMemberAccounts(authId, { enabled: !!authId });
+  const transactionsQuery = useMemberTransactions(authId, {
+    enabled: !!authId,
+  });
+  const loanApplicationQuery = useLoanApplication(authId, {
+    enabled: !!authId,
+  });
+
+  const loanAppId = loanApplicationQuery.data.id;
+
+  const guarantorsQuery = useLoanApplicationGuarantors(loanAppId, {
+    enabled: !!loanAppId,
+  });
+  const guarantorRequestQuery = useLoanGuarantorRequest(userId, {
+    enabled: !!userId,
+  });
+  const memberLoanQuery = useMemberLoanFetch(userId, { enabled: !!userId });
 
   const resolvedData = useMemo(() => {
     return {

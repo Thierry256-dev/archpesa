@@ -3,13 +3,13 @@ import { subscribeToTable } from "@/lib/supabaseRealtime";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 
-export function useLoanApplication(userId) {
+export function useLoanApplication(userId, options = {}) {
   const queryClient = useQueryClient();
   const QUERY_KEY = ["loan-application", userId];
 
   const query = useQuery({
     queryKey: QUERY_KEY,
-    enabled: !!userId,
+    enabled: !!userId && options.enabled !== false,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("loan_applications")
