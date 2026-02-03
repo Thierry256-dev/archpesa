@@ -122,7 +122,7 @@ export function CurrentGoal({ title, target, saved, percentage }) {
               {title}
             </Text>
             <Text style={{ color: theme.gray500 }} className="text-xs">
-              Target: UGX {target}
+              Target: UGX {Number(target).toLocaleString()}
             </Text>
           </View>
         </View>
@@ -145,7 +145,7 @@ export function CurrentGoal({ title, target, saved, percentage }) {
       </View>
       <Text style={{ color: theme.gray400 }} className="text-xs mt-2">
         <Text style={{ color: theme.text }} className="font-bold">
-          UGX {target - saved}
+          UGX {Number(target - saved).toLocaleString()}
         </Text>{" "}
         remaining to reach target.
       </Text>

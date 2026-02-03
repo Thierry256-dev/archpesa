@@ -1,4 +1,6 @@
+import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeProvider";
+import { useMemberApplication } from "@/hooks/useMemberApplication";
 import { supabase } from "@/lib/supabase";
 import { Ionicons } from "@expo/vector-icons";
 import { useMemo, useState } from "react";
@@ -32,6 +34,10 @@ export default function Membeaoans() {
   const [searchQuery, setSearchQuery] = useState("");
   const [rejectedGuarantor, setRejectedGuarantor] = useState([]);
   const [isReplaceModalVisible, setIsReplaceModalVisible] = useState(false);
+
+  const { user } = useAuth();
+  const { data: application } = useMemberApplication(user?.id);
+  const isApproved = application.status === "approved";
 
   const { isSearching, searchResults } = useSearchMemberProfiles(searchQuery);
 
@@ -374,6 +380,7 @@ export default function Membeaoans() {
                   </Text>
 
                   <Pressable
+                    disabled={!isApproved}
                     onPress={() => setIsLoanFormVisible(true)}
                     style={{ backgroundColor: theme.primary }}
                     className="mt-6 px-6 py-3 rounded-full active:opacity-90"
@@ -422,7 +429,7 @@ export default function Membeaoans() {
                 style={{ color: theme.text }}
                 className="text-lg font-bold mb-4"
               >
-                Reject Loans
+                Rejected Loans
               </Text>
               {rejectedApplications.map((a, index) => (
                 <HistoryItem

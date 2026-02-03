@@ -73,22 +73,22 @@ export default function Beneficiary() {
           <View className="space-y-5">
             <InfoField
               label="Full Name"
-              value={profile?.next_of_kin_name}
+              value={profile?.next_of_kin_name || ""}
               isEditing={isEditing}
             />
             <InfoField
               label="Relationship"
-              value={profile?.next_of_kin_relationship}
+              value={profile?.next_of_kin_relationship || ""}
               isEditing={isEditing}
             />
             <InfoField
               label="Phone Number"
-              value={profile?.next_of_kin_phone}
+              value={profile?.next_of_kin_phone || ""}
               isEditing={isEditing}
             />
             <InfoField
               label="Address"
-              value={profile?.next_of_kin_address}
+              value={profile?.next_of_kin_address || ""}
               isEditing={isEditing}
             />
           </View>

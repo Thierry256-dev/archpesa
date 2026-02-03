@@ -13,7 +13,7 @@ import TransactionItem from "../../../components/ui/TransactionItem";
 import { useMemberAllInfo } from "../../../hooks/useMemberAllInfo";
 
 export default function MemberDashboard() {
-  const { theme } = useTheme();
+  const { theme, mode } = useTheme();
   const [showBalance, setShowBalance] = useState(true);
   const [isExpanded, setIsExpanded] = useState(false);
   const [isLoanFormVisible, setIsLoanFormVisible] = useState(false);
@@ -61,18 +61,18 @@ export default function MemberDashboard() {
 
   const statusUI = statusConfig[applicationStatus];
 
-  const activeLoanObj = loans?.find((l) => l.status === "Approved");
+  const activeLoanObj = loans?.find((l) => l.status === "Approved") || {};
 
   const dashboardData = {
     name: profile?.first_name || user.full_name || "Member",
     totalBalance:
       balances.Savings + balances.Shares + balances.Fixed_Deposit || 0,
     lockedSavings: balances?.Fixed_Deposit || 0,
-    activeLoan: activeLoanObj.outstanding_balance || 0,
+    activeLoan: activeLoanObj?.outstanding_balance || 0,
     loanLimit: balances.Savings + balances.Savings / 2 || 0,
-    currentLoan: activeLoanObj.outstanding_balance || 0,
+    currentLoan: activeLoanObj?.outstanding_balance || 0,
     progress:
-      (activeLoanObj.outstanding_balance /
+      (activeLoanObj?.outstanding_balance /
         (balances.Savings + balances.Savings / 2)) *
         100 || 0,
   };
@@ -144,10 +144,10 @@ export default function MemberDashboard() {
           <View
             style={{
               backgroundColor: theme.card,
-              borderColor: theme.border,
+              borderColor: mode === "dark" ? theme.border : theme.gray50,
               shadowColor: theme.shadow,
             }}
-            className="rounded-3xl p-6 shadow-lg border"
+            className="rounded-3xl p-6 shadow-md border"
           >
             <View className="mb-5">
               <View className="flex-row justify-between items-center mb-1">
@@ -250,7 +250,7 @@ export default function MemberDashboard() {
         </View>
 
         {/* STATUS ALERT */}
-        {applicationStatus !== "approved" && (
+        {application && applicationStatus !== "approved" && (
           <Pressable
             disabled={applicationStatus !== "rejected"}
             onPress={() => router.push("/(member)/services/review")}
@@ -386,14 +386,14 @@ export default function MemberDashboard() {
               <Text style={{ color: theme.emerald }} className="font-bold">
                 UGX{" "}
                 {(
-                  dashboardData.loanLimit - activeLoanObj.outstanding_balance
+                  dashboardData.loanLimit - activeLoanObj?.outstanding_balance
                 ).toLocaleString() || 0}
               </Text>{" "}
               more.
             </Text>
           </View>
           <Pressable
-            disabled={!isApproved || balances.Loan > balances.Savings / 2}
+            disabled={!isApproved}
             onPress={() => isApproved && setIsLoanFormVisible(true)}
             style={{ backgroundColor: theme.emerald }}
             className="px-4 py-2 rounded-xl shadow-sm"

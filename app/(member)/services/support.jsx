@@ -52,7 +52,7 @@ export default function Support() {
 
         <FAQItem
           question="How do I increase my loan limit?"
-          answer="Your loan limit is determined by your total savings multiplied by 3. Increase your deposits to borrow more."
+          answer="Your loan limit is determined by your total savings multiplied by 1.5. Increase your deposits to borrow more."
         />
         <FAQItem
           question="What is the interest rate for Emergency Loans?"
@@ -60,7 +60,7 @@ export default function Support() {
         />
         <FAQItem
           question="Can I change my guarantor?"
-          answer="Guarantors can only be changed if the new guarantor has sufficient free savings to cover the pledge."
+          answer="Guarantors can only be changed if the former guarantor turned down the request. Once the loan has been approved, you cannot change anymore."
         />
 
         <View className="h-20" />

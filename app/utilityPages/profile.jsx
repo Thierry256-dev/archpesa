@@ -2,7 +2,15 @@ import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeProvider";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { useState } from "react";
+import {
+  ActivityIndicator,
+  Modal,
+  Pressable,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useMemberAllInfo } from "../../hooks/useMemberAllInfo";
 
@@ -11,12 +19,20 @@ export default function Profile() {
   const { signOut } = useAuth();
   const { theme, mode, setMode } = useTheme();
 
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
   const { profile } = useMemberAllInfo();
 
   const handleLogout = async () => {
-    await signOut();
+    setIsLoggingOut(true);
 
-    router.replace("/");
+    try {
+      await signOut();
+      router.replace("/");
+    } catch (error) {
+      console.error("Logout failed", error);
+      setIsLoggingOut(false);
+    }
   };
 
   return (
@@ -24,6 +40,12 @@ export default function Profile() {
       style={{ backgroundColor: theme.background }}
       className="flex-1"
     >
+      <Pressable
+        onPress={() => router.back()}
+        className="absolute top-16 left-5 bg-blue-950/10 p-2 rounded-xl z-10"
+      >
+        <Ionicons name="arrow-back" size={20} color={theme.text} />
+      </Pressable>
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* PROFILE HEADER */}
         <View
@@ -33,13 +55,6 @@ export default function Profile() {
           }}
           className="items-center py-10 border-b"
         >
-          <Pressable
-            onPress={() => router.back()}
-            className="absolute top-2 left-5 bg-blue-950/10 p-2 rounded-xl"
-          >
-            <Ionicons name="arrow-back" size={20} color={theme.text} />
-          </Pressable>
-
           <View
             style={{ backgroundColor: theme.card }}
             className="w-24 h-24 rounded-full items-center justify-center border-4 border-white shadow-sm"
@@ -145,7 +160,7 @@ export default function Profile() {
             </View>
           </Pressable>
 
-          {/* LOGOUT */}
+          {/* LOGOUT BUTTON */}
           <Pressable
             onPress={handleLogout}
             className="mt-10 py-5 rounded-2xl items-center border mb-20"
@@ -163,6 +178,23 @@ export default function Profile() {
           </Pressable>
         </View>
       </ScrollView>
+
+      {/*Logout POPUP */}
+      <Modal
+        transparent={true}
+        animationType="fade"
+        visible={isLoggingOut}
+        statusBarTranslucent
+      >
+        <View className="flex-1 bg-black/50 justify-center items-center">
+          <View className="bg-white p-6 rounded-3xl items-center shadow-2xl w-48">
+            <ActivityIndicator size="large" color="#be123c" />
+            <Text className="mt-4 text-gray-800 font-bold text-sm">
+              Signing Out...
+            </Text>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
