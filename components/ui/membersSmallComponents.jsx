@@ -59,9 +59,9 @@ export function MemberRow({ member }) {
   const { theme } = useTheme();
 
   const getStatusStyle = () => {
-    if (member.loan.status === "overdue") {
+    if (member.member_status === "closed") {
       return { bg: theme.rose + "15", text: theme.rose };
-    } else if (member.loan.status === "current") {
+    } else if (member.member_status === "suspended") {
       return { bg: theme.orange + "15", text: theme.orange };
     } else {
       return { bg: theme.emerald + "15", text: theme.emerald };
@@ -88,15 +88,15 @@ export function MemberRow({ member }) {
             className="w-10 h-10 rounded-full items-center justify-center"
           >
             <Text style={{ color: theme.gray600 }} className="font-bold">
-              {member.firstName.charAt(0)}
+              {member.first_name.charAt(0)}
             </Text>
           </View>
           <View className="ml-3">
             <Text style={{ color: theme.text }} className="font-bold">
-              {member.firstName} {member.lastName}
+              {member.first_name} {member.last_name}
             </Text>
             <Text style={{ color: theme.gray400 }} className="text-[10px]">
-              {member.id} • {member.phone}
+              {member.membership_no} • {member.phone_number}
             </Text>
           </View>
         </View>
@@ -111,12 +111,9 @@ export function MemberRow({ member }) {
               style={{ color: statusStyle.text }}
               className="text-[10px] font-bold uppercase"
             >
-              {member.loan.status}
+              {member.member_status}
             </Text>
           </View>
-          <Text style={{ color: theme.gray400 }} className="text-[9px] mt-1">
-            Last active: {member.lastActive}
-          </Text>
         </View>
       </View>
 
@@ -128,13 +125,16 @@ export function MemberRow({ member }) {
         <Text style={{ color: theme.gray500 }} className="text-xs">
           Savings:{" "}
           <Text style={{ color: theme.text }} className="font-bold">
-            UGX {member.savings.toLocaleString()}
+            UGX {member?.accounts[0].balance.toLocaleString()}
           </Text>
         </Text>
         <Text style={{ color: theme.gray500 }} className="text-xs">
           Loan:{" "}
           <Text style={{ color: theme.text }} className="font-bold">
-            UGX {member.loan.outstanding.toLocaleString()}
+            UGX{" "}
+            {member?.loan
+              ? member.loan.outstanding_balance.toLocaleString()
+              : 0}
           </Text>
         </Text>
       </View>

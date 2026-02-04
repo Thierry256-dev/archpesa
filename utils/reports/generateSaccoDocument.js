@@ -15,15 +15,30 @@ import { saveExcelToDownloads, savePdfToDownloads } from "../saveToStorage";
  */
 
 export const generateAllMembersReportPdf = async (members = []) => {
-  /* 1. Aggregates (Top Summary) */
+  /* 1. Aggregates */
   const totals = members.reduce(
-    (acc, m) => {
-      acc.totalSavings += m.savings || 0;
-      acc.totalShares += m.shares || 0;
-      acc.totalLoans += m.loan?.outstanding || 0;
-      acc.totalPenalties += m.penalties || 0;
+    (acc, member) => {
+      member.accounts?.forEach((accnt) => {
+        if (accnt.account_type === "Savings") {
+          acc.totalSavings += Number(accnt.balance ?? 0);
+        }
 
-      if (m.loan?.status === "overdue") acc.overdueCount += 1;
+        if (accnt.account_type === "Shares") {
+          acc.totalShares += Number(accnt.balance / 10000 ?? 0);
+        }
+      });
+
+      if (member.loan) {
+        acc.totalLoans += Number(member.loan.outstanding_balance ?? 0);
+
+        if (
+          ["Substandard", "Doubtful", "Loss"].includes(
+            member.loan.risk_category,
+          )
+        ) {
+          acc.overdueCount += 1;
+        }
+      }
 
       return acc;
     },
@@ -31,7 +46,6 @@ export const generateAllMembersReportPdf = async (members = []) => {
       totalSavings: 0,
       totalShares: 0,
       totalLoans: 0,
-      totalPenalties: 0,
       overdueCount: 0,
     },
   );
@@ -41,20 +55,14 @@ export const generateAllMembersReportPdf = async (members = []) => {
     .map(
       (m, index) => `
       <tr style="background:${index % 2 === 0 ? "#ffffff" : "#f8fafc"};">
-        <td>${m.id}</td>
-        <td>${m.firstName} ${m.lastName}</td>
-        <td>${m.phone}</td>
-        <td>${m.status.toUpperCase()}</td>
-        <td style="text-align:right;">${Number(m.savings).toLocaleString()}</td>
-        <td style="text-align:right;">${Number(m.shares).toLocaleString()}</td>
-        <td style="text-align:right; color:${
-          m.loan.status === "overdue" ? "#dc2626" : "#1e293b"
-        };">
-          ${Number(m.loan.outstanding).toLocaleString()}
-        </td>
-        <td style="text-align:right;">${Number(
-          m.penalties,
-        ).toLocaleString()}</td>
+        <td>${m.membership_no}</td>
+        <td>${m.first_name} ${m.last_name}</td>
+        <td>${m.phone_number}</td>
+        <td>${m.member_status.toUpperCase()}</td>
+        <td style="text-align:right;">${Number(m.accounts[0].balance).toLocaleString()}</td>
+        <td style="text-align:right;">${Number(m.accounts[1].balance / 10000).toLocaleString()}</td>
+         <td style="text-align:right;">${Number(m.accounts[2].balance).toLocaleString()}</td>
+        
       </tr>
     `,
     )
@@ -152,8 +160,7 @@ export const generateAllMembersReportPdf = async (members = []) => {
             <th>Status</th>
             <th>Savings</th>
             <th>Shares</th>
-            <th>Loan</th>
-            <th>Penalties</th>
+            <th>Fixed Deposit</th>            
           </tr>
         </thead>
         <tbody>

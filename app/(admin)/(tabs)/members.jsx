@@ -1,3 +1,4 @@
+import useAdminAllInfo from "@/hooks/useAdminAllInfo";
 import { Ionicons } from "@expo/vector-icons";
 import { useMemo, useState } from "react";
 import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
@@ -7,29 +8,33 @@ import {
   MemberRow,
   StatCard,
 } from "../../../components/ui/membersSmallComponents";
-import { MEMBERS_DATA } from "../../../constants/data";
+import NoFetchResult from "../../../components/ui/NoResult";
 import { generateAllMembersReportPdf } from "../../../utils/reports/generateSaccoDocument";
 
 export default function Members() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
 
+  const { members } = useAdminAllInfo();
+
   const filteredMembers = useMemo(() => {
-    return MEMBERS_DATA.filter((member) => {
+    return members.filter((member) => {
+      const searchLower = search.toLowerCase();
+
       const matchesSearch =
-        member.firstName.toLowerCase().includes(search.toLowerCase()) ||
-        member.lastName.toLowerCase().includes(search.toLowerCase()) ||
-        member.id.toLowerCase().includes(search.toLowerCase()) ||
-        member.phone.includes(search);
+        member.first_name?.toLowerCase().includes(searchLower) ||
+        member.last_name?.toLowerCase().includes(searchLower) ||
+        member.membership_no?.toLowerCase().includes(searchLower) ||
+        member.phone_number?.includes(search);
 
       const matchesFilter =
         filter === "all" ||
-        (filter === "active" && member.status === "active") ||
-        (filter === "risk" && member.loan.status === "overdue");
+        (member.member_status &&
+          member.member_status?.toLowerCase() === filter.toLowerCase());
 
       return matchesSearch && matchesFilter;
     });
-  }, [search, filter]);
+  }, [members, search, filter]);
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50 pb-20">
@@ -67,9 +72,14 @@ export default function Members() {
             onPress={() => setFilter("active")}
           />
           <FilterChip
-            label="At Risk"
-            active={filter === "risk"}
-            onPress={() => setFilter("risk")}
+            label="Suspended"
+            active={filter === "suspended"}
+            onPress={() => setFilter("suspended")}
+          />
+          <FilterChip
+            label="Closed"
+            active={filter === "closed"}
+            onPress={() => setFilter("closed")}
           />
         </View>
       </View>
@@ -85,10 +95,10 @@ export default function Members() {
 
       {/* SUMMARY STATS */}
       <View className="flex-row justify-between px-6 mt-6">
-        <StatCard label="Total Members" value={MEMBERS_DATA.length} />
+        <StatCard label="Total Members" value={members?.length || 0} />
         <StatCard
-          label="Overdue Loans"
-          value={MEMBERS_DATA.filter((m) => m.loan.status === "overdue").length}
+          label="Suspended Members"
+          value={members.filter((m) => m.member_status === "suspended").length}
           danger
         />
       </View>
@@ -103,9 +113,10 @@ export default function Members() {
         ))}
 
         {filteredMembers.length === 0 && (
-          <Text className="text-center text-gray-400 mt-20">
-            No members found
-          </Text>
+          <View className="flex-col gap-2 items-center justify-center">
+            <NoFetchResult />
+            <Text className="text-center text-gray-400">No members found!</Text>
+          </View>
         )}
       </ScrollView>
     </SafeAreaView>
