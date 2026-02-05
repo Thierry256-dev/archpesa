@@ -14,14 +14,11 @@ import {
   LoanCard,
 } from "../../../components/ui/adminUI/adminLoansSubComponents";
 import { MOCK_LOANS } from "../../../constants/data"; // Keeping your data source
+import useAdminAllInfo from "../../../hooks/useAdminAllInfo";
+import { computeSaccoTotals } from "../../../services/adminServices/financeCalculations";
+import { formatCurrency } from "../../../utils/formatCurrency";
 import { generateLoansExcelReport } from "../../../utils/reports/generateLoansExcel";
 import { generateLoansPdfReport } from "../../../utils/reports/generateLoansPdf";
-
-const formatUGX = (amount) => {
-  if (amount >= 1000000) return `UGX ${(amount / 1000000).toFixed(1)}M`;
-  if (amount >= 1000) return `UGX ${(amount / 1000).toFixed(0)}k`;
-  return `UGX ${amount.toLocaleString()}`;
-};
 
 // Refined Professional Color Palette
 const RISK_STYLES = {
@@ -48,6 +45,15 @@ export default function Loans() {
   const [selectedLoan, setSelectedLoan] = useState(null);
   const [actionType, setActionType] = useState(null);
 
+  const { members } = useAdminAllInfo();
+
+  const totals = useMemo(() => {
+    return computeSaccoTotals(members);
+  }, [members]);
+
+  const repaymentRate =
+    Math.floor(totals.totalRepaidLoan / totals.totalPayableLoans) * 100;
+
   /* ----------------Filter LOGIC---------------- */
   const filteredLoans = useMemo(() => {
     return MOCK_LOANS.filter((loan) => {
@@ -62,22 +68,6 @@ export default function Loans() {
       return matchesStatus && matchesRisk && matchesSearch;
     });
   }, [statusFilter, riskFilter, search]);
-
-  const stats = useMemo(() => {
-    const principal = filteredLoans.reduce((sum, l) => sum + l.principal, 0);
-    const outstanding = filteredLoans.reduce(
-      (sum, l) => sum + l.balance_due,
-      0,
-    );
-    const arrearsCount = filteredLoans.filter(
-      (l) => l.days_in_arrears > 0,
-    ).length;
-    // Calculate Portfolio Health (repayment %)
-    const repaymentRate =
-      principal > 0 ? ((principal - outstanding) / principal) * 100 : 0;
-
-    return { principal, outstanding, arrearsCount, repaymentRate };
-  }, [filteredLoans]);
 
   return (
     <SafeAreaView className="flex-1 bg-[#F1F5F9]">
@@ -126,12 +116,12 @@ export default function Loans() {
                     Total Outstanding
                   </Text>
                   <Text className="text-3xl font-bold text-white tracking-tight">
-                    {formatUGX(stats.outstanding)}
+                    {formatCurrency(totals.totalOutstandingLoans)}
                   </Text>
                 </View>
                 <View className="bg-white/10 px-2 py-1 rounded-lg">
                   <Text className="text-white text-[10px] font-bold">
-                    {filteredLoans.length} Active Loans
+                    {totals.totalActiveLoan} Active Loans
                   </Text>
                 </View>
               </View>
@@ -140,15 +130,15 @@ export default function Loans() {
               <View>
                 <View className="flex-row justify-between mb-1.5">
                   <Text className="text-slate-400 text-xs">
-                    Principal: {formatUGX(stats.principal)}
+                    Total Payable: {formatCurrency(totals.totalPayableLoans)}
                   </Text>
                   <Text className="text-emerald-400 text-xs font-bold">
-                    {stats.repaymentRate.toFixed(1)}% Repaid
+                    {repaymentRate}% Repaid
                   </Text>
                 </View>
                 <View className="h-2 bg-slate-800 rounded-full overflow-hidden">
                   <View
-                    style={{ width: `${stats.repaymentRate}%` }}
+                    style={{ width: `${repaymentRate}%` }}
                     className="h-full bg-emerald-500 rounded-full"
                   />
                 </View>
@@ -158,10 +148,8 @@ export default function Loans() {
                 <View className="flex-row items-center">
                   <Ionicons name="warning" size={14} color="#f59e0b" />
                   <Text className="text-slate-300 text-xs ml-1.5">
-                    <Text className="font-bold text-white">
-                      {stats.arrearsCount}
-                    </Text>{" "}
-                    In Arrears
+                    <Text className="font-bold text-white">{""}</Text> In
+                    Arrears
                   </Text>
                 </View>
               </View>
@@ -249,7 +237,7 @@ export default function Loans() {
           <LoanCard
             loan={item}
             RISK_STYLES={RISK_STYLES}
-            formatUGX={formatUGX}
+            formatUGX={formatCurrency}
             onPress={() => setSelectedLoan(item)}
           />
         )}
@@ -287,7 +275,7 @@ export default function Loans() {
               <Text className="text-sm text-slate-700">
                 Principal:{" "}
                 <Text className="font-bold">
-                  {formatUGX(selectedLoan.principal)}
+                  {formatCurrency(selectedLoan.principal)}
                 </Text>
               </Text>
             </View>

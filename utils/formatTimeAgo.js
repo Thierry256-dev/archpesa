@@ -26,7 +26,7 @@ export const formatTimeAgo = (dateString) => {
     return `${diffInDays} days ago`;
   }
 
-  return date.toLocaleDateString("en-US", {
+  return date.toLocaleDateString("en-GB", {
     month: "short",
     day: "numeric",
   });

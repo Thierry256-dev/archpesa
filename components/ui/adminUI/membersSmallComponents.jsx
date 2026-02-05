@@ -1,6 +1,7 @@
 import { useTheme } from "@/context/ThemeProvider";
 import { useRouter } from "expo-router";
 import { Pressable, Text, View } from "react-native";
+import { formatCurrency } from "../../../utils/formatCurrency";
 
 export function FilterChip({ label, active, onPress }) {
   const { theme } = useTheme();
@@ -125,16 +126,14 @@ export function MemberRow({ member }) {
         <Text style={{ color: theme.gray500 }} className="text-xs">
           Savings:{" "}
           <Text style={{ color: theme.text }} className="font-bold">
-            UGX {member?.accounts[0].balance.toLocaleString()}
+            {formatCurrency(member?.accounts[0].balance)}
           </Text>
         </Text>
         <Text style={{ color: theme.gray500 }} className="text-xs">
           Loan:{" "}
           <Text style={{ color: theme.text }} className="font-bold">
             UGX{" "}
-            {member?.loan
-              ? member.loan.outstanding_balance.toLocaleString()
-              : 0}
+            {member?.loan ? formatCurrency(member.loan.outstanding_balance) : 0}
           </Text>
         </Text>
       </View>

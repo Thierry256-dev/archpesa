@@ -44,9 +44,9 @@ export default function AdminTabsLayout() {
       />
 
       <Tabs.Screen
-        name="savings"
+        name="ledger"
         options={{
-          title: "Savings",
+          title: "Ledger",
           tabBarIcon: ({ color }) => (
             <Ionicons name="wallet-outline" size={20} color={color} />
           ),

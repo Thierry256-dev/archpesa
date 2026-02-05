@@ -5,7 +5,7 @@ export const formatDateFull = (dateInput) => {
 
   if (isNaN(date.getTime())) return "Invalid Date";
 
-  return date.toLocaleDateString("en-US", {
+  return date.toLocaleDateString("en-GB", {
     month: "short",
     day: "numeric",
     year: "numeric",

@@ -2,7 +2,7 @@ import { useTheme } from "@/context/ThemeProvider";
 import { useUnreadNotificationCount } from "@/hooks/sharedHooks/useUnreadNotificationCount";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Image, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
@@ -10,6 +10,9 @@ import {
   QuickAction,
 } from "../../../components/ui/adminUI/adminDasboardSubComponents";
 import { ROLE_CONFIG } from "../../../constants/roles";
+import useAdminAllInfo from "../../../hooks/useAdminAllInfo";
+import { computeSaccoTotals } from "../../../services/adminServices/financeCalculations";
+import { formatCurrency } from "../../../utils/formatCurrency";
 
 export default function AdminDashboard() {
   const { theme } = useTheme();
@@ -18,6 +21,12 @@ export default function AdminDashboard() {
   const router = useRouter();
   const adminRole = "treasurer";
   const roleConfig = ROLE_CONFIG[adminRole];
+
+  const { members } = useAdminAllInfo();
+
+  const totals = useMemo(() => {
+    return computeSaccoTotals(members);
+  }, [members]);
 
   return (
     <View style={{ backgroundColor: theme.background }} className="flex-1">
@@ -116,7 +125,9 @@ export default function AdminDashboard() {
             style={{ color: theme.primary }}
             className="text-3xl text-center font-extrabold mb-4"
           >
-            {showBalance ? "UGX 125.4M" : "••••••••••"}
+            {showBalance
+              ? `${formatCurrency(totals.totalSaccoValue)}`
+              : "••••••••••"}
           </Text>
 
           <View
@@ -134,7 +145,9 @@ export default function AdminDashboard() {
                 style={{ color: theme.text }}
                 className="text-lg font-semibold mt-1"
               >
-                {showBalance ? "UGX 36.2M" : "••••••"}
+                {showBalance
+                  ? `${formatCurrency(totals.cashAtHand)}`
+                  : "••••••"}
               </Text>
             </View>
             <View>
@@ -148,7 +161,9 @@ export default function AdminDashboard() {
                 style={{ color: theme.text }}
                 className="text-lg font-semibold mt-1"
               >
-                {showBalance ? "UGX 89.2M" : "••••••"}
+                {showBalance
+                  ? `${formatCurrency(totals.totalSavings)}`
+                  : "••••••"}
               </Text>
             </View>
           </View>
