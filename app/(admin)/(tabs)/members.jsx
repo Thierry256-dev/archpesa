@@ -7,8 +7,8 @@ import {
   FilterChip,
   MemberRow,
   StatCard,
-} from "../../../components/ui/membersSmallComponents";
-import NoFetchResult from "../../../components/ui/NoResult";
+} from "../../../components/ui/adminUI/membersSmallComponents";
+import NoFetchResult from "../../../components/ui/sharedUI/NoResult";
 import { generateAllMembersReportPdf } from "../../../utils/reports/generateSaccoDocument";
 
 export default function Members() {

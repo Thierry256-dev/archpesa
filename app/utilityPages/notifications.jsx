@@ -1,6 +1,6 @@
-import { useMarkAllNotificationsRead } from "@/hooks/useMarkAllNotificationsRead";
-import { useMarkNotificationRead } from "@/hooks/useMarkNotificationRead";
-import { useNotifications } from "@/hooks/useNotifications";
+import { useMarkAllNotificationsRead } from "@/hooks/sharedHooks/useMarkAllNotificationsRead";
+import { useMarkNotificationRead } from "@/hooks/sharedHooks/useMarkNotificationRead";
+import { useNotifications } from "@/hooks/sharedHooks/useNotifications";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { Pressable, ScrollView, Text, View } from "react-native";

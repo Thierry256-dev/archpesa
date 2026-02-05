@@ -1,5 +1,5 @@
 import { useTheme } from "@/context/ThemeProvider";
-import { useUnreadNotificationCount } from "@/hooks/useUnreadNotificationCount";
+import { useUnreadNotificationCount } from "@/hooks/sharedHooks/useUnreadNotificationCount";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useState } from "react";
@@ -8,7 +8,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import {
   AlertCard,
   QuickAction,
-} from "../../../components/ui/adminDasboardSubComponents";
+} from "../../../components/ui/adminUI/adminDasboardSubComponents";
 import { ROLE_CONFIG } from "../../../constants/roles";
 
 export default function AdminDashboard() {

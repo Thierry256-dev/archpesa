@@ -4,7 +4,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import NoFetchResult from "../../../components/ui/NoResult";
+import NoFetchResult from "../../../components/ui/sharedUI/NoResult";
 import { getNextDate } from "../../../utils/getNextDate";
 
 const MemberField = ({ label, value, icon, isNumeric = false, isEditing }) => {

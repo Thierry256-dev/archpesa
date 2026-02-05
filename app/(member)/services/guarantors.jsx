@@ -6,7 +6,7 @@ import { useState } from "react";
 import { Modal, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import RequestCard from "../../../components/cards/RequestCard";
-import GuarantorItem from "../../../components/ui/GuarantorItem";
+import GuarantorItem from "../../../components/ui/memberUI/GuarantorItem";
 import { useMemberAllInfo } from "../../../hooks/useMemberAllInfo";
 
 export default function Guarantors() {

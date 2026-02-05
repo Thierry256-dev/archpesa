@@ -1,6 +1,6 @@
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeProvider";
-import { useMemberApplication } from "@/hooks/useMemberApplication";
+import { useMemberApplication } from "@/hooks/memberHooks/useMemberApplication";
 import { supabase } from "@/lib/supabase";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";

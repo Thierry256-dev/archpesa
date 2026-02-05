@@ -12,7 +12,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import {
   ExportButtons,
   LoanCard,
-} from "../../../components/ui/adminLoansSubComponents";
+} from "../../../components/ui/adminUI/adminLoansSubComponents";
 import { MOCK_LOANS } from "../../../constants/data"; // Keeping your data source
 import { generateLoansExcelReport } from "../../../utils/reports/generateLoansExcel";
 import { generateLoansPdfReport } from "../../../utils/reports/generateLoansPdf";

@@ -3,7 +3,7 @@ import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Pressable, ScrollView, StatusBar, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import NoFetchResult from "../../../../components/ui/NoResult";
+import NoFetchResult from "../../../../components/ui/sharedUI/NoResult";
 import useAdminAllInfo from "../../../../hooks/useAdminAllInfo";
 import { formatDateFull } from "../../../../utils/formatDateFull";
 

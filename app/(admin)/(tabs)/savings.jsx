@@ -14,7 +14,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { TransactionRow } from "../../../components/ui/adminSavingsSubComponents";
+import { TransactionRow } from "../../../components/ui/adminUI/adminSavingsSubComponents";
 import { SAVINGS_LEDGER } from "../../../constants/data";
 
 export default function SavingsLedgerPage() {
