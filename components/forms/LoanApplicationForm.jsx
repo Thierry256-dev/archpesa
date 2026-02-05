@@ -12,7 +12,7 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { useSearchMemberProfiles } from "../../hooks/useSearchMemberProfiles";
+import { useSearchMemberProfiles } from "../../hooks/sharedHooks/useSearchMemberProfiles";
 
 const LOAN_TYPES = [
   {

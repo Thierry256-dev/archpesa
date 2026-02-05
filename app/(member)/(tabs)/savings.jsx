@@ -1,6 +1,13 @@
+import AddGoalModal from "@/components/ui/memberUI/AddGoalModal";
+import TransactionItem from "@/components/ui/memberUI/TransactionItem";
+import {
+  ChartBar,
+  CurrentGoal,
+  GoalTemplate,
+} from "@/components/ui/memberUI/savingsSmallComponents";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeProvider";
-import { useMemberApplication } from "@/hooks/useMemberApplication";
+import { useMemberApplication } from "@/hooks/memberHooks/useMemberApplication";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useState } from "react";
@@ -13,17 +20,10 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import AddGoalModal from "../../../components/ui/AddGoalModal";
-import TransactionItem from "../../../components/ui/TransactionItem";
-import {
-  ChartBar,
-  CurrentGoal,
-  GoalTemplate,
-} from "../../../components/ui/savingsSmallComponents";
 import { popularGoals } from "../../../constants/data";
+import { useGrowthData } from "../../../hooks/memberHooks/useMemberGrowthData";
+import { useSavingsGoals } from "../../../hooks/memberHooks/useSavingsGoals";
 import { useMemberAllInfo } from "../../../hooks/useMemberAllInfo";
-import { useGrowthData } from "../../../hooks/useMemberGrowthData";
-import { useSavingsGoals } from "../../../hooks/useSavingsGoals";
 
 export default function MemberSavings() {
   const router = useRouter();

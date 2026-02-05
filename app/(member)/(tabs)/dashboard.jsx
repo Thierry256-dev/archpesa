@@ -1,7 +1,7 @@
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeProvider";
-import { useMemberApplication } from "@/hooks/useMemberApplication";
-import { useUnreadNotificationCount } from "@/hooks/useUnreadNotificationCount";
+import { useMemberApplication } from "@/hooks/memberHooks/useMemberApplication";
+import { useUnreadNotificationCount } from "@/hooks/sharedHooks/useUnreadNotificationCount";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useMemo, useState } from "react";
@@ -9,7 +9,7 @@ import { Image, Modal, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import ServiceCard from "../../../components/cards/ServiceCard";
 import LoanApplicationForm from "../../../components/forms/LoanApplicationForm";
-import TransactionItem from "../../../components/ui/TransactionItem";
+import TransactionItem from "../../../components/ui/memberUI/TransactionItem";
 import { useMemberAllInfo } from "../../../hooks/useMemberAllInfo";
 
 export default function MemberDashboard() {

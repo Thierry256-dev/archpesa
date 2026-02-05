@@ -1,18 +1,19 @@
+import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
-import { subscribeToTable } from "../lib/supabaseRealtime";
+import { subscribeToTable } from "../../lib/supabaseRealtime";
 
-export function useMemberApplication(userId, options = {}) {
+export function useNotifications() {
+  const { user } = useAuth();
+  const userId = user?.auth_user_id;
   const queryClient = useQueryClient();
-  const QUERY_KEY = ["member-application"];
+  const QUERY_KEY = ["notifications"];
 
   const query = useQuery({
     queryKey: QUERY_KEY,
-    enabled: !!userId && options.enabled !== false,
+    enabled: !!userId,
     refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
-    staleTime: Infinity,
 
     queryFn: async () => {
       if (!userId) {
@@ -20,26 +21,23 @@ export function useMemberApplication(userId, options = {}) {
       }
 
       const { data, error } = await supabase
-        .from("member_applications")
+        .from("notifications")
         .select("*")
-        .eq("auth_user_id", userId)
-        .maybeSingle();
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false });
 
-      if (error) {
-        console.error("Member application fetch error:", error);
-        throw error;
-      }
-
+      if (error) throw error;
       return data;
     },
+    staleTime: Infinity,
   });
 
   useEffect(() => {
     if (!userId) return;
 
     const unsubscribe = subscribeToTable({
-      table: "member_applications",
-      filter: `auth_user_id=eq.${userId}`,
+      table: "notifications",
+      filter: `user_id=eq.${userId}`,
       onChange: (payload) => {
         console.log("Realtime update:", payload);
         queryClient.invalidateQueries({ queryKey: QUERY_KEY });

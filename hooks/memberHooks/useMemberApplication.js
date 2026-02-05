@@ -1,37 +1,45 @@
 import { supabase } from "@/lib/supabase";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
-import { subscribeToTable } from "../lib/supabaseRealtime";
+import { subscribeToTable } from "../../lib/supabaseRealtime";
 
-export function useMemberLoanFetch(userId, options = {}) {
-  const QUERY_KEY = ["member-loan", userId];
+export function useMemberApplication(userId, options = {}) {
   const queryClient = useQueryClient();
+  const QUERY_KEY = ["member-application"];
 
   const query = useQuery({
     queryKey: QUERY_KEY,
     enabled: !!userId && options.enabled !== false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    staleTime: Infinity,
+
     queryFn: async () => {
       if (!userId) {
         return [];
       }
 
       const { data, error } = await supabase
-        .from("loans")
+        .from("member_applications")
         .select("*")
-        .eq("user_id", userId);
+        .eq("auth_user_id", userId)
+        .maybeSingle();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Member application fetch error:", error);
+        throw error;
+      }
+
       return data;
     },
-    staleTime: Infinity,
   });
 
   useEffect(() => {
     if (!userId) return;
 
     const unsubscribe = subscribeToTable({
-      table: "loans",
-      filter: `user_id=eq.${userId}`,
+      table: "member_applications",
+      filter: `auth_user_id=eq.${userId}`,
       onChange: (payload) => {
         console.log("Realtime update:", payload);
         queryClient.invalidateQueries({ queryKey: QUERY_KEY });

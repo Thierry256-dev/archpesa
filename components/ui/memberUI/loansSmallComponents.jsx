@@ -1,7 +1,7 @@
 import { useTheme } from "@/context/ThemeProvider";
+import { formatDateFull } from "@/utils/formatDateFull";
 import { Ionicons } from "@expo/vector-icons";
 import { Pressable, Text, View } from "react-native";
-import { formatDateFull } from "../../utils/formatDateFull";
 
 export function GuarantorStatusRow({ name, status, pledge }) {
   const { theme } = useTheme();

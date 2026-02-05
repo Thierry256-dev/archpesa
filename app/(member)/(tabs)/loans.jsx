@@ -1,6 +1,6 @@
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeProvider";
-import { useMemberApplication } from "@/hooks/useMemberApplication";
+import { useMemberApplication } from "@/hooks/memberHooks/useMemberApplication";
 import { supabase } from "@/lib/supabase";
 import { Ionicons } from "@expo/vector-icons";
 import { useMemo, useState } from "react";
@@ -21,10 +21,10 @@ import {
   LoanActionCard,
   LoanStatusCard,
   ReplacementItem,
-} from "../../../components/ui/loansSmallComponents";
-import NoFetchResult from "../../../components/ui/NoResult";
+} from "../../../components/ui/memberUI/loansSmallComponents";
+import NoFetchResult from "../../../components/ui/sharedUI/NoResult";
+import { useSearchMemberProfiles } from "../../../hooks/sharedHooks/useSearchMemberProfiles";
 import { useMemberAllInfo } from "../../../hooks/useMemberAllInfo";
-import { useSearchMemberProfiles } from "../../../hooks/useSearchMemberProfiles";
 import { formatDateFull } from "../../../utils/formatDateFull";
 import { getNextDate } from "../../../utils/getNextDate";
 

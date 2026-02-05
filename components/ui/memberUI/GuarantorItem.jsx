@@ -1,7 +1,7 @@
 import { useTheme } from "@/context/ThemeProvider";
 import { Ionicons } from "@expo/vector-icons";
 import { Text, View } from "react-native";
-import { formatTimeAgo } from "../../utils/formatTimeAgo";
+import { formatTimeAgo } from "../../../utils/formatTimeAgo";
 
 export default function GuarantorItem({
   name,

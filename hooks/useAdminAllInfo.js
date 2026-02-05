@@ -1,9 +1,9 @@
 import { useMemo } from "react";
-import { useAdminLoanForms } from "./useAdminLoanApplyForms";
-import { useAdminMemberAccounts } from "./useAdminMemberAccounts";
-import { useAdminMemberLoans } from "./useAdminMemberLoans";
-import { useAdminMemberProfiles } from "./useAdminMemberProfiles";
-import { useAdminMemberRegisterForms } from "./useAdminMemberRegisterForms";
+import { useAdminLoanForms } from "./adminHooks/useAdminLoanApplyForms";
+import { useAdminMemberAccounts } from "./adminHooks/useAdminMemberAccounts";
+import { useAdminMemberLoans } from "./adminHooks/useAdminMemberLoans";
+import { useAdminMemberProfiles } from "./adminHooks/useAdminMemberProfiles";
+import { useAdminMemberRegisterForms } from "./adminHooks/useAdminMemberRegisterForms";
 
 export default function useAdminAllInfo() {
   const { data: registrationForms } = useAdminMemberRegisterForms();

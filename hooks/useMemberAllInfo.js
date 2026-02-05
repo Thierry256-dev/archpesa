@@ -4,11 +4,11 @@ import {
   useLoanApplication,
   useLoanApplicationGuarantors,
   useLoanGuarantorRequest,
-} from "./useLoanApplications";
-import { useMemberAccounts } from "./useMemberAccounts";
-import { useMemberLoanFetch } from "./useMemberLoanFetch";
-import { useMemberProfile } from "./useMemberProfile";
-import { useMemberTransactions } from "./useMemberTransactions";
+} from "./memberHooks/useLoanApplications";
+import { useMemberAccounts } from "./memberHooks/useMemberAccounts";
+import { useMemberLoanFetch } from "./memberHooks/useMemberLoanFetch";
+import { useMemberProfile } from "./memberHooks/useMemberProfile";
+import { useMemberTransactions } from "./memberHooks/useMemberTransactions";
 
 export function useMemberAllInfo() {
   const { user } = useAuth();

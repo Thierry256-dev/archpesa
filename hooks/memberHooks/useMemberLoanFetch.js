@@ -1,30 +1,24 @@
-import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
-import { subscribeToTable } from "../lib/supabaseRealtime";
+import { subscribeToTable } from "../../lib/supabaseRealtime";
 
-export function useNotifications() {
-  const { user } = useAuth();
-  const userId = user?.auth_user_id;
+export function useMemberLoanFetch(userId, options = {}) {
+  const QUERY_KEY = ["member-loan", userId];
   const queryClient = useQueryClient();
-  const QUERY_KEY = ["notifications"];
 
   const query = useQuery({
     queryKey: QUERY_KEY,
-    enabled: !!userId,
-    refetchOnWindowFocus: false,
-
+    enabled: !!userId && options.enabled !== false,
     queryFn: async () => {
       if (!userId) {
         return [];
       }
 
       const { data, error } = await supabase
-        .from("notifications")
+        .from("loans")
         .select("*")
-        .eq("user_id", userId)
-        .order("created_at", { ascending: false });
+        .eq("user_id", userId);
 
       if (error) throw error;
       return data;
@@ -36,7 +30,7 @@ export function useNotifications() {
     if (!userId) return;
 
     const unsubscribe = subscribeToTable({
-      table: "notifications",
+      table: "loans",
       filter: `user_id=eq.${userId}`,
       onChange: (payload) => {
         console.log("Realtime update:", payload);
