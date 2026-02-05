@@ -56,7 +56,7 @@ export default function Membeaoans() {
   }, [loans]);
 
   const loanProgress = (
-    (currentLoan.amount_paid / currentLoan.total_payable) *
+    (currentLoan?.amount_paid / currentLoan?.total_payable) *
     100
   ).toFixed(2);
 
@@ -137,7 +137,7 @@ export default function Membeaoans() {
             </View>
             <View className="bg-amber-50 px-2 py-1 rounded-lg">
               <Text className="text-amber-700 text-[10px] font-bold">
-                {currentLoan.interest_rate * 100}% APR
+                {currentLoan.interest_rate * 100 || 0}% APR
               </Text>
             </View>
           </View>

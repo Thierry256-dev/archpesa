@@ -1,7 +1,7 @@
 import { queryClient } from "@/lib/queryClient";
 import { supabase } from "@/lib/supabase";
 import * as SecureStore from "expo-secure-store";
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 
 const AuthContext = createContext(null);
 
@@ -10,6 +10,7 @@ export function AuthProvider({ children }) {
   const [appUser, setAppUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [rememberMe, setRememberMeState] = useState(false);
+  const currentAuthIdRef = useRef(null);
 
   const setRememberMe = async (value) => {
     try {
@@ -22,11 +23,16 @@ export function AuthProvider({ children }) {
 
   const signOut = async () => {
     try {
+      currentAuthIdRef.current = null;
+
+      queryClient.cancelQueries();
       queryClient.clear();
-      await supabase.auth.signOut();
-      await SecureStore.deleteItemAsync("rememberMe");
+
       setUser(null);
       setAppUser(null);
+
+      await supabase.auth.signOut();
+      await SecureStore.deleteItemAsync("rememberMe");
     } catch (error) {
       console.error("Error during sign out:", error);
     }
@@ -54,9 +60,12 @@ export function AuthProvider({ children }) {
         const { data } = await supabase.auth.getSession();
         let sessionUser = data?.session?.user ?? null;
 
-        if (sessionUser && !shouldRemember) {
+        if (!shouldRemember) {
           await supabase.auth.signOut();
-          sessionUser = null;
+          setUser(null);
+          setAppUser(null);
+          setLoading(false);
+          return;
         }
 
         if (isMounted) setUser(sessionUser);
@@ -68,9 +77,9 @@ export function AuthProvider({ children }) {
 
         const { data: subData } = supabase.auth.onAuthStateChange(
           async (_event, session) => {
-            if (!isMounted) return;
-
             const nextUser = session?.user ?? null;
+
+            currentAuthIdRef.current = nextUser?.id ?? null;
             setUser(nextUser);
 
             if (!nextUser) {
@@ -80,11 +89,14 @@ export function AuthProvider({ children }) {
             }
 
             const context = await fetchUserContext();
-            if (isMounted) setAppUser(context);
 
+            if (currentAuthIdRef.current !== nextUser.id) return;
+
+            setAppUser(context);
             setLoading(false);
           },
         );
+
         authSubscription = subData.subscription;
       } catch (error) {
         console.error("Auth init failed:", error);

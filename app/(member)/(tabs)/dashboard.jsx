@@ -34,7 +34,7 @@ export default function MemberDashboard() {
     if (!transactions) return [];
 
     return isExpanded ? transactions : transactions.slice(0, PREVIEW_LIMIT);
-  }, [transactions, isExpanded]); // Re-calculate only when data or toggle changes
+  }, [transactions, isExpanded]);
 
   const toggleExpand = () => {
     setIsExpanded((prev) => !prev);
@@ -387,7 +387,7 @@ export default function MemberDashboard() {
                 UGX{" "}
                 {(
                   dashboardData.loanLimit - activeLoanObj?.outstanding_balance
-                ).toLocaleString() || 0}
+                ).toLocaleString()}
               </Text>{" "}
               more.
             </Text>
