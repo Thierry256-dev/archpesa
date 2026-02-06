@@ -4,7 +4,7 @@ import {
 } from "@/utils/reports/generateSaccoDocument";
 import { Ionicons } from "@expo/vector-icons";
 import { AnimatePresence, MotiView } from "moti";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useState } from "react";
 import {
   FlatList,
   Pressable,
@@ -24,13 +24,8 @@ import {
   datePresets,
   filterTypes,
 } from "../../../constants/admin/configTypes";
+import { useFilteredTransactions } from "../../../hooks/adminHooks/useFilteredTransactions";
 import useAdminAllInfo from "../../../hooks/useAdminAllInfo";
-import { attachUserInfoToTransactions } from "../../../services/adminServices/dataCompilers";
-import {
-  filterMemberTransactions,
-  filterTransactionsByTotalsType,
-} from "../../../services/adminServices/filters";
-import { computeTransactionSummary } from "../../../services/adminServices/financeCalculations";
 
 export default function LedgerPage() {
   const [filterType, setFilterType] = useState("all");
@@ -46,25 +41,15 @@ export default function LedgerPage() {
 
   const { transactions, members } = useAdminAllInfo();
 
-  const ledgerTotals = useMemo(
-    () =>
-      computeTransactionSummary(
-        filterTransactionsByTotalsType(transactions, totalsFilter),
-      ),
-    [transactions, totalsFilter],
-  );
-
-  const enrichedTransactions = useMemo(() => {
-    return attachUserInfoToTransactions(
-      members,
-      filterMemberTransactions(transactions, {
-        filterType,
-        searchQuery,
-        range,
-        isFilterActive: !!selectedPeriod,
-      }),
-    );
-  }, [members, filterType, searchQuery, range, selectedPeriod, transactions]);
+  const { ledgerTotals, enrichedTransactions } = useFilteredTransactions({
+    transactions,
+    members,
+    filterType,
+    totalsFilter,
+    searchQuery,
+    range,
+    selectedPeriod,
+  });
 
   //Handlers
   const formatMoney = (amount) => Number(amount).toLocaleString();

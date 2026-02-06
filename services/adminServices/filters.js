@@ -1,3 +1,8 @@
+import {
+  creditTransactionTypes,
+  debitTransactionTypes,
+} from "../../constants/admin/transactionTypes";
+
 export function filterMemberTransactions(
   transactions = [],
   { filterType = "all", searchQuery = "", range, isFilterActive = false } = {},
@@ -12,7 +17,12 @@ export function filterMemberTransactions(
       (txDate >= new Date(range.start).setHours(0, 0, 0, 0) &&
         txDate <= new Date(range.end).setHours(23, 59, 59, 999));
 
-    const matchesType = filterType === "all" || tx.direction === filterType;
+    const matchesType =
+      filterType === "all"
+        ? true
+        : filterType === "Credit"
+          ? creditTransactionTypes.includes(tx.transaction_type)
+          : debitTransactionTypes.includes(tx.transaction_type);
 
     const matchesSearch =
       (tx.external_reference &&
@@ -53,4 +63,20 @@ export function filterTransactionsByTotalsType(
         return true;
     }
   });
+}
+
+export function applyAllTransactionFilters(
+  transactions,
+  { filterType, totalsFilter, searchQuery, range, isFilterActive },
+) {
+  let result = filterTransactionsByTotalsType(transactions, totalsFilter);
+
+  result = filterMemberTransactions(result, {
+    filterType,
+    searchQuery,
+    range,
+    isFilterActive,
+  });
+
+  return result;
 }
