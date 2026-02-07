@@ -43,3 +43,28 @@ export function attachUserInfoToTransactions(profiles = [], transactions = []) {
     };
   });
 }
+
+export function attachUserInfoToLoan(profiles = [], loans = []) {
+  if (!profiles.length || !loans.length) return loans;
+
+  const userMap = new Map();
+
+  profiles.forEach((user) => {
+    if (!user.id) return;
+
+    userMap.set(user.id, {
+      userName: `${user.first_name ?? ""} ${user.last_name ?? ""}`.trim(),
+      membership_no: user.membership_no ?? null,
+    });
+  });
+
+  return loans.map((ln) => {
+    const userInfo = userMap.get(ln.user_id);
+
+    return {
+      ...ln,
+      userName: userInfo?.userName ?? "Unknown Member",
+      membership_no: userInfo?.membership_no ?? "N/A",
+    };
+  });
+}

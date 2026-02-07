@@ -4,6 +4,7 @@ export function computeSaccoTotals(members = []) {
   let totalOutstandingLoans = 0;
   let totalPayableLoans = 0;
   let totalActiveLoan = 0;
+  let totalPrincipal = 0;
 
   members.forEach((member) => {
     member.accounts?.forEach((acc) => {
@@ -20,6 +21,7 @@ export function computeSaccoTotals(members = []) {
       totalSaccoValue += Number(member.loan.total_payable ?? 0);
       totalPayableLoans += Number(member.loan.total_payable ?? 0);
       totalOutstandingLoans += Number(member.loan.outstanding_balance ?? 0);
+      totalPrincipal += Number(member.loan.principal_amount ?? 0);
     }
   });
 
@@ -31,6 +33,7 @@ export function computeSaccoTotals(members = []) {
     totalPayableLoans,
     totalRepaidLoan: totalPayableLoans - totalOutstandingLoans,
     totalActiveLoan,
+    totalPrincipal,
   };
 }
 
@@ -60,22 +63,24 @@ export function computeTransactionSummary(transactions = []) {
   sorted.forEach((tx) => {
     const amount = Number(tx.amount ?? 0);
 
-    if (
-      [
-        "Loan_Repayment",
-        "Savings_Deposit",
-        "Share_Purchase",
-        "Fee",
-        "Penalty",
-      ].includes(tx.transaction_type)
-    ) {
-      totalDeposits += amount;
-    }
+    if (tx.status === "Completed") {
+      if (
+        [
+          "Loan_Repayment",
+          "Savings_Deposit",
+          "Share_Purchase",
+          "Fee",
+          "Penalty",
+        ].includes(tx.transaction_type)
+      ) {
+        totalDeposits += amount;
+      }
 
-    if (
-      ["Savings_Withdraw", "Loan_Disbursement"].includes(tx.transaction_type)
-    ) {
-      totalWithdraws += amount;
+      if (
+        ["Savings_Withdraw", "Loan_Disbursement"].includes(tx.transaction_type)
+      ) {
+        totalWithdraws += amount;
+      }
     }
   });
 

@@ -6,8 +6,9 @@ export function LoanCard({ loan, RISK_STYLES, formatUGX, onPress }) {
   const { theme } = useTheme();
 
   const progress =
-    loan.principal > 0
-      ? ((loan.principal - loan.balance_due) / loan.principal) * 100
+    loan.total_payable > 0
+      ? ((loan.total_payable - loan.outstanding_balance) / loan.total_payable) *
+        100
       : 0;
 
   const riskStyle = RISK_STYLES[loan.risk_category] || RISK_STYLES.Performing;
@@ -32,12 +33,12 @@ export function LoanCard({ loan, RISK_STYLES, formatUGX, onPress }) {
               style={{ color: theme.gray600 }}
               className="font-bold text-sm"
             >
-              {loan.member_name.charAt(0)}
+              {loan.userName.charAt(0)}
             </Text>
           </View>
           <View>
             <Text style={{ color: theme.text }} className="font-bold text-sm">
-              {loan.member_name}
+              {loan.userName}
             </Text>
             <Text
               style={{ color: theme.gray500 }}
@@ -79,7 +80,7 @@ export function LoanCard({ loan, RISK_STYLES, formatUGX, onPress }) {
             Balance Due
           </Text>
           <Text style={{ color: theme.text }} className="text-base font-bold">
-            {formatUGX(loan.balance_due)}
+            {formatUGX(loan.outstanding_balance)}
           </Text>
         </View>
         <View className="items-end">
@@ -93,13 +94,13 @@ export function LoanCard({ loan, RISK_STYLES, formatUGX, onPress }) {
             style={{ color: theme.gray600 }}
             className="text-xs font-semibold"
           >
-            {formatUGX(loan.principal)}
+            {formatUGX(loan.principal_amount)}
           </Text>
         </View>
       </View>
 
       {/* Footer: Status & Arrears */}
-      <View className="flex-row justify-between items-center">
+      <View className="flex-row justify-between items-center mt-1">
         <View className="flex-row items-center">
           <View
             style={{
@@ -131,17 +132,6 @@ export function LoanCard({ loan, RISK_STYLES, formatUGX, onPress }) {
             On Track
           </Text>
         )}
-      </View>
-
-      {/* Visual Progress Bar at very bottom */}
-      <View
-        style={{ backgroundColor: theme.gray100 }}
-        className="h-1 rounded-full mt-3 overflow-hidden"
-      >
-        <View
-          style={{ width: `${progress}%`, backgroundColor: theme.indigo }}
-          className="h-full"
-        />
       </View>
     </Pressable>
   );

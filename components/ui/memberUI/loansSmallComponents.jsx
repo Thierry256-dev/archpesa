@@ -1,7 +1,16 @@
 import { useTheme } from "@/context/ThemeProvider";
 import { formatDateFull } from "@/utils/formatDateFull";
 import { Ionicons } from "@expo/vector-icons";
-import { Pressable, Text, View } from "react-native";
+import { useState } from "react";
+import {
+  FlatList,
+  Modal,
+  Pressable,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
+import { formatCurrency } from "../../../utils/formatCurrency";
 
 export function GuarantorStatusRow({ name, status, pledge }) {
   const { theme } = useTheme();
@@ -327,7 +336,7 @@ export function LoanStatusCard({ app }) {
         Requested Amount
       </Text>
       <Text style={{ color: theme.text }} className="text-lg font-black">
-        UGX {app.requested_amount}
+        {formatCurrency(app.requested_amount)}
       </Text>
 
       <Text style={{ color: theme.gray500 }} className="pt-1 text-xs italic">
@@ -336,3 +345,152 @@ export function LoanStatusCard({ app }) {
     </View>
   );
 }
+
+export function ApprovedLoanCard({ loan }) {
+  const { theme } = useTheme();
+  return (
+    <View
+      style={{
+        backgroundColor: theme.card,
+        borderColor: theme.border,
+      }}
+      className="rounded-3xl p-6 shadow-sm border mb-6"
+    >
+      <View className="flex-row justify-between items-center mb-4">
+        <View className="bg-emerald-50 px-3 py-1 rounded-full">
+          <Text className="text-emerald-600 font-bold text-[10px] uppercase">
+            Approved
+          </Text>
+        </View>
+        <Text style={{ color: theme.gray400 }} className="text-xs font-medium">
+          Approved: {formatDateFull(loan.approved_at)}
+        </Text>
+      </View>
+      <View className="flex-row justify-between">
+        <View>
+          <Text style={{ color: theme.gray500 }} className="text-xs font-bold">
+            Requested Amount
+          </Text>
+          <Text style={{ color: theme.text }} className="text-lg font-black">
+            {formatCurrency(loan.principal_amount)}
+          </Text>
+        </View>
+        <View>
+          <Text style={{ color: theme.gray500 }} className="text-xs font-bold">
+            Expected To Pay
+          </Text>
+          <Text style={{ color: theme.text }} className="text-lg font-black">
+            {formatCurrency(loan.total_payable)}
+          </Text>
+        </View>
+      </View>
+
+      <Text style={{ color: theme.gray500 }} className="pt-1 text-xs italic">
+        &quot;{loan.purpose}.&quot;
+      </Text>
+      <Text className="text-xs text-orange-500 text-center mt-2">
+        Awaiting Disbursement
+      </Text>
+    </View>
+  );
+}
+
+export const GuarantorReplacementModal = ({
+  visible,
+  onClose,
+  rejectedGuarantor,
+  onReplace,
+  theme,
+  useSearchMemberProfiles,
+}) => {
+  const [searchQuery, setSearchQuery] = useState("");
+  const { isSearching, searchResults } = useSearchMemberProfiles(searchQuery);
+
+  return (
+    <Modal visible={visible} animationType="fade" transparent>
+      <View className="flex-1 items-center justify-center bg-black/60">
+        <View
+          style={{ backgroundColor: theme.card }}
+          className="rounded-[32px] h-[60%] w-[90%] p-6 shadow-2xl"
+        >
+          {/* Header */}
+          <View className="flex-row justify-between items-center mb-6">
+            <View>
+              <Text
+                style={{ color: theme.text }}
+                className="text-xl font-black"
+              >
+                Replace Guarantor
+              </Text>
+              <Text style={{ color: theme.gray400 }} className="text-xs mt-1">
+                Replacing:{" "}
+                <Text className="font-bold">
+                  {rejectedGuarantor?.guarantor_full_name}
+                </Text>
+              </Text>
+            </View>
+            <Pressable
+              onPress={onClose}
+              style={{ backgroundColor: theme.gray100 }}
+              className="p-2 rounded-full"
+            >
+              <Ionicons name="close" size={20} color={theme.black} />
+            </Pressable>
+          </View>
+
+          {/* Search Bar */}
+          <View
+            style={{
+              backgroundColor: theme.gray50,
+              borderColor: theme.gray100,
+            }}
+            className="border rounded-xl px-4 py-3 flex-row items-center mb-4"
+          >
+            <Ionicons name="search" size={20} color={theme.gray400} />
+            <TextInput
+              onChangeText={setSearchQuery}
+              value={searchQuery}
+              placeholder="Search member name..."
+              style={{ color: theme.text }}
+              placeholderTextColor={theme.gray400}
+              className="flex-1 ml-3 font-medium"
+              autoFocus
+            />
+          </View>
+
+          {/* Results List */}
+          <FlatList
+            data={searchResults}
+            keyExtractor={(item) => item.membership_no}
+            ListHeaderComponent={
+              <Text
+                style={{ color: theme.gray400 }}
+                className="text-[10px] font-bold uppercase mb-2"
+              >
+                {isSearching ? "Searching..." : "Available Members"}
+              </Text>
+            }
+            renderItem={({ item }) => (
+              <ReplacementItem
+                name={`${item.first_name} ${item.last_name}`}
+                id={item.membership_no}
+                onSelect={() => onReplace(item)}
+              />
+            )}
+            ListEmptyComponent={
+              !isSearching &&
+              searchQuery.length > 2 && (
+                <Text
+                  style={{ color: theme.gray400 }}
+                  className="text-center text-xs mt-4"
+                >
+                  No members found.
+                </Text>
+              )
+            }
+          />
+        </View>
+      </View>
+    </Modal>
+  );
+};

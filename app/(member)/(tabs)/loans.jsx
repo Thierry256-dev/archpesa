@@ -3,592 +3,458 @@ import { useTheme } from "@/context/ThemeProvider";
 import { useMemberApplication } from "@/hooks/memberHooks/useMemberApplication";
 import { supabase } from "@/lib/supabase";
 import { Ionicons } from "@expo/vector-icons";
-import { useMemo, useState } from "react";
-import {
-  Modal,
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { useCallback, useMemo, useState } from "react";
+import { Alert, FlatList, Modal, Pressable, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+
+// --- Components & Hooks ---
 import LoanApplicationForm from "../../../components/forms/LoanApplicationForm";
 import {
-  ApproverRow,
+  ApprovedLoanCard,
+  GuarantorReplacementModal,
   GuarantorStatusRow,
   HistoryItem,
   LoanActionCard,
   LoanStatusCard,
-  ReplacementItem,
 } from "../../../components/ui/memberUI/loansSmallComponents";
 import NoFetchResult from "../../../components/ui/sharedUI/NoResult";
 import { useSearchMemberProfiles } from "../../../hooks/sharedHooks/useSearchMemberProfiles";
 import { useMemberAllInfo } from "../../../hooks/useMemberAllInfo";
+
+// --- Utils ---
+import { formatCurrency } from "../../../utils/formatCurrency";
 import { formatDateFull } from "../../../utils/formatDateFull";
 import { getNextDate } from "../../../utils/getNextDate";
 
-export default function Membeaoans() {
+export default function MemberLoans() {
   const { theme } = useTheme();
-  const [isLoanFormVisible, setIsLoanFormVisible] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [rejectedGuarantor, setRejectedGuarantor] = useState([]);
-  const [isReplaceModalVisible, setIsReplaceModalVisible] = useState(false);
-
   const { user } = useAuth();
+
+  const [isLoanFormVisible, setIsLoanFormVisible] = useState(false);
+  const [isReplaceModalVisible, setIsReplaceModalVisible] = useState(false);
+  const [rejectedGuarantor, setRejectedGuarantor] = useState(null);
+
   const { data: application } = useMemberApplication(user?.id);
-  const isApproved = application.status === "approved";
-
-  const { isSearching, searchResults } = useSearchMemberProfiles(searchQuery);
-
   const { loanApplications, loanGuarantors, loans = [] } = useMemberAllInfo();
 
-  const currentLoan = useMemo(() => {
-    if (!loans?.length) return null;
-
-    return (
+  const {
+    currentLoan,
+    approvedLoan,
+    pendingApps,
+    rejectedApps,
+    completedLoans,
+    loanProgress,
+    combinedHistory,
+  } = useMemo(() => {
+    const active =
       loans.find(
-        (l) =>
-          l.outstanding_balance > 0 &&
-          ["Approved", "Disbursed", "Restructured"].includes(l.status),
-      ) ?? null
-    );
-  }, [loans]);
+        (l) => l.outstanding_balance > 0 && l.status === "Disbursed",
+      ) || {};
 
-  const loanProgress = (
-    (currentLoan?.amount_paid / currentLoan?.total_payable) *
-    100
-  ).toFixed(2);
+    const progress = active.total_payable
+      ? ((active.amount_paid / active.total_payable) * 100).toFixed(2)
+      : "0";
 
-  const completedLoans = loans?.filter((l) => l.status === "Completed");
+    const completed = loans.filter((l) => l.status === "Completed");
+    const rejected = loanApplications.filter((a) => a.status === "rejected");
 
-  const pendingLoanApplications = loanApplications.filter(
-    (a) => a.status === "pending",
-  );
+    const history = [
+      ...completed.map((l) => ({ ...l, type: "completed" })),
+      ...rejected.map((l) => ({ ...l, type: "rejected" })),
+    ];
 
-  const rejectedApplications = loanApplications.filter(
-    (a) => a.status === "rejected",
-  );
+    return {
+      currentLoan: active,
+      approvedLoan: loans.find((l) => l.status === "Approved"),
+      pendingApps: loanApplications.filter((a) => a.status === "pending"),
+      rejectedApps: rejected,
+      completedLoans: completed,
+      loanProgress: progress,
+      combinedHistory: history,
+    };
+  }, [loans, loanApplications]);
 
-  const rejectedRequests = loanGuarantors?.filter(
-    (g) => g.status === "rejected",
-  );
+  const isApprovedMember = application?.status === "approved";
 
-  const filteredRequests = loanGuarantors?.filter(
-    (g) => g.status === "pending" || g.status === "accepted",
-  );
-
-  const handleReplaceGuarantor = async (
-    newMember = {},
-    loanId,
-    rejectedGuarantorId,
-  ) => {
+  // --- Handlers ---
+  const handleReplaceGuarantor = async (newMember) => {
     setIsReplaceModalVisible(false);
-
-    await supabase.rpc("replace_rejected_guarantor", {
-      p_loan_application_id: loanId,
-      p_rejected_guarantor_id: rejectedGuarantorId,
-      p_new_first_name: newMember.first_name,
-      p_new_last_name: newMember.last_name,
-    });
-
-    alert(`Replacement request sent to ${newMember.first_name}`);
+    try {
+      await supabase.rpc("replace_rejected_guarantor", {
+        p_loan_application_id: rejectedGuarantor?.loan_application_id,
+        p_rejected_guarantor_id: rejectedGuarantor?.guarantor_user_id,
+        p_new_first_name: newMember.first_name,
+        p_new_last_name: newMember.last_name,
+      });
+      Alert.alert("Success", `Request sent to ${newMember.first_name}`);
+    } catch (error) {
+      Alert.alert("Error", "Failed to replace guarantor.");
+    }
   };
+
+  const openReplaceModal = (guarantor) => {
+    setRejectedGuarantor(guarantor);
+    setIsReplaceModalVisible(true);
+  };
+
+  // --- Render Sections ---
+  const renderDebtSummary = () => (
+    <View
+      style={{ backgroundColor: theme.card }}
+      className="mx-6 mt-6 rounded-3xl p-6 shadow-xl shadow-black/10 mb-6"
+    >
+      {/* Balance Header */}
+      <View className="flex-row justify-between items-start mb-4">
+        <View>
+          <Text
+            style={{ color: theme.gray400 }}
+            className="text-xs font-bold uppercase"
+          >
+            Remaining Balance
+          </Text>
+          <Text
+            style={{ color: theme.text }}
+            className="text-3xl font-extrabold"
+          >
+            {formatCurrency(currentLoan.outstanding_balance || 0)}
+          </Text>
+        </View>
+        {currentLoan.interest_rate && (
+          <View className="bg-amber-50 px-2 py-1 rounded-lg">
+            <Text className="text-amber-700 text-[10px] font-bold">
+              {currentLoan.interest_rate * 100}% APR
+            </Text>
+          </View>
+        )}
+      </View>
+
+      {/* Progress Bar */}
+      <View className="mb-4">
+        <View className="flex-row justify-between mb-2">
+          <Text
+            style={{ color: theme.gray500 }}
+            className="text-xs font-medium"
+          >
+            Repayment Progress
+          </Text>
+          <Text style={{ color: theme.text }} className="text-xs font-bold">
+            {loanProgress}% Paid
+          </Text>
+        </View>
+        <View
+          style={{ backgroundColor: theme.gray100 }}
+          className="h-2.5 rounded-full overflow-hidden"
+        >
+          <View
+            style={{
+              backgroundColor: theme.secondary,
+              width: `${loanProgress}%`,
+            }}
+            className="h-full rounded-full"
+          />
+        </View>
+      </View>
+
+      {/* Footer Info */}
+      <View
+        style={{ borderColor: theme.gray50 }}
+        className="flex-row justify-between border-t pt-4"
+      >
+        <View>
+          <Text
+            style={{ color: theme.gray400 }}
+            className="text-[10px] uppercase"
+          >
+            Next Installment
+          </Text>
+          <Text style={{ color: theme.text }} className="font-bold">
+            {currentLoan.outstanding_balance
+              ? formatCurrency(
+                  currentLoan.outstanding_balance /
+                    (currentLoan.tenure_months || 1),
+                )
+              : "UGX 0"}
+          </Text>
+        </View>
+        <View className="items-end">
+          <Text
+            style={{ color: theme.gray400 }}
+            className="text-[10px] uppercase"
+          >
+            Due Date
+          </Text>
+          <Text style={{ color: theme.orange }} className="font-bold">
+            {currentLoan.disbursed_at
+              ? getNextDate(currentLoan.disbursed_at)
+              : "N/A"}
+          </Text>
+        </View>
+      </View>
+    </View>
+  );
+
+  const renderActiveSection = () => {
+    // 1. If Loan is Approved but not Disbursed
+    if (approvedLoan) {
+      return (
+        <View className="px-6 mb-8">
+          <Text
+            style={{ color: theme.text }}
+            className="text-lg font-bold mb-4"
+          >
+            Approved Loan
+          </Text>
+          <ApprovedLoanCard loan={approvedLoan} />
+        </View>
+      );
+    }
+
+    // 2. If Applications are Pending
+    if (pendingApps.length > 0) {
+      return (
+        <View className="px-6 mb-8">
+          <Text
+            style={{ color: theme.text }}
+            className="text-lg font-bold mb-4"
+          >
+            Pending Application
+          </Text>
+          {pendingApps.map((app, index) => {
+            const rejectedReqs = loanGuarantors?.filter(
+              (g) => g.status === "rejected",
+            );
+            const activeReqs = loanGuarantors?.filter(
+              (g) => g.status === "pending" || g.status === "accepted",
+            );
+
+            return (
+              <View key={index} className="mb-6">
+                <LoanStatusCard app={app} />
+
+                {/* Guarantor Tracking Section */}
+                <View
+                  className="mt-6 p-5 rounded-3xl border shadow-sm"
+                  style={{
+                    backgroundColor: theme.card,
+                    borderColor: theme.border,
+                  }}
+                >
+                  <Text
+                    style={{ color: theme.text }}
+                    className="font-bold mb-4"
+                  >
+                    Guarantor Pledges
+                  </Text>
+
+                  {activeReqs?.map((g, i) => (
+                    <GuarantorStatusRow
+                      key={i}
+                      name={g.guarantor_full_name}
+                      status={g.status}
+                      pledge={g.guaranteed_amount}
+                    />
+                  ))}
+
+                  {/* Rejected Guarantor Action */}
+                  {rejectedReqs?.map((r, i) => (
+                    <Pressable
+                      key={i}
+                      onPress={() => openReplaceModal(r)}
+                      className="mt-4 bg-red-50 p-4 rounded-xl flex-row items-center border border-red-100"
+                    >
+                      <Ionicons name="alert-circle" size={20} color="#dc2626" />
+                      <View className="ml-3 flex-1">
+                        <Text className="text-red-700 font-bold text-xs">
+                          {r.guarantor_full_name} Rejected
+                        </Text>
+                        <Text className="text-red-500 text-[10px]">
+                          Tap to replace this guarantor.
+                        </Text>
+                      </View>
+                      <Ionicons
+                        name="chevron-forward"
+                        size={16}
+                        color="#dc2626"
+                      />
+                    </Pressable>
+                  ))}
+                </View>
+              </View>
+            );
+          })}
+        </View>
+      );
+    }
+
+    // 3. Default: Empty State / CTA
+    return (
+      <View className="px-6 mb-8">
+        <View
+          style={{ backgroundColor: theme.card, borderColor: theme.border }}
+          className="rounded-3xl p-6 border items-center"
+        >
+          <View
+            style={{ backgroundColor: theme.gray100 }}
+            className="p-4 rounded-full mb-4"
+          >
+            <Ionicons
+              name="document-text-outline"
+              size={28}
+              color={theme.gray500}
+            />
+          </View>
+          <Text
+            style={{ color: theme.text }}
+            className="text-lg font-black text-center"
+          >
+            No Pending Applications
+          </Text>
+          <Text
+            style={{ color: theme.gray400 }}
+            className="text-xs text-center mt-2 mb-6 px-4"
+          >
+            Ready to grow? Apply for a new loan today.
+          </Text>
+          <Pressable
+            disabled={!isApprovedMember}
+            onPress={() => setIsLoanFormVisible(true)}
+            style={{
+              backgroundColor: isApprovedMember ? theme.primary : theme.gray300,
+            }}
+            className="px-8 py-3 rounded-full active:opacity-90"
+          >
+            <Text className="text-white font-bold text-xs">Apply for Loan</Text>
+          </Pressable>
+        </View>
+      </View>
+    );
+  };
+
+  // --- List Header (Combines Dashboard & Actions) ---
+  const ListHeader = useCallback(
+    () => (
+      <View>
+        {renderDebtSummary()}
+
+        {renderActiveSection()}
+
+        <View className="px-6 mb-8">
+          <Text
+            style={{ color: theme.text }}
+            className="text-lg font-bold mb-4"
+          >
+            Special Loan Types
+          </Text>
+          <View className="flex-row flex-wrap justify-between gap-3">
+            <LoanActionCard
+              title="Emergency"
+              icon="flash"
+              color="bg-amber-500"
+              desc="Instant 24h loan"
+            />
+            <LoanActionCard
+              title="Education"
+              icon="school"
+              color="bg-blue-600"
+              desc="Low interest fees"
+            />
+            <LoanActionCard
+              title="Business"
+              icon="briefcase"
+              color="bg-green-600"
+              desc="Grow capital"
+            />
+            <LoanActionCard
+              title="Development"
+              icon="home"
+              color="bg-purple-600"
+              desc="Long term"
+            />
+          </View>
+        </View>
+
+        {/* List Title */}
+        <View className="px-6 mb-4">
+          <Text style={{ color: theme.text }} className="text-lg font-bold">
+            Loan History
+          </Text>
+        </View>
+      </View>
+    ),
+    [currentLoan, approvedLoan, pendingApps, loanGuarantors, theme],
+  );
+
+  // --- List Item Renderer ---
+  const renderHistoryItem = ({ item }) => (
+    <View className="px-6 mb-2">
+      <HistoryItem
+        title={item.purpose}
+        amount={
+          item.type === "completed"
+            ? item.principal_amount
+            : item.requested_amount
+        }
+        status={item.status}
+        date={formatDateFull(
+          item.type === "completed" ? item.completed_at : item.reviewed_at,
+        )}
+        reason={item.rejection_reason}
+      />
+    </View>
+  );
 
   return (
     <SafeAreaView
       style={{ backgroundColor: theme.background }}
       className="relative flex-1"
     >
-      {/* BACKGROUND HEADER */}
+      {/* Absolute Background Header */}
       <View
-        style={{ backgroundColor: theme.primary }} // Replaced bg-arch-blue
-        className="absolute top-0 w-full h-64 rounded-b-[20px]"
+        style={{ backgroundColor: theme.primary }}
+        className="absolute top-0 w-full h-64 rounded-b-[32px]"
       />
 
-      {/* HEADER */}
+      {/* Page Title */}
       <View className="px-6 pt-4 pb-2 flex-row justify-center items-center">
         <Text style={{ color: theme.white }} className="text-lg font-bold">
           Loan Center
         </Text>
       </View>
 
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        {/* 1. THE DEBT SUMMARY CARD */}
-        <View
-          style={{ backgroundColor: theme.card }}
-          className="mx-6 mt-6 rounded-3xl p-6 shadow-xl shadow-black/10"
-        >
-          <View className="flex-row justify-between items-start mb-4">
-            <View>
-              <Text
-                style={{ color: theme.gray400 }}
-                className="text-xs font-bold uppercase"
-              >
-                Total Outstanding
-              </Text>
-              <Text
-                style={{ color: theme.text }}
-                className="text-3xl font-extrabold"
-              >
-                UGX{" "}
-                {Number(currentLoan.outstanding_balance).toLocaleString() || 0}
-              </Text>
-            </View>
-            <View className="bg-amber-50 px-2 py-1 rounded-lg">
-              <Text className="text-amber-700 text-[10px] font-bold">
-                {currentLoan.interest_rate * 100 || 0}% APR
-              </Text>
-            </View>
-          </View>
-
-          {/* Progress Bar for current loan */}
-          <View className="mb-4">
-            <View className="flex-row justify-between mb-2">
-              <Text
-                style={{ color: theme.gray500 }}
-                className="text-xs font-medium"
-              >
-                Repayment Progress
-              </Text>
-              <Text style={{ color: theme.text }} className="text-xs font-bold">
-                {loanProgress || 0}% Paid
-              </Text>
-            </View>
-            <View
-              style={{ backgroundColor: theme.gray100 }}
-              className="h-2.5 rounded-full overflow-hidden"
-            >
-              <View
-                style={{
-                  backgroundColor: theme.secondary,
-                  width: loanProgress,
-                }}
-                className="h-full rounded-full"
-              />
-            </View>
-          </View>
-
-          <View
-            style={{ borderColor: theme.gray50 }}
-            className="flex-row justify-between border-t pt-4"
-          >
-            <View>
-              <Text
-                style={{ color: theme.gray400 }}
-                className="text-[10px] uppercase"
-              >
-                Next Installment
-              </Text>
-              <Text style={{ color: theme.text }} className="font-bold">
-                UGX{" "}
-                {Math.floor(
-                  currentLoan.outstanding_balance / currentLoan.tenure_months,
-                ).toLocaleString() || 0}
-              </Text>
-            </View>
-            <View className="items-end">
-              <Text
-                style={{ color: theme.gray400 }}
-                className="text-[10px] uppercase"
-              >
-                Due Date
-              </Text>
-              <Text style={{ color: theme.orange }} className="font-bold">
-                {getNextDate(currentLoan.disbursed_at) || "Y/M/D"}
-              </Text>
-            </View>
-          </View>
-        </View>
-
-        <View
-          style={{ backgroundColor: theme.background }}
-          className="rounded-t-3xl mt-6"
-        >
-          <Text
-            style={{ color: theme.text }}
-            className="text-lg font-bold ml-6 mb-4"
-          >
-            Pending Applications
-          </Text>
-          {/* 3. LOAN STATUS */}
-          {pendingLoanApplications.length > 0 ? (
-            pendingLoanApplications.map((app, index) => (
-              <View
-                key={index}
-                className="px-6 mt-6 animate-in fade-in duration-500"
-              >
-                <LoanStatusCard app={app} />
-
-                {/* 4. GUARANTOR TRACKING */}
-                <View className="mb-6">
-                  <View className="flex-row justify-between items-center mb-4 px-1">
-                    <Text
-                      style={{ color: theme.text }}
-                      className="text-lg font-bold"
-                    >
-                      Guarantor Pledges
-                    </Text>
-                    <View className="bg-indigo-50 px-2 py-1 rounded-md">
-                      <Text className="text-indigo-600 font-bold text-[10px]">
-                        Step 1 of 3
-                      </Text>
-                    </View>
-                  </View>
-
-                  <View
-                    style={{
-                      backgroundColor: theme.card,
-                      borderColor: theme.border,
-                    }}
-                    className="rounded-3xl p-5 shadow-sm border"
-                  >
-                    {filteredRequests.length > 0 &&
-                      filteredRequests.map((gtr, index) => (
-                        <GuarantorStatusRow
-                          key={index}
-                          name={gtr.guarantor_full_name}
-                          status={gtr.status}
-                          pledge={gtr.guaranteed_amount}
-                        />
-                      ))}
-                  </View>
-
-                  {/* Conditional Alert if someone rejected */}
-                  {rejectedRequests.length > 0 &&
-                    rejectedRequests.map((r, index) => (
-                      <Pressable
-                        key={index}
-                        onPress={() => {
-                          setIsReplaceModalVisible(true);
-                          setRejectedGuarantor(r);
-                        }}
-                        className="mt-4 bg-red-50 p-4 rounded-3xl flex-row items-center border border-red-100 active:bg-red-100"
-                      >
-                        <View
-                          style={{ backgroundColor: theme.red }}
-                          className="p-2 rounded-full"
-                        >
-                          <Ionicons
-                            name="swap-horizontal"
-                            size={16}
-                            color={theme.white}
-                          />
-                        </View>
-                        <View className="ml-3 flex-1">
-                          <Text
-                            style={{ color: theme.red }}
-                            className="text-xs font-bold"
-                          >
-                            {r.guarantor_full_name} Rejected
-                          </Text>
-                          <Text className="text-red-600/70 text-[10px]">
-                            Tap to find a replacement.
-                          </Text>
-                        </View>
-                        <Ionicons
-                          name="chevron-forward"
-                          size={16}
-                          color={theme.red}
-                        />
-                      </Pressable>
-                    ))}
-                </View>
-                <View className="flex-row justify-between items-center mb-4 px-1">
-                  <Text
-                    style={{ color: theme.text }}
-                    className="text-lg font-bold"
-                  >
-                    Official Approvals
-                  </Text>
-                  <View className="bg-blue-50 px-2 py-1 rounded-md">
-                    <Text className="text-blue-600 font-bold text-[10px]">
-                      Step 2 of 3
-                    </Text>
-                  </View>
-                </View>
-                <View
-                  style={{
-                    backgroundColor: theme.card,
-                    borderColor: theme.border,
-                  }}
-                  className="rounded-3xl p-4 shadow-sm border"
-                >
-                  <ApproverRow
-                    name="President"
-                    person="Dr. David K."
-                    status="Pending"
-                    icon="ribbon"
-                  />
-                  <ApproverRow
-                    name="Treasurer"
-                    person="Sarah Namuli"
-                    status="Approved"
-                    icon="wallet"
-                  />
-                  <ApproverRow
-                    name="Credit Manager"
-                    person="Musa Johnson"
-                    status="Approved"
-                    icon="shield-checkmark"
-                    isLast
-                  />
-                </View>
-                <Text
-                  style={{ color: theme.gray400 }}
-                  className="text-[10px] mt-4 italic text-center px-6"
-                >
-                  *Approvals follow a hierarchy. Once the Credit Manager and
-                  Treasurer approve, the President gives final sign-off.
-                </Text>
-              </View>
-            ))
-          ) : (
-            <View className="px-6 mt-6 animate-in fade-in duration-500">
-              <View
-                style={{
-                  backgroundColor: theme.card,
-                  borderColor: theme.border,
-                }}
-                className="rounded-3xl p-6 shadow-sm border"
-              >
-                <View className="items-center py-6">
-                  <View
-                    style={{ backgroundColor: theme.gray100 }}
-                    className="p-4 rounded-full mb-4"
-                  >
-                    <Ionicons
-                      name="document-text-outline"
-                      size={28}
-                      color={theme.gray500}
-                    />
-                  </View>
-
-                  <Text
-                    style={{ color: theme.text }}
-                    className="text-lg font-black text-center"
-                  >
-                    No Pending Loan Applications
-                  </Text>
-
-                  <Text
-                    style={{ color: theme.gray400 }}
-                    className="text-xs text-center mt-2 px-6"
-                  >
-                    You don’t have any active loan requests at the moment. Apply
-                    for a loan and track approvals here.
-                  </Text>
-
-                  <Pressable
-                    disabled={!isApproved}
-                    onPress={() => setIsLoanFormVisible(true)}
-                    style={{ backgroundColor: theme.primary }}
-                    className="mt-6 px-6 py-3 rounded-full active:opacity-90"
-                  >
-                    <Text className="text-white font-bold text-xs">
-                      Apply for a Loan
-                    </Text>
-                  </Pressable>
-                </View>
-              </View>
-            </View>
-          )}
-
-          {/*Completed loans */}
-          <View className="px-6 mt-8">
+      {/* Main Content (FlatList) */}
+      <FlatList
+        data={combinedHistory}
+        keyExtractor={(item, index) => item.id || index.toString()}
+        renderItem={renderHistoryItem}
+        ListHeaderComponent={ListHeader}
+        ListEmptyComponent={
+          <View className="items-center py-10 px-6">
+            <NoFetchResult />
             <Text
               style={{ color: theme.text }}
-              className="text-lg font-bold mb-4"
+              className="text-xs text-center mt-2"
             >
-              Completed Loans
+              No history found. Your completed loans will appear here.
             </Text>
-            {completedLoans && completedLoans.length > 0 ? (
-              completedLoans.map((cl, index) => (
-                <HistoryItem
-                  title={cl.purpose}
-                  amount={cl.principal_amount}
-                  status={cl.status}
-                  date={formatDateFull(cl.completed_at)}
-                  key={index}
-                />
-              ))
-            ) : (
-              <View className="flex-col items-center py-4">
-                <NoFetchResult />
-                <Text className="text-xs" style={{ color: theme.text }}>
-                  You have not yet completed any loan!
-                </Text>
-              </View>
-            )}
           </View>
+        }
+        contentContainerStyle={{ paddingBottom: 100 }}
+        showsVerticalScrollIndicator={false}
+      />
 
-          {/*Rejected Loans */}
-          {rejectedApplications.length > 0 && (
-            <View className="px-6 mt-8">
-              <Text
-                style={{ color: theme.text }}
-                className="text-lg font-bold mb-4"
-              >
-                Rejected Loans
-              </Text>
-              {rejectedApplications.map((a, index) => (
-                <HistoryItem
-                  title={a.purpose}
-                  amount={a.requested_amount}
-                  status={a.status}
-                  date={formatDateFull(a.reviewed_at)}
-                  reason={a.rejection_reason}
-                  key={index}
-                />
-              ))}
-            </View>
-          )}
-          {/* 4. LOAN OFFERS / QUICK ACTIONS */}
-          <View className="px-6 mt-8 pb-20">
-            <Text
-              style={{ color: theme.text }}
-              className="text-lg font-bold mb-4"
-            >
-              Special Loan types
-            </Text>
-            <View className="flex-row flex-wrap justify-between gap-3">
-              <LoanActionCard
-                title="Emergency"
-                icon="flash"
-                color="bg-amber-500"
-                desc="Instant 24h loan"
-              />
-              <LoanActionCard
-                title="Education"
-                icon="school"
-                color="bg-blue-600"
-                desc="Low interest fees"
-              />
-              <LoanActionCard
-                title="Business"
-                icon="briefcase"
-                color="bg-green-600"
-                desc="Low interest fees"
-              />
-              <LoanActionCard
-                title="Development"
-                icon="home"
-                color="bg-purple-600"
-                desc="Low interest fees"
-              />
-            </View>
-          </View>
-        </View>
-      </ScrollView>
-      {/* FLOATING ACTION BUTTON */}
-      {pendingLoanApplications.length > 0 && (
-        <View className="absolute bottom-5 right-4 pt-2 pb-20">
-          <Pressable
-            onPress={() => setIsLoanFormVisible(true)}
-            style={{
-              backgroundColor: theme.blue,
-              shadowColor: theme.gray900,
-            }}
-            className="py-2 px-4 rounded-full flex- items-center justify-center shadow-lg"
-          >
-            <Ionicons name="add-circle-outline" size={24} color={theme.white} />
-            <Text style={{ color: theme.white }} className="text-xs font-bold">
-              Apply for loan
-            </Text>
-          </Pressable>
-        </View>
-      )}
+      {/* Modals */}
       <Modal visible={isLoanFormVisible} transparent animationType="slide">
         <LoanApplicationForm onClose={() => setIsLoanFormVisible(false)} />
       </Modal>
-      {/* REPLACEMENT SEARCH MODAL */}
-      <Modal visible={isReplaceModalVisible} animationType="fade" transparent>
-        <View className="flex-1 items-center justify-center bg-black/50">
-          <View
-            style={{ backgroundColor: theme.card }}
-            className="rounded-[40px] h-[50%] w-[90%] p-8"
-          >
-            {/* Modal Header */}
-            <View className="flex-row justify-between items-center mb-6">
-              <View>
-                <Text
-                  style={{ color: theme.text }}
-                  className="text-xl font-black"
-                >
-                  Replace {rejectedGuarantor.guarantor_full_name}
-                </Text>
-                <Text style={{ color: theme.gray400 }} className="text-xs">
-                  Search for a new member to pledge
-                </Text>
-              </View>
-              <Pressable
-                onPress={() => setIsReplaceModalVisible(false)}
-                style={{ backgroundColor: theme.gray100 }}
-                className="p-2 rounded-full"
-              >
-                <Ionicons name="close" size={20} color={theme.black} />
-              </Pressable>
-            </View>
 
-            {/* Search Input */}
-            <View
-              style={{
-                backgroundColor: theme.gray50,
-                borderColor: theme.gray100,
-              }}
-              className="border rounded-2xl px-4 py-4 flex-row items-center mb-6"
-            >
-              <Ionicons name="search" size={20} color={theme.gray400} />
-              <TextInput
-                onChangeText={(text) => setSearchQuery(text)}
-                value={searchQuery}
-                placeholder="Enter Name"
-                style={{ color: theme.text }}
-                placeholderTextColor={theme.gray400}
-                className="flex-1 ml-3 font-bold"
-                autoFocus
-              />
-            </View>
-
-            <ScrollView showsVerticalScrollIndicator={false}>
-              <Text
-                style={{ color: theme.gray400 }}
-                className="text-[10px] font-bold uppercase mb-4 ml-1"
-              >
-                Search Results
-              </Text>
-              {isSearching ? (
-                <>
-                  <Text
-                    style={{ color: theme.text }}
-                    className="text-xs text-center py-4 mb-4"
-                  >
-                    Searching..
-                  </Text>
-                </>
-              ) : (
-                searchResults.map((result, index) => (
-                  <ReplacementItem
-                    key={index}
-                    name={`${result.first_name} ${result.last_name}`}
-                    id={result.membership_no}
-                    onSelect={() =>
-                      handleReplaceGuarantor(
-                        {
-                          first_name: result.first_name,
-                          last_name: result.last_name,
-                        },
-                        rejectedGuarantor?.loan_application_id,
-                        rejectedGuarantor?.guarantor_user_id,
-                      )
-                    }
-                  />
-                ))
-              )}
-            </ScrollView>
-          </View>
-        </View>
-      </Modal>
+      <GuarantorReplacementModal
+        visible={isReplaceModalVisible}
+        onClose={() => setIsReplaceModalVisible(false)}
+        rejectedGuarantor={rejectedGuarantor}
+        onReplace={handleReplaceGuarantor}
+        theme={theme}
+        useSearchMemberProfiles={useSearchMemberProfiles}
+      />
     </SafeAreaView>
   );
 }

@@ -12,6 +12,8 @@ export function filterMemberTransactions(
   return transactions.filter((tx) => {
     const txDate = new Date(tx.created_at);
 
+    const matchesStatus = tx.status === "Completed";
+
     const matchesRange =
       !isFilterActive ||
       (txDate >= new Date(range.start).setHours(0, 0, 0, 0) &&
@@ -32,7 +34,7 @@ export function filterMemberTransactions(
       tx.id.toLowerCase().includes(normalizedSearch) ||
       (tx.notes && tx.notes.toLowerCase().includes(normalizedSearch));
 
-    return matchesType && matchesSearch && matchesRange;
+    return matchesStatus && matchesType && matchesSearch && matchesRange;
   });
 }
 

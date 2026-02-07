@@ -1,6 +1,10 @@
 import { useMemo } from "react";
-import { compileMemberProfiles } from "../services/adminServices/dataCompilers";
+import {
+  attachUserInfoToLoan,
+  compileMemberProfiles,
+} from "../services/adminServices/dataCompilers";
 import { useAdminLoanForms } from "./adminHooks/useAdminLoanApplyForms";
+import { useAdminLoansFetch } from "./adminHooks/useAdminLoansFetch";
 import { useAdminMemberAccounts } from "./adminHooks/useAdminMemberAccounts";
 import { useAdminMemberLoans } from "./adminHooks/useAdminMemberLoans";
 import { useAdminMemberProfiles } from "./adminHooks/useAdminMemberProfiles";
@@ -14,17 +18,22 @@ export default function useAdminAllInfo() {
   const { data: allAccounts } = useAdminMemberAccounts();
   const { data: allLoans } = useAdminMemberLoans();
   const { data: transactions } = useAdminTransactions();
+  const { data: loansData } = useAdminLoansFetch();
 
-  const members = useMemo(() => {
+  const { members, loans } = useMemo(() => {
     if (!allProfiles?.length) return [];
 
-    return compileMemberProfiles(allProfiles, allAccounts, allLoans);
-  }, [allProfiles, allAccounts, allLoans]);
+    return {
+      members: compileMemberProfiles(allProfiles, allAccounts, allLoans),
+      loans: attachUserInfoToLoan(allProfiles, loansData),
+    };
+  }, [allProfiles, allAccounts, allLoans, loansData]);
 
   return {
     registrationForms,
     loanForms,
     members,
     transactions,
+    loans,
   };
 }

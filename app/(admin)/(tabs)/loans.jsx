@@ -1,6 +1,9 @@
+import { supabase } from "@/lib/supabase";
 import { Ionicons } from "@expo/vector-icons";
 import { useMemo, useState } from "react";
 import {
+  ActivityIndicator,
+  Alert,
   FlatList,
   Pressable,
   ScrollView,
@@ -13,14 +16,12 @@ import {
   ExportButtons,
   LoanCard,
 } from "../../../components/ui/adminUI/adminLoansSubComponents";
-import { MOCK_LOANS } from "../../../constants/data"; // Keeping your data source
 import useAdminAllInfo from "../../../hooks/useAdminAllInfo";
 import { computeSaccoTotals } from "../../../services/adminServices/financeCalculations";
 import { formatCurrency } from "../../../utils/formatCurrency";
 import { generateLoansExcelReport } from "../../../utils/reports/generateLoansExcel";
 import { generateLoansPdfReport } from "../../../utils/reports/generateLoansPdf";
 
-// Refined Professional Color Palette
 const RISK_STYLES = {
   Performing: {
     bg: "bg-emerald-100",
@@ -44,8 +45,9 @@ export default function Loans() {
   const [showRiskFilters, setShowRiskFilters] = useState(false);
   const [selectedLoan, setSelectedLoan] = useState(null);
   const [actionType, setActionType] = useState(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
-  const { members } = useAdminAllInfo();
+  const { members, loans } = useAdminAllInfo();
 
   const totals = useMemo(() => {
     return computeSaccoTotals(members);
@@ -56,18 +58,47 @@ export default function Loans() {
 
   /* ----------------Filter LOGIC---------------- */
   const filteredLoans = useMemo(() => {
-    return MOCK_LOANS.filter((loan) => {
+    return loans.filter((loan) => {
       const matchesStatus =
         statusFilter === "All" || loan.status === statusFilter;
       const matchesRisk =
         riskFilter === "All" || loan.risk_category === riskFilter;
       const matchesSearch =
-        loan.member_name.toLowerCase().includes(search.toLowerCase()) ||
+        loan.userName.toLowerCase().includes(search.toLowerCase()) ||
         loan.membership_no.toLowerCase().includes(search.toLowerCase());
 
       return matchesStatus && matchesRisk && matchesSearch;
     });
-  }, [statusFilter, riskFilter, search]);
+  }, [statusFilter, riskFilter, search, loans]);
+
+  const handleDisbursement = async () => {
+    if (!selectedLoan?.id) return;
+
+    try {
+      setIsProcessing(true);
+
+      const { error } = await supabase.rpc("disburse_loan", {
+        p_loan_id: selectedLoan.id,
+      });
+
+      if (error) throw error;
+
+      Alert.alert("Success", "Loan funds have been disbursed successfully.");
+
+      setActionType(null);
+      setSelectedLoan(null);
+    } catch (error) {
+      console.error("Disbursement Error:", error);
+
+      Alert.alert(
+        "Disbursement Failed",
+        error.message ||
+          "An unexpected error occurred while transferring funds.",
+      );
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-[#F1F5F9]">
@@ -113,7 +144,7 @@ export default function Loans() {
               <View className="flex-row justify-between items-start mb-4">
                 <View>
                   <Text className="text-slate-400 text-[10px] uppercase font-bold tracking-wider mb-1">
-                    Total Outstanding
+                    Total Remaining Balance
                   </Text>
                   <Text className="text-3xl font-bold text-white tracking-tight">
                     {formatCurrency(totals.totalOutstandingLoans)}
@@ -146,10 +177,8 @@ export default function Loans() {
 
               <View className="mt-4 pt-3 border-t border-slate-800 flex-row gap-4">
                 <View className="flex-row items-center">
-                  <Ionicons name="warning" size={14} color="#f59e0b" />
-                  <Text className="text-slate-300 text-xs ml-1.5">
-                    <Text className="font-bold text-white">{""}</Text> In
-                    Arrears
+                  <Text className="text-slate-300 text-xs ">
+                    Total Principal: {formatCurrency(totals.totalPrincipal)}
                   </Text>
                 </View>
               </View>
@@ -162,7 +191,7 @@ export default function Loans() {
             {/* 3. HORIZONTAL TABS (Status) */}
             <View className="mb-4">
               <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                {["All", "Pending", "Disbursed", "Closed"].map((status) => (
+                {["All", "Approved", "Disbursed", "Closed"].map((status) => (
                   <Pressable
                     key={status}
                     onPress={() => setStatusFilter(status)}
@@ -267,7 +296,7 @@ export default function Loans() {
             {/* Loan Summary */}
             <View className="bg-slate-50 p-4 rounded-xl border border-slate-200 mb-4">
               <Text className="font-bold text-slate-800">
-                {selectedLoan.member_name}
+                {selectedLoan.userName}
               </Text>
               <Text className="text-xs text-slate-500 mb-2">
                 {selectedLoan.membership_no}
@@ -275,23 +304,12 @@ export default function Loans() {
               <Text className="text-sm text-slate-700">
                 Principal:{" "}
                 <Text className="font-bold">
-                  {formatCurrency(selectedLoan.principal)}
+                  {formatCurrency(selectedLoan.principal_amount)}
                 </Text>
               </Text>
             </View>
 
             {/* ACTIONS */}
-            {selectedLoan.status === "Pending" && (
-              <Pressable
-                onPress={() => setActionType("approve")}
-                className="bg-emerald-600 py-4 rounded-xl mb-3"
-              >
-                <Text className="text-white text-center font-bold">
-                  Approve Loan
-                </Text>
-              </Pressable>
-            )}
-
             {selectedLoan.status === "Approved" && (
               <Pressable
                 onPress={() => setActionType("disburse")}
@@ -330,17 +348,26 @@ export default function Loans() {
             </Text>
 
             <Pressable
-              onPress={() => {
-                // TODO: Implement Supabase transaction to update loan status
-                // This will handle both approval and disbursement actions
-                // setActionType(null);
-                // setSelectedLoan(null);
-              }}
-              className="bg-arch-blue py-4 rounded-xl mb-3 opacity-60"
+              onPress={handleDisbursement}
+              disabled={isProcessing}
+              className={`py-4 rounded-xl mb-3 flex-row justify-center items-center ${
+                isProcessing
+                  ? "bg-blue-400 opacity-80"
+                  : "bg-arch-blue active:bg-blue-800"
+              }`}
             >
-              <Text className="text-white text-center font-bold">
-                Yes, Proceed
-              </Text>
+              {isProcessing ? (
+                <>
+                  <ActivityIndicator size="small" color="#ffffff" />
+                  <Text className="text-white font-bold ml-2">
+                    Processing...
+                  </Text>
+                </>
+              ) : (
+                <Text className="text-white text-center font-bold">
+                  Yes, Proceed
+                </Text>
+              )}
             </Pressable>
 
             <Pressable onPress={() => setActionType(null)}>
