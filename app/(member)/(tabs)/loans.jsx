@@ -170,8 +170,7 @@ export default function MemberLoans() {
           <Text style={{ color: theme.text }} className="font-bold">
             {currentLoan.outstanding_balance
               ? formatCurrency(
-                  currentLoan.outstanding_balance /
-                    (currentLoan.tenure_months || 1),
+                  currentLoan.total_payable / (currentLoan.tenure_months || 1),
                 )
               : "UGX 0"}
           </Text>
@@ -317,7 +316,15 @@ export default function MemberLoans() {
           </Text>
           <Pressable
             disabled={!isApprovedMember}
-            onPress={() => setIsLoanFormVisible(true)}
+            onPress={() => {
+              if (currentLoan) {
+                alert(
+                  "You cannot apply for another loan until you complete the current loan.",
+                );
+              } else {
+                setIsLoanFormVisible(true);
+              }
+            }}
             style={{
               backgroundColor: isApprovedMember ? theme.primary : theme.gray300,
             }}

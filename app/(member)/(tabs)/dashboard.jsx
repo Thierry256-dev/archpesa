@@ -4,13 +4,14 @@ import { useMemberApplication } from "@/hooks/memberHooks/useMemberApplication";
 import { useUnreadNotificationCount } from "@/hooks/sharedHooks/useUnreadNotificationCount";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { useMemo, useState } from "react";
-import { Image, Modal, Pressable, ScrollView, Text, View } from "react-native";
+import { useCallback, useMemo, useState } from "react";
+import { FlatList, Image, Modal, Pressable, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import ServiceCard from "../../../components/cards/ServiceCard";
 import LoanApplicationForm from "../../../components/forms/LoanApplicationForm";
 import TransactionItem from "../../../components/ui/memberUI/TransactionItem";
 import { useMemberAllInfo } from "../../../hooks/useMemberAllInfo";
+import { formatCurrency } from "../../../utils/formatCurrency";
 
 export default function MemberDashboard() {
   const { theme, mode } = useTheme();
@@ -61,85 +62,30 @@ export default function MemberDashboard() {
 
   const statusUI = statusConfig[applicationStatus];
 
-  const activeLoanObj = loans?.find((l) => l.status === "Approved") || {};
+  const activeLoanObj = loans?.find((l) => l.status === "Disbursed") || {};
 
-  const dashboardData = {
-    name: profile?.first_name || user.full_name || "Member",
-    totalBalance:
-      balances.Savings + balances.Shares + balances.Fixed_Deposit || 0,
-    lockedSavings: balances?.Fixed_Deposit || 0,
-    activeLoan: activeLoanObj?.outstanding_balance || 0,
-    loanLimit: balances.Savings + balances.Savings / 2 || 0,
-    currentLoan: activeLoanObj?.outstanding_balance || 0,
-    progress:
-      (activeLoanObj?.outstanding_balance /
-        (balances.Savings + balances.Savings / 2)) *
-        100 || 0,
-  };
+  const dashboardData = useMemo(() => {
+    const activeLoanObj = loans?.find((l) => l.status === "Disbursed") || {};
+    const savings = balances.Savings || 0;
+    const shares = balances.Shares || 0;
+    const fixed = balances.Fixed_Deposit || 0;
+    const loanBalance = activeLoanObj.outstanding_balance || 0;
+    const limit = savings + savings / 2;
 
-  return (
-    <View style={{ backgroundColor: theme.background }} className="flex-1">
-      {/* 1. HEADER BACKGROUND */}
-      <View className="relative w-full h-80 rounded-b-[20px] overflow-hidden z-0">
-        <Image
-          source={require("../../../assets/images/welcome.png")}
-          className="w-full h-full object-cover"
-        />
-        <View className="absolute inset-0 bg-black/40" />
-      </View>
+    return {
+      name: profile?.first_name || user.full_name || "Member",
+      totalBalance: savings + shares + fixed,
+      lockedSavings: fixed,
+      activeLoan: loanBalance,
+      loanLimit: limit,
+      progress: limit > 0 ? (loanBalance / limit) * 100 : 0,
+    };
+  }, [balances, loans, profile, user]);
 
-      {/* 2. FOREGROUND CONTENT */}
-      <SafeAreaView className="absolute top-0 w-full">
-        <View className="px-6 pt-4">
-          <View className="flex-row items-center justify-between mb-8">
-            <Pressable
-              onPress={() => router.push("/utilityPages/profile")}
-              className="flex-row items-center"
-            >
-              <View className="h-12 w-12 bg-white/20 rounded-full items-center justify-center border-2 border-white/30 mr-3 backdrop-blur-md">
-                <Ionicons name="person" size={24} color="#FFF" />
-              </View>
-              <View>
-                <Text className="text-gray-300 text-xs font-bold uppercase">
-                  Welcome Back
-                </Text>
-                <Text className="text-white text-xl font-bold">
-                  {dashboardData.name}
-                </Text>
-              </View>
-            </Pressable>
-
-            <Pressable
-              onPress={() => router.push("/utilityPages/notifications")}
-              className="bg-white/20 p-2.5 rounded-full relative backdrop-blur-md border border-white/10"
-            >
-              {unreadCount > 0 && (
-                <View className="absolute -top-1 -right-1 bg-red-500 rounded-full px-1.5">
-                  <Text className="text-white text-[10px] font-bold">
-                    {unreadCount}
-                  </Text>
-                </View>
-              )}
-              <Ionicons name="notifications-outline" size={24} color="#FFF" />
-            </Pressable>
-          </View>
-
-          <View className="px-2">
-            <Text className="text-white/80 font-medium text-base mb-1">
-              Your Financial Overview
-            </Text>
-            <Text className="text-white font-black text-3xl shadow-sm">
-              Dashboard
-            </Text>
-          </View>
-        </View>
-      </SafeAreaView>
-
-      <ScrollView
-        className="flex-1 -mt-20"
-        showsVerticalScrollIndicator={false}
-      >
-        {/* 3. PORTFOLIO CARD */}
+  const renderHeader = () => {
+    return (
+      <View>
+        {/* PORTFOLIO CARD */}
         <View className="mb-6 z-10 mx-6">
           <View
             style={{
@@ -170,7 +116,7 @@ export default function MemberDashboard() {
                 className="text-center text-[34px] font-extrabold tracking-tight"
               >
                 {showBalance
-                  ? "UGX " + dashboardData.totalBalance.toLocaleString()
+                  ? formatCurrency(dashboardData.totalBalance)
                   : "••••••••"}
               </Text>
             </View>
@@ -206,7 +152,7 @@ export default function MemberDashboard() {
                     className="font-semibold text-sm"
                   >
                     {showBalance
-                      ? "UGX " + dashboardData.lockedSavings.toLocaleString()
+                      ? formatCurrency(dashboardData.lockedSavings)
                       : "•••"}
                   </Text>
                 </View>
@@ -230,7 +176,7 @@ export default function MemberDashboard() {
                     className="font-semibold text-sm"
                   >
                     {showBalance
-                      ? "UGX " + dashboardData.activeLoan.toLocaleString()
+                      ? formatCurrency(dashboardData.activeLoan)
                       : "•••"}
                   </Text>
                 </View>
@@ -363,7 +309,7 @@ export default function MemberDashboard() {
                 style={{ color: theme.emerald }}
                 className="font-bold text-sm"
               >
-                UGX {dashboardData.loanLimit.toLocaleString() || 0}
+                {formatCurrency(dashboardData.loanLimit)}
               </Text>
             </View>
             <View
@@ -401,11 +347,10 @@ export default function MemberDashboard() {
             <Text className="text-white font-bold text-xs">Apply</Text>
           </Pressable>
         </View>
-
         {/* RECENT TRANSACTIONS */}
         <View
           style={{ backgroundColor: theme.card }}
-          className="mb-20 rounded-3xl p-5 shadow-sm mx-6"
+          className="rounded-t-3xl p-5 shadow-sm mx-6"
         >
           {/* HEADER */}
           <View className="flex-row justify-between items-center mb-6">
@@ -429,62 +374,126 @@ export default function MemberDashboard() {
               </Pressable>
             )}
           </View>
-
-          {/* TRANSACTION LIST */}
-          {transactions?.length > 0 ? (
-            <View>
-              {displayedTransactions?.map((item, index) => (
-                <TransactionItem key={item.id || index} item={item} />
-              ))}
-
-              {isExpanded && transactions?.length > PREVIEW_LIMIT && (
-                <Pressable onPress={toggleExpand} className="items-center pt-4">
-                  <View
-                    style={{ backgroundColor: theme.gray100 }}
-                    className="h-1 w-10 rounded-full mb-1"
-                  />
-                  <Text
-                    style={{ color: theme.gray400 }}
-                    className="text-[10px] uppercase font-bold tracking-widest"
-                  >
-                    End of transactions
-                  </Text>
-                </Pressable>
-              )}
-            </View>
-          ) : (
-            /* EMPTY STATE */
-            <View className="items-center py-10">
-              <View
-                style={{ backgroundColor: theme.gray50 }}
-                className="p-4 rounded-full mb-4"
-              >
-                <Ionicons
-                  name="receipt-outline"
-                  size={32}
-                  color={theme.gray300}
-                />
-              </View>
-              <Text
-                style={{ color: theme.text }}
-                className="font-bold text-base"
-              >
-                No transactions yet
-              </Text>
-              <Text
-                style={{ color: theme.gray400 }}
-                className="text-xs text-center px-10 mt-1"
-              >
-                Your financial activity will appear here once you start saving.
-              </Text>
-            </View>
-          )}
         </View>
+      </View>
+    );
+  };
+
+  const renderTransactionItem = useCallback(
+    ({ item }) => (
+      <View style={{ backgroundColor: theme.card }} className="mx-6 px-5 py-0">
+        <TransactionItem item={item} />
+      </View>
+    ),
+    [theme],
+  );
+
+  const renderEmptyComponent = () => (
+    <View
+      style={{ backgroundColor: theme.card }}
+      className="mx-6 p-5 rounded-b-3xl items-center pb-10"
+    >
+      <View
+        style={{ backgroundColor: theme.gray50 }}
+        className="p-4 rounded-full mb-4"
+      >
+        <Ionicons name="receipt-outline" size={32} color={theme.gray300} />
+      </View>
+      <Text style={{ color: theme.text }} className="font-bold text-base">
+        No transactions yet
+      </Text>
+      <Text
+        style={{ color: theme.gray400 }}
+        className="text-xs text-center px-10 mt-1"
+      >
+        Your financial activity will appear here once you start saving.
+      </Text>
+    </View>
+  );
+
+  const renderFooter = () =>
+    transactions?.length > 0 && (
+      <View
+        style={{ backgroundColor: theme.card }}
+        className="mx-6 h-6 rounded-b-3xl mb-20"
+      />
+    );
+
+  return (
+    <View style={{ backgroundColor: theme.background }} className="flex-1">
+      {/* 1. HEADER BACKGROUND */}
+      <View className="relative w-full h-80 rounded-b-[20px] overflow-hidden z-0">
+        <Image
+          source={require("../../../assets/images/welcome.png")}
+          className="w-full h-full object-cover"
+        />
+        <View className="absolute inset-0 bg-black/40" />
+      </View>
+
+      {/* 2. FOREGROUND CONTENT */}
+      <SafeAreaView className="absolute top-0 w-full">
+        <View className="px-6 pt-4">
+          <View className="flex-row items-center justify-between mb-8">
+            <Pressable
+              onPress={() => router.push("/utilityPages/profile")}
+              className="flex-row items-center"
+            >
+              <View className="h-12 w-12 bg-white/20 rounded-full items-center justify-center border-2 border-white/30 mr-3 backdrop-blur-md">
+                <Ionicons name="person" size={24} color="#FFF" />
+              </View>
+              <View>
+                <Text className="text-gray-300 text-xs font-bold uppercase">
+                  Welcome Back
+                </Text>
+                <Text className="text-white text-xl font-bold">
+                  {dashboardData.name}
+                </Text>
+              </View>
+            </Pressable>
+
+            <Pressable
+              onPress={() => router.push("/utilityPages/notifications")}
+              className="bg-white/20 p-2.5 rounded-full relative backdrop-blur-md border border-white/10"
+            >
+              {unreadCount > 0 && (
+                <View className="absolute -top-1 -right-1 bg-red-500 rounded-full px-1.5">
+                  <Text className="text-white text-[10px] font-bold">
+                    {unreadCount}
+                  </Text>
+                </View>
+              )}
+              <Ionicons name="notifications-outline" size={24} color="#FFF" />
+            </Pressable>
+          </View>
+
+          <View className="px-2">
+            <Text className="text-white/80 font-medium text-base mb-1">
+              Your Financial Overview
+            </Text>
+            <Text className="text-white font-black text-3xl shadow-sm">
+              Dashboard
+            </Text>
+          </View>
+        </View>
+      </SafeAreaView>
+
+      <View className="flex-1 -mt-20">
+        <FlatList
+          data={displayedTransactions}
+          keyExtractor={(item) =>
+            item.id || item.created_at || Math.random().toString()
+          }
+          renderItem={renderTransactionItem}
+          ListHeaderComponent={renderHeader}
+          ListEmptyComponent={renderEmptyComponent}
+          ListFooterComponent={renderFooter}
+          showsVerticalScrollIndicator={false}
+        />
 
         <Modal visible={isLoanFormVisible} transparent animationType="slide">
           <LoanApplicationForm onClose={() => setIsLoanFormVisible(false)} />
         </Modal>
-      </ScrollView>
+      </View>
     </View>
   );
 }
