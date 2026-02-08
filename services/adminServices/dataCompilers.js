@@ -68,3 +68,28 @@ export function attachUserInfoToLoan(profiles = [], loans = []) {
     };
   });
 }
+
+export function attachUserInfoToTxReq(profiles = [], txReqs = []) {
+  if (!profiles.length || !txReqs.length) return txReqs;
+
+  const userMap = new Map();
+
+  profiles.forEach((user) => {
+    if (!user.auth_user_id) return;
+
+    userMap.set(user.auth_user_id, {
+      userName: `${user.first_name ?? ""} ${user.last_name ?? ""}`.trim(),
+      membership_no: user.membership_no ?? null,
+    });
+  });
+
+  return txReqs.map((tx) => {
+    const userInfo = userMap.get(tx.user_id);
+
+    return {
+      ...tx,
+      userName: userInfo?.userName ?? "Unknown Member",
+      membership_no: userInfo?.membership_no ?? "N/A",
+    };
+  });
+}
