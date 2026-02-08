@@ -37,6 +37,16 @@ export default function MemberTabsLayout() {
       />
 
       <Tabs.Screen
+        name="transact"
+        options={{
+          title: "Transact",
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="repeat" size={20} color={color} />
+          ),
+        }}
+      />
+
+      <Tabs.Screen
         name="savings"
         options={{
           title: "Savings",

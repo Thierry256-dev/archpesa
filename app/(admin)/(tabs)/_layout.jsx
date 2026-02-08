@@ -44,6 +44,16 @@ export default function AdminTabsLayout() {
       />
 
       <Tabs.Screen
+        name="requests"
+        options={{
+          title: "Requests",
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="receipt" size={20} color={color} />
+          ),
+        }}
+      />
+
+      <Tabs.Screen
         name="ledger"
         options={{
           title: "Ledger",
