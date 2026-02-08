@@ -26,7 +26,7 @@ export const directionMap = {
 };
 
 export const PAYMENT_METHODS = [
-  { id: "MTN_Momo", label: "MTN MoMo" },
+  { id: "MTN_MoMo", label: "MTN MoMo" },
   { id: "Airtel_Money", label: "Airtel Money" },
   { id: "Bank_Transfer", label: "Bank Transfer" },
   { id: "Cash", label: "Cash at Office" },

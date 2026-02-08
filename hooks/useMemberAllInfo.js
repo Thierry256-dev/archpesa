@@ -9,6 +9,7 @@ import { useMemberAccounts } from "./memberHooks/useMemberAccounts";
 import { useMemberLoanFetch } from "./memberHooks/useMemberLoanFetch";
 import { useMemberProfile } from "./memberHooks/useMemberProfile";
 import { useMemberTransactions } from "./memberHooks/useMemberTransactions";
+import { useTransactionRequests } from "./memberHooks/useTransactionRequests";
 
 export function useMemberAllInfo() {
   const { user } = useAuth();
@@ -20,6 +21,9 @@ export function useMemberAllInfo() {
 
   const accountsQuery = useMemberAccounts(authId, { enabled: !!authId });
   const transactionsQuery = useMemberTransactions(authId, {
+    enabled: !!authId,
+  });
+  const transactionReqQuery = useTransactionRequests(authId, {
     enabled: !!authId,
   });
   const loanApplicationQuery = useLoanApplication(authId, {
@@ -41,6 +45,7 @@ export function useMemberAllInfo() {
       profile: profileQuery.data ?? null,
       accounts: accountsQuery.data ?? [],
       transactions: transactionsQuery.data ?? [],
+      transactionReq: transactionReqQuery.data ?? [],
       pendingLoanApplication: loanApplicationQuery.data ?? null,
       loanGuarantors: guarantorsQuery.data ?? [],
       guarantorRequests: guarantorRequestQuery.data ?? [],
@@ -67,6 +72,7 @@ export function useMemberAllInfo() {
     profileQuery,
     accountsQuery,
     transactionsQuery,
+    transactionReqQuery,
     loanApplicationQuery,
     guarantorsQuery,
     guarantorRequestQuery,
@@ -78,7 +84,6 @@ export function useMemberAllInfo() {
       Savings: 0,
       Shares: 0,
       Fixed_Deposit: 0,
-      Loan: 0,
     };
 
     resolvedData.accounts.forEach((acc) => {
@@ -90,8 +95,10 @@ export function useMemberAllInfo() {
 
   return {
     profile: resolvedData.profile,
+    accounts: resolvedData.accounts,
     balances,
     transactions: resolvedData.transactions,
+    transactionRequests: resolvedData.transactionReq,
     loanApplications: resolvedData.pendingLoanApplication,
     loanGuarantors: resolvedData.loanGuarantors,
     guarantorRequests: resolvedData.guarantorRequests,
