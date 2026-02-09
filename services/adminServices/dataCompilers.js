@@ -7,7 +7,7 @@ export function compileMemberProfiles(allProfiles, allAccounts, allLoans) {
       allLoans?.find(
         (loan) =>
           loan.user_id === user.id &&
-          loan.status === "Approved" &&
+          loan.status === "Disbursed" &&
           loan.status !== "Completed",
       ) ?? null;
 

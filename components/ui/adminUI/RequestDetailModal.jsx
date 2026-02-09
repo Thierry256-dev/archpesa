@@ -1,284 +1,385 @@
+import { useTheme } from "@/context/ThemeProvider";
 import { Ionicons } from "@expo/vector-icons";
+import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Image,
   Modal,
+  Platform,
   Pressable,
   ScrollView,
+  StatusBar,
   Text,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { getTransactionProofUrl } from "../../../services/member/getTransactionProofUrl";
 import { formatCurrency } from "../../../utils/formatCurrency";
 import { formatDateFull } from "../../../utils/formatDateFull";
+import { ConfirmationModal } from "./ConfirmationModal";
 
 export const RequestDetailModal = ({
   selectedRequest,
   setSelectedRequest,
-  theme,
   isProcessing,
   handleAction,
   getMethodIcon,
 }) => {
+  const { theme, mode } = useTheme();
+  const insets = useSafeAreaInsets();
+  const [proofUrl, setProofUrl] = useState(null);
+  const [loadingProof, setLoadingProof] = useState(false);
+  const [confirmApprove, setConfirmApprove] = useState(false);
+  const [confirmReject, setConfirmReject] = useState(false);
+
+  // --- LOGIC REMAINS UNCHANGED ---
+  useEffect(() => {
+    let mounted = true;
+
+    async function loadProof() {
+      if (!req?.proof_url) return;
+      try {
+        setLoadingProof(true);
+        const url = await getTransactionProofUrl(req.proof_url);
+        if (mounted) setProofUrl(url);
+      } catch (err) {
+        console.error("Failed to load proof:", err);
+        setProofUrl(null);
+      } finally {
+        setLoadingProof(false);
+      }
+    }
+
+    loadProof();
+    return () => {
+      mounted = false;
+    };
+  }, [req?.proof_url]);
+
   if (!selectedRequest) return null;
 
   const req = selectedRequest;
   const isCredit = req.direction === "Credit";
-
   const cleanText = (text) => text?.replace(/_/g, " ") || "N/A";
 
-  const proofUrl = req.proof_url ? getTransactionProofUrl(req.proof_url) : null;
-
+  // --- RENDER ---
   return (
     <Modal
       animationType="slide"
       transparent={false}
       visible={!!selectedRequest}
       onRequestClose={() => setSelectedRequest(null)}
+      presentationStyle="pageSheet"
     >
-      <SafeAreaView
-        style={{ backgroundColor: theme.surface }}
-        className="flex-1 relative"
-      >
-        {/* 1. MODAL HEADER */}
-        <View className="px-6 py-4 flex-row items-center justify-between border-b border-gray-100 bg-white z-10">
+      <View style={{ flex: 1, backgroundColor: theme.surface }}>
+        <StatusBar
+          barStyle={mode === "dark" ? "light-content" : "dark-content"}
+          backgroundColor="transparent"
+          translucent
+        />
+
+        {/* 2. HEADER */}
+        <View
+          style={{
+            paddingTop: Platform.OS === "android" ? insets.top + 10 : 20,
+          }}
+          className="px-6 pb-4 bg-transparent flex-row items-center justify-between z-10"
+        >
           <Pressable
             onPress={() => setSelectedRequest(null)}
-            className="w-10 h-10 items-center justify-center rounded-full bg-slate-50 border border-slate-100"
+            style={({ pressed }) => ({
+              backgroundColor: theme.card,
+              transform: [{ scale: pressed ? 0.9 : 1 }],
+            })}
+            className="w-10 h-10 items-center justify-center rounded-full shadow-sm"
           >
-            <Ionicons name="arrow-back" size={20} color={theme.gray900} />
+            <Ionicons name="close" size={20} color={theme.text} />
           </Pressable>
-          <Text className="font-bold text-lg text-slate-800">
-            Transaction Details
+
+          <Text
+            style={{ color: theme.gray500 }}
+            className="font-bold text-xs uppercase tracking-widest"
+          >
+            Transaction Request Details
           </Text>
+
           <View className="w-10" />
         </View>
 
         <ScrollView
           className="flex-1"
-          contentContainerStyle={{ padding: 24, paddingBottom: 140 }}
+          contentContainerStyle={{
+            paddingHorizontal: 24,
+            paddingBottom: 120 + insets.bottom,
+          }}
           showsVerticalScrollIndicator={false}
         >
-          {/* 2. MEMBER SUMMARY */}
+          {/* 3. HERO AMOUNT SECTION */}
+          <View className="items-center mt-2 mb-8">
+            <View
+              style={{
+                backgroundColor: isCredit
+                  ? theme.emerald + "15"
+                  : theme.rose + "15",
+              }}
+              className="px-4 py-1.5 rounded-full mb-4"
+            >
+              <Text
+                style={{ color: isCredit ? theme.emerald : theme.rose }}
+                className="text-[10px] font-black uppercase tracking-widest"
+              >
+                {req.direction} Request
+              </Text>
+            </View>
+
+            <Text
+              style={{ color: theme.text }}
+              className="text-5xl font-black tracking-tighter"
+            >
+              {formatCurrency(req.amount)}
+            </Text>
+          </View>
+
+          {/* 4. MEMBER INFO CARD */}
           <View
-            style={{ backgroundColor: theme.card }}
-            className="p-4 rounded-2xl border border-slate-100 shadow-sm mb-6 flex-row items-center"
+            style={{ backgroundColor: theme.card, borderColor: theme.border }}
+            className="p-4 rounded-[24px] border mb-6 flex-row items-center"
           >
-            <View className="w-12 h-12 rounded-full bg-slate-200 mr-3 items-center justify-center border border-slate-300">
-              <Text className="font-bold text-slate-600 text-xl">
+            <View
+              style={{ backgroundColor: theme.primary + "15" }}
+              className="w-12 h-12 rounded-full items-center justify-center mr-4"
+            >
+              <Text
+                style={{ color: theme.primary }}
+                className="font-bold text-lg"
+              >
                 {String(req.userName || "U").charAt(0)}
               </Text>
             </View>
-            <View className="flex-1">
-              <Text className="font-bold text-lg text-slate-900">
+            <View>
+              <Text
+                style={{ color: theme.text }}
+                className="font-bold text-base"
+              >
                 {req.userName || "Unknown Member"}
               </Text>
-              <View className="flex-row items-center mt-0.5">
-                <View className="bg-slate-100 px-2 py-0.5 rounded text-xs">
-                  <Text className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
-                    {req.membership_no || "NO ID"}
-                  </Text>
-                </View>
-              </View>
-            </View>
-          </View>
-
-          {/* 3. FINANCIAL SNAPSHOT CARD */}
-          <View className="items-center py-6 bg-white rounded-3xl border border-slate-100 shadow-sm mb-6 relative overflow-hidden">
-            {/* Background Decoration */}
-            <View
-              className={`absolute top-0 w-full h-2 ${isCredit ? "bg-emerald-500" : "bg-rose-500"}`}
-            />
-
-            <Text className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-2">
-              Transaction Amount
-            </Text>
-            <Text
-              style={{ color: isCredit ? theme.emerald : theme.rose }}
-              className="text-4xl font-black mb-1"
-            >
-              {isCredit ? "+" : "-"}
-              {formatCurrency(req.amount)}
-              <Text className="text-lg text-slate-400 font-medium"> UGX</Text>
-            </Text>
-            <View
-              className={`px-3 py-1 rounded-full mt-2 ${
-                req.status === "Pending" ? "bg-amber-50" : "bg-slate-50"
-              }`}
-            >
-              <Text
-                className={`text-xs font-bold uppercase ${
-                  req.status === "Pending" ? "text-amber-600" : "text-slate-500"
-                }`}
-              >
-                Status: {req.status}
+              <Text style={{ color: theme.gray500 }} className="text-xs mt-0.5">
+                ID: {req.membership_no || "N/A"}
               </Text>
             </View>
-          </View>
-
-          {/* 4. DETAILS GRID */}
-          <View className="flex-row flex-wrap justify-between gap-y-4 mb-6">
-            {/* Box A: Transaction Type */}
-            <View className="w-[48%] bg-white p-4 rounded-2xl border border-slate-100">
-              <Ionicons
-                name="swap-horizontal"
-                size={20}
-                color={theme.primary}
-                style={{ marginBottom: 8 }}
-              />
-              <Text className="text-slate-400 text-[10px] font-bold uppercase">
-                Type
-              </Text>
-              <Text className="text-slate-800 font-bold text-sm mt-0.5">
-                {cleanText(req.transaction_type)}
-              </Text>
-            </View>
-
-            {/* Box B: Payment Method */}
-            <View className="w-[48%] bg-white p-4 rounded-2xl border border-slate-100">
-              <Ionicons
-                name={getMethodIcon(req.payment_method)}
-                size={20}
-                color={theme.secondary}
-                style={{ marginBottom: 8 }}
-              />
-              <Text className="text-slate-400 text-[10px] font-bold uppercase">
-                Method
-              </Text>
-              <Text className="text-slate-800 font-bold text-sm mt-0.5">
-                {cleanText(req.payment_method)}
-              </Text>
-            </View>
-
-            {/* Box C: Date Time */}
-            <View className="w-[48%] bg-white p-4 rounded-2xl border border-slate-100">
-              <Ionicons
-                name="calendar-outline"
-                size={20}
-                color={theme.gray500}
-                style={{ marginBottom: 8 }}
-              />
-              <Text className="text-slate-400 text-[10px] font-bold uppercase">
-                Submitted
-              </Text>
-              <Text className="text-slate-800 font-bold text-xs mt-0.5 leading-4">
-                {req.created_at ? formatDateFull(req.created_at) : "N/A"}
-              </Text>
-            </View>
-
-            {/* Box D: Reference */}
-            <View className="w-[48%] bg-white p-4 rounded-2xl border border-slate-100">
-              <Ionicons
-                name="barcode-outline"
-                size={20}
-                color={theme.gray500}
-                style={{ marginBottom: 8 }}
-              />
-              <Text className="text-slate-400 text-[10px] font-bold uppercase">
-                Reference
-              </Text>
-              <Text
-                className="text-slate-800 font-bold text-xs mt-0.5 font-mono"
-                numberOfLines={1}
-              >
-                {req.external_reference ? req.external_reference : "Internal"}
-              </Text>
-            </View>
-          </View>
-
-          {/* 5. NOTES */}
-          {req.notes ? (
-            <View className="mb-6 bg-amber-50 p-4 rounded-xl border border-amber-100">
-              <Text className="text-amber-800 font-bold text-xs uppercase mb-1">
-                User Notes
-              </Text>
-              <Text className="text-amber-900 text-sm italic">{req.notes}</Text>
-            </View>
-          ) : null}
-
-          {/* 6. PROOF VIEWER */}
-          <View>
-            <View className="flex-row items-center justify-between mb-3">
-              <Text className="text-xs font-bold text-slate-500 uppercase ml-1">
-                Proof Verification
-              </Text>
-              {req.proof_url && (
-                <View className="bg-blue-50 px-2 py-1 rounded">
-                  <Text className="text-[10px] text-blue-600 font-bold">
-                    Image Attached
-                  </Text>
-                </View>
+            {/* Status Badge */}
+            <View className="ml-auto">
+              {req.status === "Pending" && (
+                <Ionicons name="time" size={20} color={theme.orange} />
               )}
             </View>
+          </View>
 
-            {proofUrl ? (
-              <View className="h-72 w-full bg-slate-100 rounded-2xl overflow-hidden border border-slate-200 relative shadow-inner">
+          {/* 5. DETAILS GRID */}
+          <Text
+            style={{ color: theme.gray400 }}
+            className="text-[10px] font-bold uppercase mb-3 ml-2 tracking-widest"
+          >
+            Metadata
+          </Text>
+          <View className="flex-row flex-wrap justify-between gap-y-3 mb-8">
+            <DetailBox
+              icon="swap-horizontal"
+              label="Type"
+              value={cleanText(req.transaction_type)}
+              theme={theme}
+            />
+            <DetailBox
+              icon={getMethodIcon(req.payment_method)}
+              label="Method"
+              value={cleanText(req.payment_method)}
+              theme={theme}
+            />
+            <DetailBox
+              icon="calendar-outline"
+              label="Date"
+              value={req.created_at ? formatDateFull(req.created_at) : "N/A"}
+              theme={theme}
+            />
+            <DetailBox
+              icon="barcode-outline"
+              label="Reference"
+              value={req.external_reference || "System Generated"}
+              theme={theme}
+            />
+          </View>
+
+          {/* 6. PROOF SECTION */}
+          {req.notes && (
+            <View
+              style={{ backgroundColor: theme.orange + "10" }}
+              className="p-4 rounded-2xl mb-6"
+            >
+              <Text
+                style={{ color: theme.orange }}
+                className="text-[10px] font-bold uppercase mb-1"
+              >
+                User Note
+              </Text>
+              <Text style={{ color: theme.text }} className="text-sm italic">
+                {req.notes}
+              </Text>
+            </View>
+          )}
+
+          <Text
+            style={{ color: theme.gray400 }}
+            className="text-[10px] font-bold uppercase mb-3 ml-2 tracking-widest"
+          >
+            Verification
+          </Text>
+          <View
+            style={{ backgroundColor: theme.card, borderColor: theme.border }}
+            className="rounded-[24px] border overflow-hidden min-h-[200px]"
+          >
+            {loadingProof ? (
+              <View className="h-48 items-center justify-center">
+                <ActivityIndicator color={theme.primary} />
+              </View>
+            ) : proofUrl ? (
+              <Pressable className="relative h-64 w-full bg-black/5">
                 <Image
                   source={{ uri: proofUrl }}
                   className="w-full h-full"
-                  resizeMode="contain"
+                  resizeMode="cover"
                 />
-                <View className="absolute bottom-0 w-full bg-black/50 p-3 flex-row items-center justify-center">
-                  <Ionicons name="expand" color="white" size={14} />
-                  <Text className="text-white text-xs font-bold ml-2">
-                    Tap to Zoom
+                <View className="absolute bottom-2 right-2 bg-black/50 px-3 py-1 rounded-full">
+                  <Text className="text-white text-[10px] font-bold">
+                    Proof of Payment
                   </Text>
                 </View>
-              </View>
+              </Pressable>
             ) : (
-              <View className="bg-slate-50 p-6 rounded-2xl flex-row items-center justify-center border border-dashed border-slate-300">
+              <View className="h-32 items-center justify-center opacity-50">
                 <Ionicons
-                  name="image-outline"
-                  size={30}
+                  name="document-text-outline"
+                  size={32}
                   color={theme.gray400}
                 />
-                <Text className="text-slate-400 text-sm ml-3 font-medium">
-                  No proof image provided
+                <Text
+                  style={{ color: theme.gray400 }}
+                  className="text-xs mt-2 font-medium"
+                >
+                  No proof attached
                 </Text>
               </View>
             )}
           </View>
         </ScrollView>
 
-        {/* 7. ACTION BAR (Sticky Bottom) */}
+        {/* 7. FLOATING ACTION BAR */}
         <View
-          className="absolute bottom-0 w-full bg-white px-6 pt-4 pb-8 border-t border-slate-100 shadow-2xl flex-row gap-4"
-          style={{ paddingBottom: 30 }}
+          className="absolute bottom-0 w-full px-6 pt-4 bg-white/90 border-t border-gray-100 flex-row gap-4 backdrop-blur-md"
+          style={{
+            paddingBottom: insets.bottom + 10,
+            backgroundColor: theme.surface,
+            borderColor: theme.border,
+          }}
         >
           <Pressable
-            onPress={() => handleAction("reject")}
+            onPress={() => setConfirmReject(true)}
             disabled={isProcessing}
-            className="flex-1 bg-rose-50 border border-rose-100 h-14 rounded-2xl items-center flex-row justify-center active:bg-rose-100"
+            style={{
+              backgroundColor: theme.rose + "15",
+            }}
+            className="flex-1 h-14 rounded-2xl items-center flex-row justify-center"
           >
-            <Ionicons
-              name="close-circle-outline"
-              size={22}
-              color={theme.rose}
-            />
-            <Text className="text-rose-600 font-bold ml-2 text-base">
+            <Text style={{ color: theme.rose }} className="font-bold text-base">
               Reject
             </Text>
           </Pressable>
 
           <Pressable
-            onPress={() => handleAction("approve")}
+            onPress={() => setConfirmApprove(true)}
             disabled={isProcessing}
-            className="flex-[2] bg-emerald-500 h-14 rounded-2xl items-center flex-row justify-center shadow-lg shadow-emerald-200 active:bg-emerald-600"
+            style={{
+              backgroundColor: theme.emerald,
+              shadowColor: theme.emerald,
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.3,
+              shadowRadius: 8,
+              elevation: 4,
+            }}
+            className="flex-[2] h-14 rounded-2xl items-center flex-row justify-center"
           >
             {isProcessing ? (
               <ActivityIndicator color="white" />
             ) : (
               <>
-                <Ionicons name="checkmark-circle" size={22} color="white" />
-                <Text className="text-white font-bold ml-2 text-lg">
+                <Text className="text-white font-bold text-lg mr-2">
                   Approve
                 </Text>
+                <Ionicons name="arrow-forward" size={18} color="white" />
               </>
             )}
           </Pressable>
         </View>
-      </SafeAreaView>
+
+        {/* MODALS RETAINED */}
+        <ConfirmationModal
+          visible={confirmApprove}
+          onClose={() => setConfirmApprove(false)}
+          isProcessing={isProcessing}
+          title="Approve Request"
+          message="This will officially record the transaction and update the member's account balance."
+          icon="checkmark-circle"
+          confirmText="Approve"
+          confirmColor={theme.emerald}
+          onConfirm={() => {
+            setConfirmApprove(false);
+            handleAction("approve");
+          }}
+        />
+
+        <ConfirmationModal
+          visible={confirmReject}
+          onClose={() => setConfirmReject(false)}
+          isProcessing={isProcessing}
+          title="Reject Request"
+          message="Are you sure? This action cannot be undone."
+          icon="close-circle"
+          confirmText="Reject Transaction"
+          confirmColor={theme.rose}
+          requireReason
+          onConfirm={(reason) => {
+            setConfirmReject(false);
+            handleAction("reject", reason);
+          }}
+        />
+      </View>
     </Modal>
   );
 };
+
+// --- HELPER COMPONENT FOR GRID ---
+const DetailBox = ({ icon, label, value, theme }) => (
+  <View
+    style={{ backgroundColor: theme.card, borderColor: theme.border }}
+    className="w-[48%] p-4 rounded-2xl border mb-1"
+  >
+    <Ionicons
+      name={icon}
+      size={20}
+      color={theme.gray400}
+      style={{ marginBottom: 12 }}
+    />
+    <Text
+      style={{ color: theme.gray400 }}
+      className="text-[10px] font-bold uppercase"
+    >
+      {label}
+    </Text>
+    <Text
+      style={{ color: theme.text }}
+      className="font-bold text-sm mt-1"
+      numberOfLines={1}
+    >
+      {value}
+    </Text>
+  </View>
+);

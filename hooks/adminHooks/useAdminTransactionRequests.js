@@ -13,6 +13,7 @@ export function useAdminTransactionRequests() {
       const { data, error } = await supabase
         .from("transaction_requests")
         .select("*")
+        .eq("status", "Pending")
         .order("created_at", { ascending: false });
 
       if (error) throw error;

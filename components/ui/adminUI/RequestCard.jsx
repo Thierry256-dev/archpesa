@@ -29,10 +29,10 @@ export const RequestCard = ({
         <Ionicons
           name={
             item.direction === "Credit"
-              ? "wallet"
+              ? "wallet-outline"
               : item.direction === "Debit"
-                ? "arrow-up-circle"
-                : "document-text"
+                ? "arrow-up-circle-outline"
+                : "document-text-outline"
           }
           size={22}
           color={getStatusColor(item.direction)}

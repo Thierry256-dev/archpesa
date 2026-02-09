@@ -109,7 +109,7 @@ export default function TransactionItem({ item }) {
             className="text-[13px] font-bold"
             numberOfLines={1}
           >
-            {item.notes}
+            {String(item.transaction_type).replace("_", " ") || item.notes}
           </Text>
 
           <View className="flex-row items-center justify-between mt-0.5">

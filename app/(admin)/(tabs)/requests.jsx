@@ -1,8 +1,8 @@
 import { useTheme } from "@/context/ThemeProvider";
+import { supabase } from "@/lib/supabase";
 import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useMemo, useState } from "react";
 import { FlatList, StatusBar, Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { RequestCard } from "../../../components/ui/adminUI/RequestCard";
 import { RequestDetailModal } from "../../../components/ui/adminUI/RequestDetailModal";
 import { RequestsHeader } from "../../../components/ui/adminUI/RequestsHeader";
@@ -14,8 +14,8 @@ export default function AdminRequestsPage() {
   const { txRequests } = useAdminAllInfo();
 
   // State
-  const [requests, setRequests] = useState(txRequests);
-  const [selectedRequest, setSelectedRequest] = useState(null); // Controls Modal
+  const [requests, setRequests] = useState([]);
+  const [selectedRequest, setSelectedRequest] = useState(null);
   const [filterType, setFilterType] = useState("All");
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -44,24 +44,42 @@ export default function AdminRequestsPage() {
 
   // --- ACTIONS ---
 
-  const handleAction = (action) => {
-    const requestId = selectedRequest?.id;
+  const handleAction = async (action, rejectionReason = null) => {
+    if (!selectedRequest) return;
 
+    const requestId = selectedRequest.id;
     setIsProcessing(true);
 
-    setTimeout(() => {
-      setIsProcessing(false);
-
-      setSelectedRequest(null);
-
-      if (requestId) {
-        setRequests((prev) => prev.filter((r) => r.id !== requestId));
-      }
-
+    try {
       if (action === "approve") {
-        console.log("Transaction Approved & Ledger Updated");
+        const { error } = await supabase.rpc("approve_transaction_request", {
+          p_request_id: requestId,
+        });
+
+        if (error) throw error;
       }
-    }, 1000);
+
+      if (action === "reject") {
+        if (!rejectionReason || rejectionReason.trim().length < 3) {
+          throw new Error("Rejection reason is required");
+        }
+
+        const { error } = await supabase.rpc("reject_transaction_request", {
+          p_request_id: requestId,
+          p_rejection_reason: rejectionReason.trim(),
+        });
+
+        if (error) throw error;
+      }
+
+      setRequests((prev) => prev.filter((r) => r.id !== requestId));
+      setSelectedRequest(null);
+    } catch (error) {
+      console.error(`Failed to ${action} transaction`, error);
+      alert(error.message || "Action failed. Please try again.");
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   useEffect(() => {
@@ -122,7 +140,7 @@ export default function AdminRequestsPage() {
   );
 
   return (
-    <SafeAreaView
+    <View
       style={{ backgroundColor: theme.surface }}
       className="flex-1"
       edges={["top"]}
@@ -148,6 +166,6 @@ export default function AdminRequestsPage() {
       />
 
       {renderDetailModal()}
-    </SafeAreaView>
+    </View>
   );
 }

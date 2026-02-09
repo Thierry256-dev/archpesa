@@ -6,7 +6,7 @@ import {
 import { useTheme } from "@/context/ThemeProvider";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -49,7 +49,7 @@ export default function TransactionForm({
   isSubmitting,
 }) {
   const { theme } = useTheme();
-  const { loans } = useMemberAllInfo();
+  const { loans, accounts } = useMemberAllInfo();
 
   // Form State
   const [targetAccount, setTargetAccount] = useState("Savings");
@@ -72,6 +72,19 @@ export default function TransactionForm({
 
   const transactionType = getFinalTransactionType(targetAccount, txType);
 
+  const savingsAccount =
+    accounts?.find((acc) => acc.account_type === "Savings") || {};
+
+  const availableAccounts =
+    txType === "withdraw"
+      ? ACCOUNTS.filter((acc) => acc.id === "Savings")
+      : ACCOUNTS;
+
+  const numericAmount = Number(amount.replace(/,/g, "")) || 0;
+
+  const exceedsBalance =
+    txType === "withdraw" && numericAmount > savingsAccount?.balance;
+
   if (!selectedAccount) {
     throw new Error("Invalid account selected");
   }
@@ -79,7 +92,11 @@ export default function TransactionForm({
   const requiresProof = txType !== "withdraw";
 
   const isSubmitDisabled =
-    !isDeclared || !amount || (requiresProof && !proofImage) || isSubmitting;
+    !isDeclared ||
+    !numericAmount ||
+    (requiresProof && !proofImage) ||
+    exceedsBalance ||
+    isSubmitting;
 
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
@@ -107,9 +124,11 @@ export default function TransactionForm({
   };
 
   const handleFormSubmit = () => {
+    if (exceedsBalance) return;
+
     onSubmit({
       targetAccount,
-      amount,
+      amount: numericAmount,
       transactionType,
       paymentMethod,
       proofImage,
@@ -117,6 +136,12 @@ export default function TransactionForm({
       isDeclared,
     });
   };
+
+  useEffect(() => {
+    if (txType === "withdraw") {
+      setTargetAccount("Savings");
+    }
+  }, [txType]);
 
   return (
     <View>
@@ -225,14 +250,15 @@ export default function TransactionForm({
               style={{ backgroundColor: theme.card }}
               className="rounded-2xl overflow-hidden border border-slate-100"
             >
-              {ACCOUNTS.map((acc, index) => {
+              {availableAccounts.map((acc, index) => {
                 const isActive = targetAccount === acc.id;
                 return (
                   <Pressable
                     key={acc.id}
                     onPress={() => setTargetAccount(acc.id)}
                     style={{
-                      borderBottomWidth: index !== ACCOUNTS.length - 1 ? 1 : 0,
+                      borderBottomWidth:
+                        index !== availableAccounts.length - 1 ? 1 : 0,
                       borderColor: theme.gray100,
                     }}
                     className="flex-row items-center p-4 bg-white"
@@ -244,14 +270,26 @@ export default function TransactionForm({
                       }}
                       className="w-5 h-5 rounded-full mr-3 items-center justify-center"
                     />
-                    <Text
-                      style={{
-                        color: isActive ? theme.gray900 : theme.gray500,
-                        fontWeight: isActive ? "700" : "400",
-                      }}
-                    >
-                      {acc.label}
-                    </Text>
+                    <View className="flex-1">
+                      <Text
+                        style={{
+                          color: isActive ? theme.gray900 : theme.gray500,
+                          fontWeight: isActive ? "700" : "400",
+                        }}
+                      >
+                        {acc.label}
+                      </Text>
+
+                      {txType === "withdraw" && acc.id === "Savings" && (
+                        <Text
+                          style={{ color: theme.gray400 }}
+                          className="text-[11px] mt-1"
+                        >
+                          Available balance:{" "}
+                          {formatCurrency(savingsAccount.balance)}
+                        </Text>
+                      )}
+                    </View>
                   </Pressable>
                 );
               })}
@@ -282,8 +320,14 @@ export default function TransactionForm({
             value={amount}
             onChangeText={(text) => {
               const clean = text.replace(/[^0-9]/g, "");
-              if (clean) setAmount(parseInt(clean).toLocaleString());
-              else setAmount("");
+              const numericValue = parseInt(clean || "0", 10);
+
+              if (numericValue <= 0) {
+                setAmount("");
+                return;
+              }
+
+              setAmount(numericValue.toLocaleString());
             }}
             placeholder="0"
             keyboardType="numeric"
@@ -295,6 +339,11 @@ export default function TransactionForm({
         {txType === "withdraw" && (
           <Text style={{ color: theme.gray400 }} className="text-xs mt-2 ml-1">
             Limit: UGX 2,000,000
+          </Text>
+        )}
+        {exceedsBalance && (
+          <Text style={{ color: theme.red }} className="text-xs mt-2 ml-1">
+            Withdrawal amount exceeds your available savings balance.
           </Text>
         )}
       </View>

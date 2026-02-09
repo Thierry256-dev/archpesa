@@ -9,7 +9,7 @@ export const RequestsHeader = ({
   return (
     <View
       style={{ backgroundColor: theme.primary }}
-      className="px-6 pt-6 pb-8 rounded-b-3xl shadow-lg z-10"
+      className="px-6 pt-16 pb-8 rounded-b-3xl shadow-lg z-10"
     >
       <View className="flex-row justify-between items-start mb-4">
         <View>

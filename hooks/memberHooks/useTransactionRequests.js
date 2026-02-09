@@ -20,6 +20,7 @@ export function useTransactionRequests(userId, options = {}) {
         .from("transaction_requests")
         .select("*")
         .eq("user_id", userId)
+        .eq("status", "Pending")
         .order("created_at", { ascending: false });
 
       if (error) throw error;
