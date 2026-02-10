@@ -6,7 +6,7 @@ export function buildTransactionPayload({
   formData,
   directionMap,
 }) {
-  const amount = Number(formData.amount.replace(/,/g, ""));
+  const amount = Number(formData.amount);
   if (amount <= 0) throw new Error("Invalid amount");
 
   const direction = directionMap[txType];
@@ -23,6 +23,7 @@ export function buildTransactionPayload({
       direction: "Credit",
       amount,
       payment_method: formData.paymentMethod,
+      external_reference: formData.external_reference,
       notes: formData.notes,
     };
   }
@@ -40,6 +41,7 @@ export function buildTransactionPayload({
     direction,
     amount,
     payment_method: formData.paymentMethod,
+    external_reference: formData.external_reference,
     notes: formData.notes,
   };
 }

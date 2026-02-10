@@ -32,29 +32,30 @@ export const RequestDetailModal = ({
   const [confirmApprove, setConfirmApprove] = useState(false);
   const [confirmReject, setConfirmReject] = useState(false);
 
-  // --- LOGIC REMAINS UNCHANGED ---
   useEffect(() => {
     let mounted = true;
 
     async function loadProof() {
-      if (!req?.proof_url) return;
+      if (!selectedRequest?.proof_url) return;
+
       try {
         setLoadingProof(true);
-        const url = await getTransactionProofUrl(req.proof_url);
+        const url = await getTransactionProofUrl(selectedRequest.proof_url);
         if (mounted) setProofUrl(url);
       } catch (err) {
         console.error("Failed to load proof:", err);
-        setProofUrl(null);
+        if (mounted) setProofUrl(null);
       } finally {
-        setLoadingProof(false);
+        if (mounted) setLoadingProof(false);
       }
     }
 
     loadProof();
+
     return () => {
       mounted = false;
     };
-  }, [req?.proof_url]);
+  }, [selectedRequest?.proof_url]);
 
   if (!selectedRequest) return null;
 

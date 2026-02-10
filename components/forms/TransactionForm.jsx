@@ -6,7 +6,7 @@ import {
 import { useTheme } from "@/context/ThemeProvider";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -19,6 +19,7 @@ import {
 import { useMemberAllInfo } from "../../hooks/useMemberAllInfo";
 import { formatCurrency } from "../../utils/formatCurrency";
 import { getNextDate } from "../../utils/getNextDate";
+import { runOnDeviceOCR } from "../../utils/runOnDeviceOCR";
 
 const getFinalTransactionType = (targetAccount, txType) => {
   if (txType === "repay") return "Loan_Repayment";
@@ -80,7 +81,7 @@ export default function TransactionForm({
       ? ACCOUNTS.filter((acc) => acc.id === "Savings")
       : ACCOUNTS;
 
-  const numericAmount = Number(amount.replace(/,/g, "")) || 0;
+  const numericAmount = Number(amount) || 0;
 
   const exceedsBalance =
     txType === "withdraw" && numericAmount > savingsAccount?.balance;
@@ -98,6 +99,30 @@ export default function TransactionForm({
     exceedsBalance ||
     isSubmitting;
 
+  const runOCR = async (uri) => {
+    if (!uri) return;
+
+    setIsOCRProcessing(true);
+
+    try {
+      const result = await runOnDeviceOCR(uri);
+
+      if (result?.external_reference) {
+        setOcrData({
+          external_reference: result.external_reference,
+          source: result.source,
+        });
+      } else {
+        setOcrData(null);
+      }
+    } catch (err) {
+      console.error("OCR error:", err);
+      setOcrData(null);
+    } finally {
+      setIsOCRProcessing(false);
+    }
+  };
+
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -106,21 +131,9 @@ export default function TransactionForm({
     });
 
     if (!result.canceled) {
-      setProofImage(result.assets[0].uri);
-      simulateOCR();
+      const uri = result.assets[0].uri;
+      setProofImage(uri);
     }
-  };
-
-  const simulateOCR = () => {
-    setIsOCRProcessing(true);
-    setTimeout(() => {
-      setOcrData({
-        amount: "50,000",
-        date: "06 Feb 2026",
-        ref: "MTN88299X",
-      });
-      setIsOCRProcessing(false);
-    }, 2000);
   };
 
   const handleFormSubmit = () => {
@@ -131,6 +144,7 @@ export default function TransactionForm({
       amount: numericAmount,
       transactionType,
       paymentMethod,
+      external_reference: ocrData.external_reference,
       proofImage,
       notes,
       isDeclared,
@@ -142,6 +156,15 @@ export default function TransactionForm({
       setTargetAccount("Savings");
     }
   }, [txType]);
+
+  const lastScannedRef = useRef(null);
+
+  useEffect(() => {
+    if (!proofImage || proofImage === lastScannedRef.current) return;
+
+    lastScannedRef.current = proofImage;
+    runOCR(proofImage);
+  }, [proofImage]);
 
   return (
     <View>
@@ -327,7 +350,7 @@ export default function TransactionForm({
                 return;
               }
 
-              setAmount(numericValue.toLocaleString());
+              setAmount(numericValue);
             }}
             placeholder="0"
             keyboardType="numeric"
@@ -458,67 +481,47 @@ export default function TransactionForm({
                 ocrData && (
                   <View
                     style={{
-                      backgroundColor: theme.emerald + "10",
-                      borderColor: theme.emerald,
+                      backgroundColor: theme.emerald + "08",
+                      borderColor: theme.emerald + "30",
                     }}
-                    className="p-4 rounded-xl border border-dashed mb-4"
+                    className="p-4 rounded-2xl border border-dashed mb-6 flex-row items-center justify-between"
                   >
-                    <View className="flex-row justify-between mb-2">
+                    <View className="flex-1 mr-4">
+                      <View className="flex-row items-center mb-1.5">
+                        <Ionicons
+                          name="scan-circle"
+                          size={14}
+                          color={theme.emerald}
+                        />
+                        <Text
+                          style={{ color: theme.emerald }}
+                          className="text-[10px] font-black uppercase ml-1.5"
+                        >
+                          DETECTED REFERENCE
+                        </Text>
+                      </View>
+
                       <Text
-                        style={{ color: theme.emerald }}
-                        className="font-bold text-xs uppercase"
+                        style={{ color: theme.text }}
+                        className="font-mono text-xl font-black tracking-tight"
+                        numberOfLines={1}
+                        adjustsFontSizeToFit
                       >
-                        Detected from receipt
+                        {ocrData.external_reference}
                       </Text>
-                      <Ionicons
-                        name="scan-outline"
-                        size={14}
-                        color={theme.emerald}
-                      />
-                    </View>
-                    <View className="flex-row justify-between">
-                      <View>
+
+                      <Text
+                        style={{ color: theme.gray400 }}
+                        className="text-[10px] mt-1.5 font-medium"
+                      >
+                        Extracted from{" "}
                         <Text
                           style={{ color: theme.gray500 }}
-                          className="text-[10px]"
-                        >
-                          AMOUNT
-                        </Text>
-                        <Text
-                          style={{ color: theme.gray900 }}
                           className="font-bold"
                         >
-                          {ocrData.amount}
+                          {ocrData.source}
                         </Text>
-                      </View>
-                      <View>
-                        <Text
-                          style={{ color: theme.gray500 }}
-                          className="text-[10px]"
-                        >
-                          DATE
-                        </Text>
-                        <Text
-                          style={{ color: theme.gray900 }}
-                          className="font-bold"
-                        >
-                          {ocrData.date}
-                        </Text>
-                      </View>
-                      <View>
-                        <Text
-                          style={{ color: theme.gray500 }}
-                          className="text-[10px]"
-                        >
-                          REF
-                        </Text>
-                        <Text
-                          style={{ color: theme.gray900 }}
-                          className="font-bold"
-                        >
-                          {ocrData.ref}
-                        </Text>
-                      </View>
+                      </Text>
                     </View>
                   </View>
                 )
