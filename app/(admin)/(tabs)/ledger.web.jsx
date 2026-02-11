@@ -95,7 +95,7 @@ export default function LedgerPage() {
             </Text>
           </View>
 
-          {/* Dropdown Container */}
+          {/* Dropdown Container - Web version without moti */}
           <View className="relative w-28" style={{ zIndex: 200 }}>
             <Pressable
               onPress={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -111,14 +111,9 @@ export default function LedgerPage() {
               />
             </Pressable>
 
+            {/* Simple conditional rendering instead of AnimatePresence/MotiView */}
             {isDropdownOpen && (
-              <View
-                from={{ opacity: 0, scale: 0.9, translateY: -10 }}
-                animate={{ opacity: 1, scale: 1, translateY: 0 }}
-                exit={{ opacity: 0, scale: 0.9, translateY: -10 }}
-                transition={{ type: "timing", duration: 200 }}
-                className="absolute top-11 right-0 left-0 bg-[#1e293b] rounded-lg shadow-xl overflow-hidden"
-              >
+              <View className="absolute top-11 right-0 left-0 bg-[#1e293b] rounded-lg shadow-xl overflow-hidden">
                 {accountTypes.map((item, index) => (
                   <Pressable
                     key={index}
@@ -220,68 +215,61 @@ export default function LedgerPage() {
         </TouchableOpacity>
       </View>
 
-      {/* --- EXPORT PANEL --- */}
-      <View>
-        {showExportOptions && (
-          <View
-            from={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            className="bg-white p-5 rounded-2xl border border-slate-100 mb-6 shadow-sm overflow-hidden"
-          >
-            <View className="flex-row justify-between items-center mb-4">
-              <Text className="font-bold text-slate-800">Date Range</Text>
-              {selectedPeriod && (
-                <Pressable onPress={handleResetRange}>
-                  <Text className="text-rose-500 text-[10px] font-bold uppercase">
-                    Reset
-                  </Text>
-                </Pressable>
-              )}
-            </View>
-
-            <View className="flex-row gap-2 mb-6">
-              {datePresets.map((preset) => (
-                <Pressable
-                  key={preset.value}
-                  onPress={() => applyDatePreset(preset.value)}
-                  className={`flex-1 py-2 rounded-lg border items-center justify-center ${
-                    selectedPeriod === preset.value
-                      ? "bg-slate-800 border-slate-800"
-                      : "bg-slate-50 border-slate-200 active:bg-slate-100"
-                  }`}
-                >
-                  <Text
-                    className={`text-xs font-bold ${selectedPeriod === preset.value ? "text-white" : "text-slate-600"}`}
-                  >
-                    {preset.label}
-                  </Text>
-                </Pressable>
-              ))}
-            </View>
-
-            <View className="flex-row justify-around pt-4 border-t border-slate-50">
-              <ActionButton
-                icon="document-text"
-                label="PDF Report"
-                color="red"
-                onPress={() =>
-                  requestAnimationFrame(() =>
-                    generateSaccoLedger(enrichedTransactions),
-                  )
-                }
-              />
-              <View className="h-8 w-px bg-slate-100" />
-              <ActionButton
-                icon="grid"
-                label="Excel Sheet"
-                color="green"
-                onPress={() => generateSaccoExcel(enrichedTransactions)}
-              />
-            </View>
+      {/* --- EXPORT PANEL --- Web version without moti */}
+      {showExportOptions && (
+        <View className="bg-white p-5 rounded-2xl border border-slate-100 mb-6 shadow-sm overflow-hidden">
+          <View className="flex-row justify-between items-center mb-4">
+            <Text className="font-bold text-slate-800">Date Range</Text>
+            {selectedPeriod && (
+              <Pressable onPress={handleResetRange}>
+                <Text className="text-rose-500 text-[10px] font-bold uppercase">
+                  Reset
+                </Text>
+              </Pressable>
+            )}
           </View>
-        )}
-      </View>
+
+          <View className="flex-row gap-2 mb-6">
+            {datePresets.map((preset) => (
+              <Pressable
+                key={preset.value}
+                onPress={() => applyDatePreset(preset.value)}
+                className={`flex-1 py-2 rounded-lg border items-center justify-center ${
+                  selectedPeriod === preset.value
+                    ? "bg-slate-800 border-slate-800"
+                    : "bg-slate-50 border-slate-200 active:bg-slate-100"
+                }`}
+              >
+                <Text
+                  className={`text-xs font-bold ${selectedPeriod === preset.value ? "text-white" : "text-slate-600"}`}
+                >
+                  {preset.label}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+
+          <View className="flex-row justify-around pt-4 border-t border-slate-50">
+            <ActionButton
+              icon="document-text"
+              label="PDF Report"
+              color="red"
+              onPress={() =>
+                requestAnimationFrame(() =>
+                  generateSaccoLedger(enrichedTransactions),
+                )
+              }
+            />
+            <View className="h-8 w-px bg-slate-100" />
+            <ActionButton
+              icon="grid"
+              label="Excel Sheet"
+              color="green"
+              onPress={() => generateSaccoExcel(enrichedTransactions)}
+            />
+          </View>
+        </View>
+      )}
 
       <View className="flex-row justify-between items-center">
         <Text className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-2 px-1">

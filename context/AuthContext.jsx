@@ -1,6 +1,6 @@
 import { queryClient } from "@/lib/queryClient";
+import { storage } from "@/lib/storage";
 import { supabase } from "@/lib/supabase";
-import * as SecureStore from "expo-secure-store";
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 
 const AuthContext = createContext(null);
@@ -14,7 +14,7 @@ export function AuthProvider({ children }) {
 
   const setRememberMe = async (value) => {
     try {
-      await SecureStore.setItemAsync("rememberMe", value ? "1" : "0");
+      await storage.setItem("rememberMe", value ? "1" : "0");
       setRememberMeState(value);
     } catch (error) {
       console.error("Failed to save rememberMe preference:", error);
@@ -32,7 +32,7 @@ export function AuthProvider({ children }) {
       setAppUser(null);
 
       await supabase.auth.signOut();
-      await SecureStore.deleteItemAsync("rememberMe");
+      await storage.removeItem("rememberMe");
     } catch (error) {
       console.error("Error during sign out:", error);
     }
@@ -49,67 +49,76 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     let isMounted = true;
-    let authSubscription = null;
 
     const initAuth = async () => {
       try {
-        const remember = await SecureStore.getItemAsync("rememberMe");
+        setLoading(true);
+
+        const remember = await storage.getItem("rememberMe");
         const shouldRemember = remember === "1";
         if (isMounted) setRememberMeState(shouldRemember);
 
         const { data } = await supabase.auth.getSession();
-        let sessionUser = data?.session?.user ?? null;
+        const sessionUser = data?.session?.user ?? null;
 
-        if (!shouldRemember) {
+        if (!shouldRemember && sessionUser) {
           await supabase.auth.signOut();
-          setUser(null);
-          setAppUser(null);
-          setLoading(false);
+          if (isMounted) {
+            setUser(null);
+            setAppUser(null);
+            setLoading(false);
+          }
           return;
         }
 
-        if (isMounted) setUser(sessionUser);
+        if (!isMounted) return;
+
+        setUser(sessionUser);
 
         if (sessionUser) {
           const context = await fetchUserContext();
-          if (isMounted) setAppUser(context);
+          if (!isMounted) return;
+
+          currentAuthIdRef.current = sessionUser.id;
+          setAppUser(context);
         }
 
-        const { data: subData } = supabase.auth.onAuthStateChange(
-          async (_event, session) => {
-            const nextUser = session?.user ?? null;
-
-            currentAuthIdRef.current = nextUser?.id ?? null;
-            setUser(nextUser);
-
-            if (!nextUser) {
-              setAppUser(null);
-              setLoading(false);
-              return;
-            }
-
-            const context = await fetchUserContext();
-
-            if (currentAuthIdRef.current !== nextUser.id) return;
-
-            setAppUser(context);
-            setLoading(false);
-          },
-        );
-
-        authSubscription = subData.subscription;
+        setLoading(false);
       } catch (error) {
         console.error("Auth init failed:", error);
-      } finally {
         if (isMounted) setLoading(false);
       }
     };
 
     initAuth();
 
+    const { data: subData } = supabase.auth.onAuthStateChange(
+      async (_event, session) => {
+        const nextUser = session?.user ?? null;
+
+        currentAuthIdRef.current = nextUser?.id ?? null;
+
+        setLoading(true);
+        setUser(nextUser);
+
+        if (!nextUser) {
+          setAppUser(null);
+          setLoading(false);
+          return;
+        }
+
+        const context = await fetchUserContext();
+
+        if (currentAuthIdRef.current !== nextUser.id) return;
+
+        setAppUser(context);
+        setLoading(false);
+      },
+    );
+
     return () => {
       isMounted = false;
-      authSubscription?.unsubscribe();
+      subData.subscription.unsubscribe();
     };
   }, []);
 

@@ -3,16 +3,14 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { useRef, useState } from "react";
 import {
-  Dimensions,
   FlatList,
   Image,
   Pressable,
   StatusBar,
   Text,
   View,
+  useWindowDimensions,
 } from "react-native";
-
-const { width, height } = Dimensions.get("window");
 
 const slides = [
   {
@@ -46,6 +44,8 @@ export default function OnboardingScreen() {
   const router = useRouter();
   const flatListRef = useRef(null);
   const [index, setIndex] = useState(0);
+
+  const { width, height } = useWindowDimensions();
 
   const isLast = index === slides.length - 1;
   const archWhite = "#ffffff";

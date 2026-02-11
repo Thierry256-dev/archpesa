@@ -18,6 +18,7 @@ export default function Login() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const { rememberMe, setRememberMe } = useAuth();
@@ -52,7 +53,6 @@ export default function Login() {
       behavior={Platform.OS === "ios" ? "padding" : "padding"}
       className="flex-1 bg-arch-blue justify-center relative"
     >
-      {/* Decorative Background Elements (Subtle Glows) */}
       <View className="absolute top-0 left-0 w-full h-1/2 rounded-b-[60px]" />
 
       <View className="px-6 z-10">
@@ -61,8 +61,11 @@ export default function Login() {
           <View className="rounded-3xl mb-4 shadow-lg">
             <Image
               source={require("../../assets/images/icon.png")}
-              className="w-20 h-20"
-              resizeMode="contain"
+              style={{
+                width: 140,
+                height: 140,
+              }}
+              resizeMode="cover"
             />
           </View>
           <Text className="text-4xl font-extrabold tracking-tight mb-1">
@@ -104,14 +107,28 @@ export default function Login() {
             </Text>
             <View className="flex-row items-center bg-gray-50 border border-gray-200 rounded-2xl px-4 h-14">
               <Ionicons name="lock-closed-outline" size={20} color="#64748B" />
+
               <TextInput
                 placeholder="Enter your password"
-                secureTextEntry
+                secureTextEntry={!isPasswordVisible}
                 value={password}
                 onChangeText={setPassword}
-                className="ml-3 flex-1 text-gray-900 font-medium text-base"
+                className="ml-3 flex-1 text-gray-900 font-medium text-base h-full"
                 placeholderTextColor="#94A3B8"
+                autoCapitalize="none"
               />
+
+              <Pressable
+                onPress={() => setIsPasswordVisible(!isPasswordVisible)}
+                className="p-2"
+                hitSlop={10}
+              >
+                <Ionicons
+                  name={isPasswordVisible ? "eye-off-outline" : "eye-outline"}
+                  size={20}
+                  color="#64748B"
+                />
+              </Pressable>
             </View>
           </View>
 

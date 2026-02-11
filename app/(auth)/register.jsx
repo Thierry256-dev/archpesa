@@ -95,8 +95,11 @@ export default function Register() {
           <View className="shadow-xl shadow-black/20 rounded-3xl mb-4 backdrop-blur-md">
             <Image
               source={require("../../assets/images/icon.png")}
-              className="w-20 h-20"
-              resizeMode="contain"
+              style={{
+                width: 140,
+                height: 140,
+              }}
+              resizeMode="cover"
             />
           </View>
           <Text className="text-4xl font-extrabold tracking-tight mb-2">
@@ -233,7 +236,7 @@ export default function Register() {
   );
 }
 
-/* Reusable Input - Enhanced Visuals */
+/* Input Sub Component*/
 function Input({
   icon,
   placeholder,
@@ -243,14 +246,17 @@ function Input({
   onChangeText,
   maxLength,
 }) {
+  const [passwordHidden, setPasswordHidden] = useState(true);
+
   return (
     <View className="flex-row items-center bg-gray-50 border border-gray-100 rounded-2xl px-4 h-14 mb-4 focus:border-brand-primary focus:bg-white transition-colors">
       <View className="w-8 items-center justify-center">
         <Ionicons name={icon} size={20} color="#6B7280" />
       </View>
+
       <TextInput
         placeholder={placeholder}
-        secureTextEntry={secure}
+        secureTextEntry={secure ? passwordHidden : false}
         keyboardType={keyboardType}
         value={value}
         onChangeText={(text) =>
@@ -263,6 +269,20 @@ function Input({
         placeholderTextColor="#9CA3AF"
         autoCapitalize="none"
       />
+
+      {secure && (
+        <Pressable
+          onPress={() => setPasswordHidden(!passwordHidden)}
+          hitSlop={12}
+          className="ml-2"
+        >
+          <Ionicons
+            name={passwordHidden ? "eye-outline" : "eye-off-outline"}
+            size={20}
+            color="#9CA3AF"
+          />
+        </Pressable>
+      )}
     </View>
   );
 }

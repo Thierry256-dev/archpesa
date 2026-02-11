@@ -1,3 +1,4 @@
+import { useTheme } from "@/context/ThemeProvider";
 import { supabase } from "@/lib/supabase";
 import { Ionicons } from "@expo/vector-icons";
 import { useRef, useState } from "react";
@@ -46,6 +47,8 @@ const LOAN_TYPES = [
 ];
 
 export default function LoanApplicationForm({ onClose }) {
+  const { theme } = useTheme();
+
   const [amount, setAmount] = useState("");
   const [purpose, setPurpose] = useState("");
   const [selectedType, setSelectedType] = useState(LOAN_TYPES[0].id);
@@ -140,8 +143,11 @@ export default function LoanApplicationForm({ onClose }) {
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "padding"}
-      className="flex-1 justify-end bg-black/60"
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      className="flex-1 justify-end"
+      style={{
+        backgroundColor: theme.surface,
+      }}
     >
       <Animated.View
         style={{

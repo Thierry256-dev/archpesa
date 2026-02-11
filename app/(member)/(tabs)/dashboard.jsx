@@ -425,7 +425,10 @@ export default function MemberDashboard() {
       <View className="relative w-full h-80 rounded-b-[20px] overflow-hidden z-0">
         <Image
           source={require("../../../assets/images/welcome.png")}
-          className="w-full h-full object-cover"
+          style={{
+            width: "100%",
+            height: "100%",
+          }}
         />
         <View className="absolute inset-0 bg-black/40" />
       </View>
@@ -470,9 +473,7 @@ export default function MemberDashboard() {
             <Text className="text-white/80 font-medium text-base mb-1">
               Your Financial Overview
             </Text>
-            <Text className="text-white font-black text-3xl shadow-sm">
-              Dashboard
-            </Text>
+            <Text className="text-white font-black text-3xl">Dashboard</Text>
           </View>
         </View>
       </SafeAreaView>

@@ -30,72 +30,119 @@ export default function MemberLoans() {
   const { theme } = useTheme();
   const { user } = useAuth();
 
+  const userId = user?.id ?? null;
+
   const [isLoanFormVisible, setIsLoanFormVisible] = useState(false);
   const [isReplaceModalVisible, setIsReplaceModalVisible] = useState(false);
   const [rejectedGuarantor, setRejectedGuarantor] = useState(null);
 
-  const { data: application } = useMemberApplication(user?.id);
-  const { loanApplications, loanGuarantors, loans = [] } = useMemberAllInfo();
+  const { data: application } = useMemberApplication(userId);
+
+  const {
+    loanApplications = [],
+    loanGuarantors = [],
+    loans = [],
+  } = useMemberAllInfo() ?? {};
+  const derived = useMemo(() => {
+    const safeLoans = Array.isArray(loans) ? loans : [];
+    const safeApplications = Array.isArray(loanApplications)
+      ? loanApplications
+      : [];
+
+    const activeLoan =
+      safeLoans.find(
+        (l) =>
+          l?.status === "Disbursed" && Number(l?.outstanding_balance ?? 0) > 0,
+      ) ?? null;
+
+    const approvedLoan =
+      safeLoans.find((l) => l?.status === "Approved") ?? null;
+
+    const pendingApps = safeApplications.filter((a) => a?.status === "pending");
+    const rejectedApps = safeApplications.filter(
+      (a) => a?.status === "rejected",
+    );
+
+    const completedLoans = safeLoans.filter((l) => l?.status === "Completed");
+
+    const loanProgress =
+      activeLoan && Number(activeLoan?.total_payable ?? 0) > 0
+        ? (
+            (Number(activeLoan?.amount_paid ?? 0) /
+              Number(activeLoan?.total_payable ?? 1)) *
+            100
+          ).toFixed(2)
+        : "0";
+    const combinedHistory = [
+      ...completedLoans.map((l) => ({ ...l, type: "completed" })),
+      ...rejectedApps.map((a) => ({ ...a, type: "rejected" })),
+    ].sort((a, b) => {
+      const dateA = new Date(a?.completed_at ?? a?.reviewed_at ?? 0).getTime();
+      const dateB = new Date(b?.completed_at ?? b?.reviewed_at ?? 0).getTime();
+      return dateB - dateA;
+    });
+
+    return {
+      currentLoan: activeLoan,
+      approvedLoan,
+      pendingApps,
+      rejectedApps,
+      completedLoans,
+      loanProgress,
+      combinedHistory,
+    };
+  }, [loans, loanApplications]);
 
   const {
     currentLoan,
     approvedLoan,
     pendingApps,
-    rejectedApps,
-    completedLoans,
     loanProgress,
     combinedHistory,
-  } = useMemo(() => {
-    const active =
-      loans.find(
-        (l) => l.outstanding_balance > 0 && l.status === "Disbursed",
-      ) || {};
-
-    const progress = active.total_payable
-      ? ((active.amount_paid / active.total_payable) * 100).toFixed(2)
-      : "0";
-
-    const completed = loans.filter((l) => l.status === "Completed");
-    const rejected = loanApplications.filter((a) => a.status === "rejected");
-
-    const history = [
-      ...completed.map((l) => ({ ...l, type: "completed" })),
-      ...rejected.map((l) => ({ ...l, type: "rejected" })),
-    ];
-
-    return {
-      currentLoan: active,
-      approvedLoan: loans.find((l) => l.status === "Approved"),
-      pendingApps: loanApplications.filter((a) => a.status === "pending"),
-      rejectedApps: rejected,
-      completedLoans: completed,
-      loanProgress: progress,
-      combinedHistory: history,
-    };
-  }, [loans, loanApplications]);
+  } = derived;
 
   const isApprovedMember = application?.status === "approved";
 
   // --- Handlers ---
-  const handleReplaceGuarantor = async (newMember) => {
-    setIsReplaceModalVisible(false);
-    try {
-      await supabase.rpc("replace_rejected_guarantor", {
-        p_loan_application_id: rejectedGuarantor?.loan_application_id,
-        p_rejected_guarantor_id: rejectedGuarantor?.guarantor_user_id,
-        p_new_first_name: newMember.first_name,
-        p_new_last_name: newMember.last_name,
-      });
-      Alert.alert("Success", `Request sent to ${newMember.first_name}`);
-    } catch (error) {
-      Alert.alert("Error", "Failed to replace guarantor.");
-    }
-  };
+  const handleReplaceGuarantor = useCallback(
+    async (newMember) => {
+      if (!rejectedGuarantor?.loan_application_id) {
+        Alert.alert("Error", "Invalid guarantor reference.");
+        return;
+      }
 
-  const openReplaceModal = (guarantor) => {
+      try {
+        const { error } = await supabase.rpc("replace_rejected_guarantor", {
+          p_loan_application_id: rejectedGuarantor.loan_application_id,
+          p_rejected_guarantor_id: rejectedGuarantor.guarantor_user_id,
+          p_new_first_name: newMember?.first_name ?? "",
+          p_new_last_name: newMember?.last_name ?? "",
+        });
+
+        if (error) {
+          throw error;
+        }
+
+        setIsReplaceModalVisible(false);
+        setRejectedGuarantor(null);
+
+        Alert.alert(
+          "Success",
+          `Replacement request sent to ${newMember?.first_name ?? "member"}`,
+        );
+      } catch (err) {
+        console.error("Guarantor replacement failed:", err);
+        Alert.alert("Error", err?.message ?? "Failed to replace guarantor.");
+      }
+    },
+    [rejectedGuarantor],
+  );
+
+  const openReplaceModal = useCallback((guarantor) => {
+    if (!guarantor) return;
     setRejectedGuarantor(guarantor);
     setIsReplaceModalVisible(true);
-  };
+  }, []);
 
   // --- Render Sections ---
   const renderDebtSummary = () => (
@@ -391,24 +438,34 @@ export default function MemberLoans() {
     [currentLoan, approvedLoan, pendingApps, loanGuarantors, theme],
   );
 
-  // --- List Item Renderer ---
-  const renderHistoryItem = ({ item }) => (
-    <View className="px-6 mb-2">
-      <HistoryItem
-        title={item.purpose}
-        amount={
-          item.type === "completed"
-            ? item.principal_amount
-            : item.requested_amount
-        }
-        status={item.status}
-        date={formatDateFull(
-          item.type === "completed" ? item.completed_at : item.reviewed_at,
-        )}
-        reason={item.rejection_reason}
-      />
-    </View>
-  );
+  // --- List Item Renderer
+  const renderHistoryItem = useCallback(({ item }) => {
+    if (!item) return null;
+
+    const isCompleted = item.type === "completed";
+
+    return (
+      <View className="px-6 mb-2">
+        <HistoryItem
+          title={item?.purpose ?? "Loan"}
+          amount={
+            isCompleted
+              ? (item?.principal_amount ?? 0)
+              : (item?.requested_amount ?? 0)
+          }
+          status={item?.status}
+          date={formatDateFull(
+            isCompleted ? item?.completed_at : item?.reviewed_at,
+          )}
+          reason={item?.rejection_reason}
+        />
+      </View>
+    );
+  }, []);
+
+  const keyExtractor = useCallback((item, index) => {
+    return String(item?.id ?? `history-${index}`);
+  }, []);
 
   return (
     <SafeAreaView
@@ -421,17 +478,16 @@ export default function MemberLoans() {
         className="absolute top-0 w-full h-64 rounded-b-[32px]"
       />
 
-      {/* Page Title */}
       <View className="px-6 pt-4 pb-2 flex-row justify-center items-center">
         <Text style={{ color: theme.white }} className="text-lg font-bold">
           Loan Center
         </Text>
       </View>
 
-      {/* Main Content (FlatList) */}
+      {/* Main Content */}
       <FlatList
         data={combinedHistory}
-        keyExtractor={(item, index) => item.id || index.toString()}
+        keyExtractor={keyExtractor}
         renderItem={renderHistoryItem}
         ListHeaderComponent={ListHeader}
         ListEmptyComponent={
@@ -447,6 +503,9 @@ export default function MemberLoans() {
         }
         contentContainerStyle={{ paddingBottom: 100 }}
         showsVerticalScrollIndicator={false}
+        removeClippedSubviews
+        initialNumToRender={6}
+        windowSize={5}
       />
 
       {/* Modals */}

@@ -178,14 +178,6 @@ export default function AdminDashboard() {
               Quick Actions
             </Text>
             <View className="flex-row flex-wrap justify-between">
-              {roleConfig.actions.map((action, i) => (
-                <QuickAction
-                  key={i}
-                  icon="flash-outline"
-                  label={action}
-                  color={theme.primary}
-                />
-              ))}
               <QuickAction
                 icon="person-add-outline"
                 label="Register Forms"
