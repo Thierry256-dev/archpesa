@@ -8,7 +8,8 @@ const AuthContext = createContext(null);
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [appUser, setAppUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [contextLoading, setContextLoading] = useState(false);
   const [rememberMe, setRememberMeState] = useState(false);
   const currentAuthIdRef = useRef(null);
 
@@ -39,12 +40,16 @@ export function AuthProvider({ children }) {
   };
 
   const fetchUserContext = async () => {
-    const { data, error } = await supabase.rpc("get_user_context");
-    if (error) {
-      console.error("User context error:", error);
+    try {
+      const { data, error } = await supabase.rpc("get_user_context");
+
+      if (error) throw error;
+
+      return data;
+    } catch (err) {
+      console.error("Context fetch failed:", err);
       return null;
     }
-    return data;
   };
 
   useEffect(() => {
@@ -52,7 +57,7 @@ export function AuthProvider({ children }) {
 
     const initAuth = async () => {
       try {
-        setLoading(true);
+        setAuthLoading(true);
 
         const remember = await storage.getItem("rememberMe");
         const shouldRemember = remember === "1";
@@ -66,7 +71,7 @@ export function AuthProvider({ children }) {
           if (isMounted) {
             setUser(null);
             setAppUser(null);
-            setLoading(false);
+            setAuthLoading(false);
           }
           return;
         }
@@ -74,19 +79,20 @@ export function AuthProvider({ children }) {
         if (!isMounted) return;
 
         setUser(sessionUser);
+        setAuthLoading(false);
 
         if (sessionUser) {
+          setContextLoading(true);
           const context = await fetchUserContext();
           if (!isMounted) return;
 
           currentAuthIdRef.current = sessionUser.id;
           setAppUser(context);
+          setContextLoading(false);
         }
-
-        setLoading(false);
       } catch (error) {
         console.error("Auth init failed:", error);
-        if (isMounted) setLoading(false);
+        if (isMounted) setAuthLoading(false);
       }
     };
 
@@ -98,12 +104,12 @@ export function AuthProvider({ children }) {
 
         currentAuthIdRef.current = nextUser?.id ?? null;
 
-        setLoading(true);
+        setContextLoading(true);
         setUser(nextUser);
 
         if (!nextUser) {
           setAppUser(null);
-          setLoading(false);
+          setContextLoading(false);
           return;
         }
 
@@ -112,7 +118,7 @@ export function AuthProvider({ children }) {
         if (currentAuthIdRef.current !== nextUser.id) return;
 
         setAppUser(context);
-        setLoading(false);
+        setContextLoading(false);
       },
     );
 
@@ -128,7 +134,7 @@ export function AuthProvider({ children }) {
         user,
         appUser,
         userType: appUser?.type ?? null,
-        loading,
+        loading: authLoading || contextLoading,
         rememberMe,
         setRememberMe,
         signOut,

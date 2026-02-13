@@ -16,12 +16,12 @@ export default function Index() {
   }
 
   // Not logged in
-  if (!user || (user && !userType)) {
-    return (
-      <View className="flex-1 items-center justify-center bg-arch-blue">
-        <ActivityIndicator size="large" color="#fff" />
-      </View>
-    );
+  if (!user) {
+    return <Redirect href="/(auth)/login" />;
+  }
+
+  if (!userType) {
+    return <Redirect href="/(onboarding)" />;
   }
 
   // Supabase-driven routing
