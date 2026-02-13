@@ -356,7 +356,7 @@ export default function MemberSavings() {
   return (
     <SafeAreaView
       style={{ backgroundColor: theme.background }}
-      className="flex-1"
+      className="flex-1 w-full max-w-md h-full md:h-[90vh] md:max-h-[850px]"
     >
       <View
         style={{ backgroundColor: theme.primary }}

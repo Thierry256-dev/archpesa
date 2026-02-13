@@ -14,12 +14,15 @@ export default function Beneficiary() {
   const { profile } = useMemberAllInfo();
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: theme.background }}>
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: theme.background }}
+      className="w-full max-w-md h-full md:h-[90vh] md:max-h-[850px]"
+    >
       <View className="absolute top-0 w-full h-20 bg-arch-blue" />
       {/* HEADER */}
       <View
         style={{ backgroundColor: theme.primary }}
-        className="px-6 pt-4 pb-12 rounded-b-[40px]"
+        className="px-6 pt-4 pb-12 rounded-b-[40px] "
       >
         <View className="flex-row items-center justify-between mb-6">
           <View className="flex-row items-center">

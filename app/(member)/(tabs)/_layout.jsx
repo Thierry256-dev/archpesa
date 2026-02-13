@@ -1,9 +1,14 @@
 import { useTheme } from "@/context/ThemeProvider";
 import { Ionicons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
+import { Dimensions, Platform } from "react-native";
 
 export default function MemberTabsLayout() {
   const { theme } = useTheme();
+  const { width } = Dimensions.get("window");
+  const isWeb = Platform.OS === "web";
+
+  const MAX_WIDTH = 448;
 
   return (
     <Tabs
@@ -14,8 +19,17 @@ export default function MemberTabsLayout() {
           backgroundColor: theme.primary,
           height: 60,
           position: "absolute",
-          left: 20,
-          right: 20,
+
+          bottom: 20,
+          left: isWeb ? "55%" : 20,
+          right: isWeb ? "auto" : 20,
+          transform: isWeb
+            ? [{ translateX: -Math.min(width, MAX_WIDTH) / 2 }]
+            : [],
+
+          width: isWeb ? Math.min(width, MAX_WIDTH) - 40 : undefined,
+          maxWidth: MAX_WIDTH,
+          alignSelf: "center",
           borderRadius: 35,
           elevation: 5,
           shadowColor: theme.black,

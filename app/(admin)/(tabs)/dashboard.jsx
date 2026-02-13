@@ -29,7 +29,10 @@ export default function AdminDashboard() {
   }, [members]);
 
   return (
-    <View style={{ backgroundColor: theme.background }} className="flex-1">
+    <View
+      style={{ backgroundColor: theme.background }}
+      className="flex-1 w-full max-w-md h-full md:h-[90vh] md:max-h-[850px]"
+    >
       <View className="relative w-full h-80 rounded-b-[20px] overflow-hidden z-0">
         <Image
           source={require("../../../assets/images/welcome.png")}

@@ -5,7 +5,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Slot } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
-import { Platform } from "react-native";
+import { Platform, View } from "react-native";
 
 export default function RootLayout() {
   useEffect(() => {
@@ -27,7 +27,11 @@ export default function RootLayout() {
       <AuthProvider>
         <QueryClientProvider client={queryClient}>
           <StatusBar style="light" />
-          <Slot />
+          <View className="flex-1 bg-slate-100 items-center justify-center">
+            <View className="w-full max-w-md h-full md:h-[90vh] md:max-h-[850px] bg-white md:rounded-3xl md:shadow-2xl overflow-hidden">
+              <Slot />
+            </View>
+          </View>
         </QueryClientProvider>
       </AuthProvider>
     </ThemeProvider>

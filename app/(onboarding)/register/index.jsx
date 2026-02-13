@@ -24,7 +24,7 @@ export default function RegisterIndex() {
   return (
     <SafeAreaView className="flex-1 bg-white">
       <ScrollView
-        className="flex-1 px-8 pt-8"
+        className="flex-1 px-8 pt-8 w-full max-w-md h-full md:h-[90vh] md:max-h-[850px]"
         showsVerticalScrollIndicator={false}
       >
         {/* Header Section */}

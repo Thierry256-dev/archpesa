@@ -58,7 +58,7 @@ export default function MemberDetail() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-[#F8FAFC]">
+    <SafeAreaView className="flex-1 bg-[#F8FAFC] w-full max-w-md h-full md:h-[90vh] md:max-h-[850px]">
       {/* TOP NAVIGATION */}
       <View className="px-6 py-4 flex-row justify-between items-center bg-white border-b border-slate-100">
         <Pressable

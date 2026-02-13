@@ -101,7 +101,7 @@ export default function Loans() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-[#F1F5F9]">
+    <SafeAreaView className="flex-1 bg-[#F1F5F9] w-full max-w-md h-full md:h-[90vh] md:max-h-[850px]">
       {/* 1. PROFESSIONAL HEADER & SEARCH */}
       <View className="px-5 pt-2 pb-4 bg-white border-b border-slate-100">
         <View className="flex-row justify-between items-center mb-4">

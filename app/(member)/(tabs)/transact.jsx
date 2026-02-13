@@ -93,12 +93,15 @@ export default function TransactPage() {
   const HEADER_HEIGHT = insets.top + 120;
 
   return (
-    <View style={{ backgroundColor: theme.surface }} className="flex-1">
+    <View
+      style={{ backgroundColor: theme.surface }}
+      className="flex-1 w-full max-w-md h-full md:h-[90vh] md:max-h-[850px]"
+    >
       {/* Header  */}
       {step !== "success" && <TransactHeader />}
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        className="flex-1"
+        className="flex-1 "
       >
         <ScrollView
           className="flex-1"

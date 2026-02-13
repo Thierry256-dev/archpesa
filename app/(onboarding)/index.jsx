@@ -18,25 +18,25 @@ const slides = [
     title: "Welcome to ArchPesa",
     description:
       "Secure, transparent SACCO management designed for your community.",
-    image: require("../../assets/images/onboard-1.png"),
+    image: require("../../assets/images/onboard-1.webp"),
   },
   {
     key: "2",
     title: "Save & Grow Together",
     description: "Track your savings, loans, and dividends all in one place.",
-    image: require("../../assets/images/onboard-2.png"),
+    image: require("../../assets/images/onboard-2.webp"),
   },
   {
     key: "3",
     title: "Manage Your Loans",
     description: "Track your loans and dividends all in one place.",
-    image: require("../../assets/images/onboard-3.png"),
+    image: require("../../assets/images/onboard-3.webp"),
   },
   {
     key: "4",
     title: "Complete Registration",
     description: "Finish your SACCO registration to proceed.",
-    image: require("../../assets/images/onboard-4.png"),
+    image: require("../../assets/images/onboard-4.webp"),
   },
 ];
 

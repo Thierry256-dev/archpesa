@@ -102,7 +102,10 @@ export default function Step2() {
 
   return (
     <SafeAreaView className="flex-1 bg-white">
-      <ScrollView className="flex-1 px-8" showsVerticalScrollIndicator={false}>
+      <ScrollView
+        className="flex-1 px-8 w-full max-w-md h-full md:h-[90vh] md:max-h-[850px]"
+        showsVerticalScrollIndicator={false}
+      >
         {/* HEADER & PROGRESS */}
         <View className="mb-8">
           <View className="flex-row justify-between items-center mb-4">

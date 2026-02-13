@@ -470,7 +470,7 @@ export default function MemberLoans() {
   return (
     <SafeAreaView
       style={{ backgroundColor: theme.background }}
-      className="relative flex-1"
+      className="relative flex-1 w-full max-w-md h-full md:h-[90vh] md:max-h-[850px]"
     >
       {/* Absolute Background Header */}
       <View

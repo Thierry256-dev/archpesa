@@ -142,7 +142,7 @@ export default function AdminRequestsPage() {
   return (
     <View
       style={{ backgroundColor: theme.surface }}
-      className="flex-1"
+      className="flex-1 w-full max-w-md h-full md:h-[90vh] md:max-h-[850px]"
       edges={["top"]}
     >
       <StatusBar barStyle="light-content" />

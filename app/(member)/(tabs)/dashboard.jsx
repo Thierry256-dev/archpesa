@@ -421,79 +421,81 @@ export default function MemberDashboard() {
 
   return (
     <View style={{ backgroundColor: theme.background }} className="flex-1">
-      {/* 1. HEADER BACKGROUND */}
-      <View className="relative w-full h-80 rounded-b-[20px] overflow-hidden z-0">
-        <Image
-          source={require("../../../assets/images/welcome.png")}
-          style={{
-            width: "100%",
-            height: "100%",
-          }}
-        />
-        <View className="absolute inset-0 bg-black/40" />
-      </View>
+      <View className="w-full max-w-md h-full md:h-[90vh] md:max-h-[850px] md:justify-center">
+        {/* 1. HEADER BACKGROUND */}
+        <View className="relative w-full h-80 rounded-b-[20px] overflow-hidden z-0">
+          <Image
+            source={require("../../../assets/images/welcome.png")}
+            style={{
+              width: "100%",
+              height: "100%",
+            }}
+          />
+          <View className="absolute inset-0 bg-black/40" />
+        </View>
 
-      {/* 2. FOREGROUND CONTENT */}
-      <SafeAreaView className="absolute top-0 w-full">
-        <View className="px-6 pt-4">
-          <View className="flex-row items-center justify-between mb-8">
-            <Pressable
-              onPress={() => router.push("/utilityPages/profile")}
-              className="flex-row items-center"
-            >
-              <View className="h-12 w-12 bg-white/20 rounded-full items-center justify-center border-2 border-white/30 mr-3 backdrop-blur-md">
-                <Ionicons name="person" size={24} color="#FFF" />
-              </View>
-              <View>
-                <Text className="text-gray-300 text-xs font-bold uppercase">
-                  Welcome Back
-                </Text>
-                <Text className="text-white text-xl font-bold">
-                  {dashboardData.name}
-                </Text>
-              </View>
-            </Pressable>
-
-            <Pressable
-              onPress={() => router.push("/utilityPages/notifications")}
-              className="bg-white/20 p-2.5 rounded-full relative backdrop-blur-md border border-white/10"
-            >
-              {unreadCount > 0 && (
-                <View className="absolute -top-1 -right-1 bg-red-500 rounded-full px-1.5">
-                  <Text className="text-white text-[10px] font-bold">
-                    {unreadCount}
+        {/* 2. FOREGROUND CONTENT */}
+        <SafeAreaView className="absolute top-0 w-full">
+          <View className="px-6 pt-4">
+            <View className="flex-row items-center justify-between mb-8">
+              <Pressable
+                onPress={() => router.push("/utilityPages/profile")}
+                className="flex-row items-center"
+              >
+                <View className="h-12 w-12 bg-white/20 rounded-full items-center justify-center border-2 border-white/30 mr-3 backdrop-blur-md">
+                  <Ionicons name="person" size={24} color="#FFF" />
+                </View>
+                <View>
+                  <Text className="text-gray-300 text-xs font-bold uppercase">
+                    Welcome Back
+                  </Text>
+                  <Text className="text-white text-xl font-bold">
+                    {dashboardData.name}
                   </Text>
                 </View>
-              )}
-              <Ionicons name="notifications-outline" size={24} color="#FFF" />
-            </Pressable>
-          </View>
+              </Pressable>
 
-          <View className="px-2">
-            <Text className="text-white/80 font-medium text-base mb-1">
-              Your Financial Overview
-            </Text>
-            <Text className="text-white font-black text-3xl">Dashboard</Text>
+              <Pressable
+                onPress={() => router.push("/utilityPages/notifications")}
+                className="bg-white/20 p-2.5 rounded-full relative backdrop-blur-md border border-white/10"
+              >
+                {unreadCount > 0 && (
+                  <View className="absolute -top-1 -right-1 bg-red-500 rounded-full px-1.5">
+                    <Text className="text-white text-[10px] font-bold">
+                      {unreadCount}
+                    </Text>
+                  </View>
+                )}
+                <Ionicons name="notifications-outline" size={24} color="#FFF" />
+              </Pressable>
+            </View>
+
+            <View className="px-2">
+              <Text className="text-white/80 font-medium text-base mb-1">
+                Your Financial Overview
+              </Text>
+              <Text className="text-white font-black text-3xl">Dashboard</Text>
+            </View>
           </View>
+        </SafeAreaView>
+
+        <View className="flex-1 -mt-20">
+          <FlatList
+            data={displayedTransactions}
+            keyExtractor={(item) =>
+              item.id || item.created_at || Math.random().toString()
+            }
+            renderItem={renderTransactionItem}
+            ListHeaderComponent={renderHeader}
+            ListEmptyComponent={renderEmptyComponent}
+            ListFooterComponent={renderFooter}
+            showsVerticalScrollIndicator={false}
+          />
+
+          <Modal visible={isLoanFormVisible} transparent animationType="slide">
+            <LoanApplicationForm onClose={() => setIsLoanFormVisible(false)} />
+          </Modal>
         </View>
-      </SafeAreaView>
-
-      <View className="flex-1 -mt-20">
-        <FlatList
-          data={displayedTransactions}
-          keyExtractor={(item) =>
-            item.id || item.created_at || Math.random().toString()
-          }
-          renderItem={renderTransactionItem}
-          ListHeaderComponent={renderHeader}
-          ListEmptyComponent={renderEmptyComponent}
-          ListFooterComponent={renderFooter}
-          showsVerticalScrollIndicator={false}
-        />
-
-        <Modal visible={isLoanFormVisible} transparent animationType="slide">
-          <LoanApplicationForm onClose={() => setIsLoanFormVisible(false)} />
-        </Modal>
       </View>
     </View>
   );

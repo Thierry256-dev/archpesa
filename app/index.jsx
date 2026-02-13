@@ -24,11 +24,12 @@ export default function Index() {
     return <Redirect href="/(onboarding)" />;
   }
 
+  if (!userType) {
+    return <Redirect href="/(auth)/login" />;
+  }
+
   // Supabase-driven routing
   switch (userType) {
-    case "new_user":
-      return <Redirect href="/(onboarding)" />;
-
     case "pending_applicant":
       return <Redirect href="/(member)/(tabs)/dashboard" />;
 

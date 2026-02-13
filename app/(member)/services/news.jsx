@@ -10,7 +10,7 @@ export default function News() {
 
   return (
     <SafeAreaView
-      className="flex-1"
+      className="flex-1 w-full max-w-md h-full md:h-[90vh] md:max-h-[850px]"
       style={{ backgroundColor: theme.background }}
     >
       <View

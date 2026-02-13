@@ -1,18 +1,33 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
+import { Dimensions, Platform } from "react-native";
 
 export default function AdminTabsLayout() {
+  const { width } = Dimensions.get("window");
+  const isWeb = Platform.OS === "web";
+
+  const MAX_WIDTH = 448;
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: "white",
+        tabBarInactiveTintColor: "#94A3B8",
         tabBarStyle: {
           backgroundColor: "#07193f",
-          height: "60",
+          height: 60,
           position: "absolute",
-          left: 20,
-          right: 20,
+          bottom: 20,
+          left: isWeb ? "55%" : 20,
+          right: isWeb ? "auto" : 20,
+          transform: isWeb
+            ? [{ translateX: -Math.min(width, MAX_WIDTH) / 2 }]
+            : [],
+
+          width: isWeb ? Math.min(width, MAX_WIDTH) - 40 : undefined,
+          maxWidth: MAX_WIDTH,
+          alignSelf: "center",
+
           borderRadius: 25,
           elevation: 5,
           shadowColor: "#000",
@@ -20,6 +35,7 @@ export default function AdminTabsLayout() {
           shadowOpacity: 0.1,
           shadowRadius: 10,
           borderTopWidth: 0,
+          paddingBottom: 10,
         },
       }}
     >

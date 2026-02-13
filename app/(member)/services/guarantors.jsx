@@ -57,7 +57,7 @@ export default function Guarantors() {
   return (
     <SafeAreaView
       style={{ backgroundColor: theme.background }}
-      className="flex-1"
+      className="flex-1 w-full max-w-md h-full md:h-[90vh] md:max-h-[850px]"
     >
       <View
         className="absolute top-0 w-full h-20"

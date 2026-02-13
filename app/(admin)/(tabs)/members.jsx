@@ -37,7 +37,10 @@ export default function Members() {
   }, [members, search, filter]);
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50" edges={["top"]}>
+    <SafeAreaView
+      className="flex-1 bg-gray-50 w-full max-w-md h-full md:h-[90vh] md:max-h-[850px]"
+      edges={["top"]}
+    >
       <View className="bg-arch-blue absolute w-full top-0 h-32" />
       <View>
         {/* HEADER SECTION */}
