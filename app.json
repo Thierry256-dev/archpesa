@@ -25,7 +25,14 @@
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/favicon.png",
+      "display": "standalone",
+      "startUrl": "/",
+      "orientation": "portrait",
+      "shortName": "ArchPesa",
+      "name": "ArchPesa",
+      "themeColor": "#07193f",
+      "backgroundColor": "#F8FAFC"
     },
     "plugins": [
       "expo-router",

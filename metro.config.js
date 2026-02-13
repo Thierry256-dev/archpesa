@@ -13,8 +13,9 @@ config.resolver = {
     "ts",
     "tsx",
   ],
-  // Fix for framer-motion/moti ESM/CJS compatibility on web
+
   unstable_conditionNames: ["browser", "require", "react-native"],
 };
+config.resolver.assetExts.push("webp");
 
 module.exports = withNativeWind(config, { input: "./global.css" });
