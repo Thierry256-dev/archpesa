@@ -17,7 +17,6 @@ export default function AdminTabsLayout() {
           backgroundColor: "#07193f",
           height: 60,
           position: "absolute",
-          bottom: 20,
           left: isWeb ? "55%" : 20,
           right: isWeb ? "auto" : 20,
           transform: isWeb

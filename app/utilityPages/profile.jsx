@@ -107,11 +107,7 @@ export default function Profile() {
             Preferences
           </Text>
 
-          <ProfileMenu
-            onPress={() => router.push("/utilityPages/notifications")}
-            icon="notifications-outline"
-            title="Notifications"
-          />
+          <ProfileMenu icon="notifications-outline" title="Notifications" />
           <ProfileMenu icon="language-outline" title="Language" sub="English" />
 
           {/* THEME TOGGLE */}

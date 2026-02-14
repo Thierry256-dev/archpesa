@@ -77,14 +77,14 @@ export default function Login() {
         >
           {/* Header Section */}
           <View className="items-center mb-10">
-            <View className="rounded-3xl shadow-lg">
+            <View className="rounded-3xl shadow-lg mb-4">
               <Image
                 source={require("../../assets/images/icon.png")}
                 style={{
-                  width: 140,
-                  height: 140,
+                  width: 70,
+                  height: 70,
                 }}
-                resizeMode="cover"
+                resizeMode="contain"
               />
             </View>
             <Text className="text-4xl font-extrabold tracking-tight mb-1">

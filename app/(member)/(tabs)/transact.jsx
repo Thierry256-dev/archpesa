@@ -14,6 +14,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
 
 // --- Hooks & Services ---
+import { useAuth } from "@/context/AuthContext";
+import { useMemberApplication } from "@/hooks/memberHooks/useMemberApplication";
 import { directionMap } from "../../../constants/transactionConfigs";
 import { useMemberAllInfo } from "../../../hooks/useMemberAllInfo";
 import { buildTransactionPayload } from "../../../services/member/buildTransactionPayload";
@@ -32,15 +34,23 @@ import {
 export default function TransactPage() {
   const { theme } = useTheme();
 
+  const { user } = useAuth();
+
+  const { data: application } = useMemberApplication(user?.id);
   const { profile, accounts, transactionRequests, loans } = useMemberAllInfo();
 
+  const isApproved = application?.status === "approved";
   const [step, setStep] = useState("select"); // 'select' | 'form' | 'success'
   const [txType, setTxType] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSelectType = (typeId) => {
-    setTxType(typeId);
-    setStep("form");
+    if (isApproved) {
+      setTxType(typeId);
+      setStep("form");
+    } else {
+      alert("Feature will be available upon member application approval");
+    }
   };
 
   const handleChangeStep = (newStep) => {
@@ -93,10 +103,7 @@ export default function TransactPage() {
   const HEADER_HEIGHT = insets.top + 120;
 
   return (
-    <View
-      style={{ backgroundColor: theme.surface }}
-      className="flex-1 w-full max-w-md h-full md:h-[90vh] md:max-h-[850px]"
-    >
+    <View style={{ backgroundColor: theme.surface }} className="flex-1 w-full">
       {/* Header  */}
       {step !== "success" && <TransactHeader />}
       <KeyboardAvoidingView

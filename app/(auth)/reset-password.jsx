@@ -34,7 +34,7 @@ export default function ResetPassword() {
   };
 
   return (
-    <View className="flex-1 w-full max-w-md h-full md:h-[90vh] md:max-h-[850px] justify-center px-6 bg-white">
+    <View className="flex-1 w-full max-w-md h-full">
       <Text className="text-2xl font-bold mb-6">Set New Password</Text>
 
       <TextInput

@@ -275,7 +275,7 @@ export default function Step1() {
 
             <FormField
               label="Education Level"
-              placeholder="e.g. Campus"
+              placeholder="e.g. Student"
               icon="book-outline"
               value={formData.education_level}
               onChange={(v) => {

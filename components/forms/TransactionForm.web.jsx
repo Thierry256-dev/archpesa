@@ -31,10 +31,6 @@ const getFinalTransactionType = (targetAccount, txType) => {
       if (txType === "deposit") return "Share_Purchase";
       break;
 
-    case "Fixed_Deposit":
-      if (txType === "deposit") return "Fixed_Deposit";
-      break;
-
     default:
       return "General_Transaction";
   }

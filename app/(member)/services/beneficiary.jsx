@@ -37,7 +37,10 @@ export default function Beneficiary() {
             </Text>
           </View>
           <Pressable
-            onPress={() => setIsEditing(!isEditing)}
+            onPress={() => {
+              alert("Coming Soon");
+              //setIsEditing(!isEditing);
+            }}
             style={{ backgroundColor: theme.secondary }}
             className="px-4 py-2 rounded-full"
           >

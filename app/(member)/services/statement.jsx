@@ -27,7 +27,7 @@ export default function Statement() {
   const [loading, setLoading] = useState(false);
   const [selectedRange, setSelectedRange] = useState("3M");
   const [statementType, setStatementType] = useState("standard");
-  const { profile, transactions } = useMemberAllInfo();
+  const { profile, transactions } = useMemberAllInfo() || {};
 
   const dateRange = useMemo(() => {
     const toDate = new Date();
@@ -50,18 +50,18 @@ export default function Statement() {
   }, [selectedRange]);
 
   const filteredTransactions = useMemo(() => {
-    if (!transactions) return [];
+    if (!transactions || !Array.isArray(transactions)) return [];
 
     return transactions.filter((tx) => {
-      const isLoanTx = ["Loan_Repayment", "Loan_Disbursement"].includes(
-        tx.transaction_type,
-      );
+      const type = tx.transaction_type || "";
+
+      const isLoanTx = ["Loan_Repayment", "Loan_Disbursement"].includes(type);
 
       if (statementType === "loan" && !isLoanTx) return false;
       if (statementType === "standard" && isLoanTx) return false;
 
+      if (!tx.created_at) return false;
       const txDate = new Date(tx.created_at);
-
       if (isNaN(txDate.getTime())) return false;
 
       return txDate >= dateRange.fromDate && txDate <= dateRange.toDate;
@@ -69,25 +69,45 @@ export default function Statement() {
   }, [transactions, statementType, dateRange]);
 
   const handleDownload = async () => {
+    if (!profile) {
+      alert("Error", "Member profile data is not available yet.");
+      return;
+    }
+
+    if (filteredTransactions.length === 0) {
+      alert("No Data", "There are no transactions in this period to generate.");
+      return;
+    }
+
     setLoading(true);
 
-    await generateMemberStatementPdf({
-      member: {
-        id: profile.membership_no,
-        first_name: profile.first_name,
-        last_name: profile.last_name,
-        phone: profile.phone_number,
-      },
-      transactions: filteredTransactions,
-      period: dateRange,
-    });
-
-    setLoading(false);
+    try {
+      await generateMemberStatementPdf({
+        member: {
+          id: profile?.membership_no || "N/A",
+          first_name: profile?.first_name || "Member",
+          last_name: profile?.last_name || "",
+          phone: profile?.phone_number || "",
+        },
+        transactions: filteredTransactions,
+        period: dateRange,
+      });
+    } catch (error) {
+      console.error(error);
+      alert(
+        "Generation Failed",
+        "Could not generate the PDF. Please try again.",
+      );
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const isListEmpty = filteredTransactions.length === 0;
 
   return (
     <SafeAreaView
-      className="flex-1 w-full max-w-md h-full md:h-[90vh] md:max-h-[850px]"
+      className="flex-1 w-full"
       style={{ backgroundColor: theme.background }}
     >
       <View
@@ -237,6 +257,15 @@ export default function Statement() {
           />
         </View>
 
+        {isListEmpty && (
+          <View className="mt-6 p-4 bg-orange-50 rounded-xl flex-row items-center">
+            <Ionicons name="warning-outline" size={20} color="#F97316" />
+            <Text className="ml-2 text-orange-700 text-xs flex-1">
+              No transactions found for this specific range and type.
+            </Text>
+          </View>
+        )}
+
         {/* GENERATE BUTTON */}
         <Pressable
           onPress={handleDownload}
@@ -245,7 +274,7 @@ export default function Statement() {
           style={{
             backgroundColor: loading ? theme.gray400 : theme.primary,
             shadowColor: theme.primary,
-            opacity: loading ? 0.8 : 1,
+            opacity: loading || isListEmpty ? 0.7 : 1,
           }}
         >
           {loading ? (
@@ -254,7 +283,7 @@ export default function Statement() {
             <>
               <Ionicons name="cloud-download-outline" size={20} color="white" />
               <Text className="text-white font-bold text-lg ml-2">
-                Generate PDF
+                {isListEmpty ? "No Data Available" : "Generate PDF"}
               </Text>
             </>
           )}

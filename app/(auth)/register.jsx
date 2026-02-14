@@ -93,14 +93,14 @@ export default function Register() {
         >
           {/* Header */}
           <View className="items-center mb-10">
-            <View className="shadow-xl shadow-black/20 rounded-3xl backdrop-blur-md">
+            <View className="shadow-xl mb-4 shadow-black/20 rounded-3xl backdrop-blur-md">
               <Image
                 source={require("../../assets/images/icon.png")}
                 style={{
-                  width: 130,
-                  height: 130,
+                  width: 70,
+                  height: 70,
                 }}
-                resizeMode="cover"
+                resizeMode="contain"
               />
             </View>
             <Text className="text-4xl font-extrabold tracking-tight mb-2">

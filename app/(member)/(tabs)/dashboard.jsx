@@ -65,20 +65,23 @@ export default function MemberDashboard() {
   const activeLoanObj = loans?.find((l) => l.status === "Disbursed") || {};
 
   const dashboardData = useMemo(() => {
-    const activeLoanObj = loans?.find((l) => l.status === "Disbursed") || {};
-    const savings = balances.Savings || 0;
-    const shares = balances.Shares || 0;
-    const fixed = balances.Fixed_Deposit || 0;
-    const loanBalance = activeLoanObj.outstanding_balance || 0;
-    const limit = savings + savings / 2;
+    const activeLoanObj = loans?.find((l) => l?.status === "Disbursed") || {};
+
+    const savings = balances?.Savings || 0;
+    const shares = balances?.Shares || 0;
+    const loanBalance = Number(activeLoanObj?.outstanding_balance || 0);
+    const limit = savings * 1.5;
+    let rawProgress = limit > 0 ? (loanBalance / limit) * 100 : 0;
+
+    const safeProgress = isFinite(rawProgress) ? Math.min(rawProgress, 100) : 0;
 
     return {
-      name: profile?.first_name || user.full_name || "Member",
-      totalBalance: savings + shares + fixed,
-      lockedSavings: fixed,
+      name: profile?.first_name || user?.user_metadata.full_name || "",
+      totalBalance: savings + shares,
+      shares: shares,
       activeLoan: loanBalance,
       loanLimit: limit,
-      progress: limit > 0 ? (loanBalance / limit) * 100 : 0,
+      progress: safeProgress,
     };
   }, [balances, loans, profile, user]);
 
@@ -145,15 +148,13 @@ export default function MemberDashboard() {
                     style={{ color: theme.gray500 }}
                     className="text-[11px] font-medium"
                   >
-                    Locked Savings
+                    Shares Price
                   </Text>
                   <Text
                     style={{ color: theme.text }}
                     className="font-semibold text-sm"
                   >
-                    {showBalance
-                      ? formatCurrency(dashboardData.lockedSavings)
-                      : "•••"}
+                    {showBalance ? formatCurrency(dashboardData.shares) : "•••"}
                   </Text>
                 </View>
               </View>
@@ -195,184 +196,196 @@ export default function MemberDashboard() {
           </View>
         </View>
 
-        {/* STATUS ALERT */}
-        {application && applicationStatus !== "approved" && (
-          <Pressable
-            disabled={applicationStatus !== "rejected"}
-            onPress={() => router.push("/(member)/services/review")}
-            style={{
-              backgroundColor: statusUI.color,
-              borderColor: statusUI.borderColor,
-            }}
-            className="mx-6 mb-6 p-4 rounded-2xl border"
-          >
-            <View className="flex-row items-center">
-              <Ionicons
-                name={statusUI.icon}
-                size={26}
-                color={statusUI.iconColor}
-                style={{ marginRight: 12 }}
-              />
-              <View className="flex-1">
-                <Text
-                  style={{ color: theme.text }}
-                  className="font-bold text-sm"
-                >
-                  {statusUI.label}
-                </Text>
-                <Text style={{ color: theme.gray600 }} className="text-xs mt-1">
-                  {statusUI.description}
-                </Text>
-              </View>
-              {applicationStatus === "rejected" && (
-                <Text
-                  style={{ color: theme.rose }}
-                  className="font-semibold text-xs"
-                >
-                  Update →
-                </Text>
-              )}
-            </View>
-          </Pressable>
-        )}
-
-        {/* QUICK ACTIONS */}
-        <View
-          style={{ backgroundColor: theme.background }}
-          className="mb-8 pt-4 px-6"
-        >
-          <View className="flex-row justify-between items-end mb-4">
-            <Text style={{ color: theme.text }} className="text-lg font-bold">
-              Member Services
-            </Text>
+        <View style={{ backgroundColor: theme.background }}>
+          {/* STATUS ALERT */}
+          {application && applicationStatus !== "approved" && (
             <Pressable
-              onPress={() => router.push("/(member)/services/support")}
+              disabled={applicationStatus !== "rejected"}
+              onPress={() => router.push("/(member)/services/review")}
+              style={{
+                backgroundColor: statusUI.color,
+                borderColor: statusUI.borderColor,
+              }}
+              className="mx-6 mb-6 p-4 rounded-2xl border"
             >
-              <Text
-                style={{ color: theme.emerald }}
-                className="text-xs font-semibold"
-              >
-                Need Help?
-              </Text>
+              <View className="flex-row items-center">
+                <Ionicons
+                  name={statusUI.icon}
+                  size={26}
+                  color={statusUI.iconColor}
+                  style={{ marginRight: 12 }}
+                />
+                <View className="flex-1">
+                  <Text
+                    style={{ color: theme.text }}
+                    className="font-bold text-sm"
+                  >
+                    {statusUI.label}
+                  </Text>
+                  <Text
+                    style={{ color: theme.gray600 }}
+                    className="text-xs mt-1"
+                  >
+                    {statusUI.description}
+                  </Text>
+                </View>
+                {applicationStatus === "rejected" && (
+                  <Text
+                    style={{ color: theme.rose }}
+                    className="font-semibold text-xs"
+                  >
+                    Update →
+                  </Text>
+                )}
+              </View>
             </Pressable>
-          </View>
+          )}
 
-          <View className="flex-row flex-wrap justify-between gap-y-3">
-            <ServiceCard
-              icon="shield-checkmark-outline"
-              label="Guarantors"
-              subLabel="Approval Status"
-              iconColor={theme.primary}
-              onPress={() => router.push("/(member)/services/guarantors")}
-            />
-            <ServiceCard
-              icon="document-text-outline"
-              label="E-Statement"
-              subLabel="Download PDF"
-              iconColor={theme.primary}
-              onPress={() => router.push("/(member)/services/statement")}
-            />
-            <ServiceCard
-              icon="people-outline"
-              label="Beneficiaries"
-              subLabel="Update Records"
-              iconColor={theme.primary}
-              onPress={() => router.push("/(member)/services/beneficiary")}
-            />
-            <ServiceCard
-              icon="megaphone-outline"
-              label="Announcements"
-              subLabel="SACCO Updates"
-              iconColor={theme.emerald}
-              onPress={() => router.push("/(member)/services/news")}
-            />
-          </View>
-        </View>
-
-        {/* LOAN ELIGIBILITY */}
-        <View
-          style={{
-            backgroundColor: theme.emerald + "10",
-            borderColor: theme.emerald + "30",
-          }}
-          className="border rounded-2xl p-4 mb-6 flex-row items-center mx-6"
-        >
-          <View className="flex-1 mr-4">
-            <View className="flex-row justify-between mb-2">
-              <Text
-                style={{ color: theme.emerald }}
-                className="font-bold text-sm"
-              >
-                Loan Limit
+          {/* QUICK ACTIONS */}
+          <View className="mb-8 pt-4 px-6">
+            <View className="flex-row justify-between items-end mb-4">
+              <Text style={{ color: theme.text }} className="text-lg font-bold">
+                Member Services
               </Text>
-              <Text
-                style={{ color: theme.emerald }}
-                className="font-bold text-sm"
-              >
-                {formatCurrency(dashboardData.loanLimit)}
-              </Text>
-            </View>
-            <View
-              style={{ backgroundColor: theme.emerald + "30" }}
-              className="h-2 rounded-full overflow-hidden"
-            >
-              <View
-                style={{
-                  width: `${dashboardData.progress}%`,
-                  backgroundColor: theme.emerald,
-                }}
-                className="h-full rounded-full"
-              />
-            </View>
-            <Text
-              style={{ color: theme.gray500 }}
-              className="text-[10px] mt-1.5"
-            >
-              You can borrow up to
-              <Text style={{ color: theme.emerald }} className="font-bold">
-                UGX{" "}
-                {(
-                  dashboardData.loanLimit - activeLoanObj?.outstanding_balance
-                ).toLocaleString()}
-              </Text>{" "}
-              more.
-            </Text>
-          </View>
-          <Pressable
-            disabled={!isApproved}
-            onPress={() => isApproved && setIsLoanFormVisible(true)}
-            style={{ backgroundColor: theme.emerald }}
-            className="px-4 py-2 rounded-xl shadow-sm"
-          >
-            <Text className="text-white font-bold text-xs">Apply</Text>
-          </Pressable>
-        </View>
-        {/* RECENT TRANSACTIONS */}
-        <View
-          style={{ backgroundColor: theme.card }}
-          className="rounded-t-3xl p-5 shadow-sm mx-6"
-        >
-          {/* HEADER */}
-          <View className="flex-row justify-between items-center mb-6">
-            <Text style={{ color: theme.text }} className="text-lg font-bold">
-              Recent Activity
-            </Text>
-
-            {transactions?.length > PREVIEW_LIMIT && (
               <Pressable
-                onPress={toggleExpand}
-                hitSlop={15}
-                className="bg-primary/10 px-3 py-1 rounded-full"
-                style={{ backgroundColor: theme.primary + "15" }}
+                onPress={() => router.push("/(member)/services/support")}
               >
                 <Text
-                  style={{ color: theme.primary }}
-                  className="text-xs font-bold"
+                  style={{ color: theme.emerald }}
+                  className="text-xs font-semibold"
                 >
-                  {isExpanded ? "Show Less" : "See All"}
+                  Need Help?
                 </Text>
               </Pressable>
-            )}
+            </View>
+
+            <View className="flex-row flex-wrap justify-between gap-y-3">
+              <ServiceCard
+                icon="shield-checkmark-outline"
+                label="Guarantors"
+                subLabel="Approval Status"
+                iconColor={theme.primary}
+                onPress={() => router.push("/(member)/services/guarantors")}
+              />
+              <ServiceCard
+                icon="document-text-outline"
+                label="E-Statement"
+                subLabel="Download PDF"
+                iconColor={theme.primary}
+                onPress={() => router.push("/(member)/services/statement")}
+              />
+              <ServiceCard
+                icon="people-outline"
+                label="Beneficiaries"
+                subLabel="Update Records"
+                iconColor={theme.primary}
+                onPress={() => router.push("/(member)/services/beneficiary")}
+              />
+              <ServiceCard
+                icon="megaphone-outline"
+                label="Announcements"
+                subLabel="SACCO Updates"
+                iconColor={theme.emerald}
+                onPress={() => {
+                  alert("Coming Soon!");
+                  //router.push("/(member)/services/news")
+                }}
+              />
+            </View>
+          </View>
+
+          {/* LOAN ELIGIBILITY */}
+          <View
+            style={{
+              backgroundColor: theme.emerald + "10",
+              borderColor: theme.emerald + "30",
+            }}
+            className="border rounded-2xl p-4 mb-6 flex-row items-center mx-6"
+          >
+            <View className="flex-1 mr-4">
+              <View className="flex-row justify-between mb-2">
+                <Text
+                  style={{ color: theme.emerald }}
+                  className="font-bold text-sm"
+                >
+                  Loan Limit
+                </Text>
+                <Text
+                  style={{ color: theme.emerald }}
+                  className="font-bold text-sm"
+                >
+                  {formatCurrency(dashboardData.loanLimit)}
+                </Text>
+              </View>
+              <View
+                style={{ backgroundColor: theme.emerald + "30" }}
+                className="h-2 rounded-full overflow-hidden"
+              >
+                <View
+                  style={{
+                    width: `${dashboardData.progress}%`,
+                    backgroundColor: theme.emerald,
+                  }}
+                  className="h-full rounded-full"
+                />
+              </View>
+              <Text
+                style={{ color: theme.gray500 }}
+                className="text-[10px] mt-1.5"
+              >
+                You can borrow up to
+                <Text style={{ color: theme.emerald }} className="font-bold">
+                  UGX{" "}
+                  {(
+                    dashboardData.loanLimit - activeLoanObj?.outstanding_balance
+                  ).toLocaleString()}
+                </Text>{" "}
+                more.
+              </Text>
+            </View>
+            <Pressable
+              onPress={() => {
+                if (isApproved) {
+                  setIsLoanFormVisible(true);
+                } else {
+                  alert(
+                    "Feature will be available upon member application approval",
+                  );
+                }
+              }}
+              style={{ backgroundColor: theme.emerald }}
+              className="px-4 py-2 rounded-xl shadow-sm"
+            >
+              <Text className="text-white font-bold text-xs">Apply</Text>
+            </Pressable>
+          </View>
+          {/* RECENT TRANSACTIONS */}
+          <View
+            style={{ backgroundColor: theme.card }}
+            className="rounded-t-3xl p-5 shadow-sm mx-6"
+          >
+            {/* HEADER */}
+            <View className="flex-row justify-between items-center mb-6">
+              <Text style={{ color: theme.text }} className="text-lg font-bold">
+                Recent Activity
+              </Text>
+
+              {transactions?.length > PREVIEW_LIMIT && (
+                <Pressable
+                  onPress={toggleExpand}
+                  hitSlop={15}
+                  className="bg-primary/10 px-3 py-1 rounded-full"
+                  style={{ backgroundColor: theme.primary + "15" }}
+                >
+                  <Text
+                    style={{ color: theme.primary }}
+                    className="text-xs font-bold"
+                  >
+                    {isExpanded ? "Show Less" : "See All"}
+                  </Text>
+                </Pressable>
+              )}
+            </View>
           </View>
         </View>
       </View>
@@ -391,7 +404,7 @@ export default function MemberDashboard() {
   const renderEmptyComponent = () => (
     <View
       style={{ backgroundColor: theme.card }}
-      className="mx-6 p-5 rounded-b-3xl items-center pb-10"
+      className="mx-6 p-5 rounded-b-3xl items-center pb-10 mb-20"
     >
       <View
         style={{ backgroundColor: theme.gray50 }}
@@ -421,7 +434,7 @@ export default function MemberDashboard() {
 
   return (
     <View style={{ backgroundColor: theme.background }} className="flex-1">
-      <View className="w-full max-w-md h-full md:h-[90vh] md:max-h-[850px] md:justify-center">
+      <View className="w-full h-full md:h-[90vh] md:max-h-[850px]">
         {/* 1. HEADER BACKGROUND */}
         <View className="relative w-full h-80 rounded-b-[20px] overflow-hidden z-0">
           <Image
@@ -456,7 +469,10 @@ export default function MemberDashboard() {
               </Pressable>
 
               <Pressable
-                onPress={() => router.push("/utilityPages/notifications")}
+                onPress={() => {
+                  alert("Coming Soon");
+                  //router.push("/utilityPages/notifications");
+                }}
                 className="bg-white/20 p-2.5 rounded-full relative backdrop-blur-md border border-white/10"
               >
                 {unreadCount > 0 && (

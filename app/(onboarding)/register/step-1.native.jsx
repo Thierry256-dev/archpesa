@@ -35,7 +35,6 @@ export default function Step1() {
   const validateStep = () => {
     const newErrors = {};
 
-    // Allow spaces, hyphens, apostrophes (e.g., "Jean-Paul", "O'Neill")
     const nameRegex = /^[a-zA-Z\s'-]{2,}$/;
 
     if (!formData.first_name || !nameRegex.test(formData.first_name.trim())) {
@@ -294,7 +293,7 @@ export default function Step1() {
 
             <FormField
               label="Education Level"
-              placeholder="e.g. Campus"
+              placeholder="e.g. Student"
               icon="book-outline"
               value={formData.education_level}
               onChange={(v) => {

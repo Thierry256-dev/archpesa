@@ -133,7 +133,7 @@ export default function ReviewApplication() {
 
   return (
     <SafeAreaView
-      className="flex-1 w-full max-w-md h-full md:h-[90vh] md:max-h-[850px]"
+      className="flex-1 w-full"
       style={{ backgroundColor: theme.background }}
       edges={["top"]}
     >

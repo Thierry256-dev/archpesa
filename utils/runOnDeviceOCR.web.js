@@ -1,12 +1,25 @@
-let warningShown = false;
+import Tesseract from "tesseract.js";
+import { extractExternalReference } from "./extractExternalReference";
 
 export async function runOnDeviceOCR(imageUri) {
-  if (!warningShown) {
-    console.warn(
-      "[OCR] On-device OCR is not available on web. Users must manually enter transaction reference.",
-    );
-    warningShown = true;
-  }
+  try {
+    const {
+      data: { text: rawText },
+    } = await Tesseract.recognize(imageUri, "eng", {});
 
-  return null;
+    const extracted = extractExternalReference(rawText);
+
+    return {
+      rawText,
+      external_reference: extracted?.value || null,
+      source: extracted?.type || null,
+    };
+  } catch (error) {
+    console.error("Web OCR failed", error);
+    return {
+      rawText: "",
+      external_reference: null,
+      source: null,
+    };
+  }
 }

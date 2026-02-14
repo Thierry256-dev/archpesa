@@ -83,7 +83,6 @@ export function useMemberAllInfo() {
     const map = {
       Savings: 0,
       Shares: 0,
-      Fixed_Deposit: 0,
     };
 
     resolvedData.accounts.forEach((acc) => {

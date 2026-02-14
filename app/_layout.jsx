@@ -27,8 +27,8 @@ export default function RootLayout() {
       <AuthProvider>
         <QueryClientProvider client={queryClient}>
           <StatusBar style="light" />
-          <View className="flex-1 bg-slate-100 items-center justify-center">
-            <View className="w-full max-w-md h-full md:h-[90vh] md:max-h-[850px] bg-white md:rounded-3xl md:shadow-2xl overflow-hidden">
+          <View className="flex-1 bg-arch-blue items-center justify-center">
+            <View className="w-full md:max-w-[430px] h-full md:h-[90vh] md:max-h-[850px] bg-arch-blue md:rounded-3xl md:shadow-2xl overflow-hidden">
               <Slot />
             </View>
           </View>

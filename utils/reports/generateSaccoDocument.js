@@ -676,9 +676,9 @@ export const generateMemberStatementPdf = async ({
       
       <div class="header-container">
         <div class="brand-section">
-          <h1>Umoja SACCO Society</h1>
-          <p>Plot 42, Kampala Road, Kampala, Uganda</p>
-          <p>support@umojasacco.co.ug | +256 700 000 000</p>
+          <h1>MONETA SACCO SAVINGS GROUP</h1>
+          <p>Jinja Road, Kampala, Uganda</p>
+          <p>+256 756 124 346</p>
         </div>
         <div class="statement-label">
           <h2>Statement of Account</h2>
@@ -750,6 +750,11 @@ export const generateMemberStatementPdf = async ({
   `;
 
   try {
+    if (Platform.OS === "web") {
+      await Print.printAsync({ html });
+      return;
+    }
+
     const { uri } = await Print.printToFileAsync({ html });
 
     if (Platform.OS === "android") {

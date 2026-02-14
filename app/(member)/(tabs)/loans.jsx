@@ -42,7 +42,8 @@ export default function MemberLoans() {
     loanApplications = [],
     loanGuarantors = [],
     loans = [],
-  } = useMemberAllInfo() ?? {};
+  } = useMemberAllInfo() || {};
+
   const derived = useMemo(() => {
     const safeLoans = Array.isArray(loans) ? loans : [];
     const safeApplications = Array.isArray(loanApplications)
@@ -53,7 +54,7 @@ export default function MemberLoans() {
       safeLoans.find(
         (l) =>
           l?.status === "Disbursed" && Number(l?.outstanding_balance ?? 0) > 0,
-      ) ?? null;
+      ) ?? {};
 
     const approvedLoan =
       safeLoans.find((l) => l?.status === "Approved") ?? null;
@@ -66,10 +67,10 @@ export default function MemberLoans() {
     const completedLoans = safeLoans.filter((l) => l?.status === "Completed");
 
     const loanProgress =
-      activeLoan && Number(activeLoan?.total_payable ?? 0) > 0
+      activeLoan && (activeLoan?.total_payable ?? 0) > 0
         ? (
             (Number(activeLoan?.amount_paid ?? 0) /
-              Number(activeLoan?.total_payable ?? 1)) *
+              Number(activeLoan?.total_payable)) *
             100
           ).toFixed(2)
         : "0";
@@ -77,8 +78,10 @@ export default function MemberLoans() {
       ...completedLoans.map((l) => ({ ...l, type: "completed" })),
       ...rejectedApps.map((a) => ({ ...a, type: "rejected" })),
     ].sort((a, b) => {
-      const dateA = new Date(a?.completed_at ?? a?.reviewed_at ?? 0).getTime();
-      const dateB = new Date(b?.completed_at ?? b?.reviewed_at ?? 0).getTime();
+      const dateA =
+        new Date(a?.completed_at ?? a?.reviewed_at ?? 0).getTime() || 0;
+      const dateB =
+        new Date(b?.completed_at ?? b?.reviewed_at ?? 0).getTime() || 0;
       return dateB - dateA;
     });
 
@@ -163,10 +166,12 @@ export default function MemberLoans() {
             style={{ color: theme.text }}
             className="text-3xl font-extrabold"
           >
-            {formatCurrency(currentLoan.outstanding_balance || 0)}
+            {currentLoan
+              ? formatCurrency(currentLoan.outstanding_balance)
+              : "UGX 0"}
           </Text>
         </View>
-        {currentLoan.interest_rate && (
+        {currentLoan && currentLoan.interest_rate && (
           <View className="bg-amber-50 px-2 py-1 rounded-lg">
             <Text className="text-amber-700 text-[10px] font-bold">
               {currentLoan.interest_rate * 100}% APR
@@ -185,7 +190,7 @@ export default function MemberLoans() {
             Repayment Progress
           </Text>
           <Text style={{ color: theme.text }} className="text-xs font-bold">
-            {loanProgress}% Paid
+            {currentLoan ? loanProgress : 0}% Paid
           </Text>
         </View>
         <View
@@ -195,7 +200,7 @@ export default function MemberLoans() {
           <View
             style={{
               backgroundColor: theme.secondary,
-              width: `${loanProgress}%`,
+              width: `${currentLoan ? loanProgress : 0}%`,
             }}
             className="h-full rounded-full"
           />
@@ -215,7 +220,7 @@ export default function MemberLoans() {
             Next Installment
           </Text>
           <Text style={{ color: theme.text }} className="font-bold">
-            {currentLoan.outstanding_balance
+            {currentLoan && currentLoan.outstanding_balance
               ? formatCurrency(
                   currentLoan.total_payable / (currentLoan.tenure_months || 1),
                 )
@@ -230,7 +235,7 @@ export default function MemberLoans() {
             Due Date
           </Text>
           <Text style={{ color: theme.orange }} className="font-bold">
-            {currentLoan.disbursed_at
+            {currentLoan && currentLoan.disbursed_at
               ? getNextDate(currentLoan.disbursed_at)
               : "N/A"}
           </Text>
@@ -266,11 +271,15 @@ export default function MemberLoans() {
             Pending Application
           </Text>
           {pendingApps.map((app, index) => {
-            const rejectedReqs = loanGuarantors?.filter(
-              (g) => g.status === "rejected",
+            const safeGuarantors = Array.isArray(loanGuarantors)
+              ? loanGuarantors
+              : [];
+
+            const rejectedReqs = safeGuarantors.filter(
+              (g) => g?.status === "rejected",
             );
-            const activeReqs = loanGuarantors?.filter(
-              (g) => g.status === "pending" || g.status === "accepted",
+            const activeReqs = safeGuarantors.filter(
+              (g) => g?.status === "pending" || g?.status === "accepted",
             );
 
             return (
@@ -399,7 +408,7 @@ export default function MemberLoans() {
           >
             Special Loan Types
           </Text>
-          <View className="flex-row flex-wrap justify-between gap-3">
+          <View className="flex-row flex-wrap justify-between gap-3 w-full">
             <LoanActionCard
               title="Emergency"
               icon="flash"
@@ -470,7 +479,7 @@ export default function MemberLoans() {
   return (
     <SafeAreaView
       style={{ backgroundColor: theme.background }}
-      className="relative flex-1 w-full max-w-md h-full md:h-[90vh] md:max-h-[850px]"
+      className="relative flex-1"
     >
       {/* Absolute Background Header */}
       <View
@@ -497,7 +506,7 @@ export default function MemberLoans() {
               style={{ color: theme.text }}
               className="text-xs text-center mt-2"
             >
-              No history found. Your completed loans will appear here.
+              No history found. Your loan history will appear here.
             </Text>
           </View>
         }

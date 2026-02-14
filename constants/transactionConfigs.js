@@ -36,5 +36,4 @@ export const PAYMENT_METHODS = [
 export const ACCOUNTS = [
   { id: "Savings", label: "Savings Account" },
   { id: "Shares", label: "Shares Account" },
-  { id: "Fixed_Deposit", label: "Fixed Deposit Account" },
 ];

@@ -255,7 +255,8 @@ export default function Step5() {
 
             <Text className="text-slate-500 text-center leading-6 mb-8 px-2 font-medium">
               Your membership application has been successfully submitted to the
-              SACCO board for review. We will notify you via SMS once approved.
+              MONETA SACCO board for review.Stay tuned for updates concerning
+              your application.
             </Text>
 
             <Pressable

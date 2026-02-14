@@ -230,8 +230,15 @@ export default function MemberSavings() {
               You have not set any savings goals yet.
             </Text>
             <Pressable
-              disabled={!isApproved}
-              onPress={() => setIsGoalModalVisible(true)}
+              onPress={() => {
+                if (isApproved) {
+                  setIsGoalModalVisible(true);
+                } else {
+                  alert(
+                    "Feature will be available upon member application approval",
+                  );
+                }
+              }}
               style={{ backgroundColor: theme.primary }}
               className="px-8 py-3 rounded-2xl flex-row items-center shadow-sm"
             >
@@ -264,10 +271,17 @@ export default function MemberSavings() {
 
             {/* Add New Goal Button */}
             <Pressable
-              disabled={!isApproved}
               style={{ backgroundColor: theme.card, borderColor: theme.border }}
               className="mt-4 border-2 border-dashed p-6 rounded-3xl items-center justify-center"
-              onPress={() => setIsGoalModalVisible(true)}
+              onPress={() => {
+                if (isApproved) {
+                  setIsGoalModalVisible(true);
+                } else {
+                  alert(
+                    "Feature will be available upon member application approval",
+                  );
+                }
+              }}
             >
               <View
                 style={{ backgroundColor: theme.gray100 }}
@@ -311,24 +325,42 @@ export default function MemberSavings() {
           </View>
         </View>
 
+        {/* Chart Container */}
         <View
-          className="flex-row justify-between items-end w-full px-2"
+          className="flex-row justify-between items-end w-full px-4 mt-4" // Increased padding for breathability
           style={{ height: 180 }}
         >
           {chartData.length > 0 ? (
             chartData.map((item, index) => (
               <ChartBar
                 key={index}
-                label={item.label}
-                value={item.value}
-                dataPointText={item.dataPointText}
+                label={item.month}
+                value={item.closingBalance}
                 maxValue={maxValue}
+                style={{ width: `${100 / Math.max(chartData.length, 6)}%` }}
               />
             ))
           ) : (
-            <View className="flex-1 items-center justify-center">
-              <Text style={{ color: theme.gray400 }} className="text-xs">
-                No data available
+            <View className="flex-1 items-center justify-center h-full opacity-50">
+              <View className="bg-gray-100 p-4 rounded-full mb-2">
+                <Ionicons
+                  name="bar-chart-outline"
+                  size={32}
+                  color={theme.gray400}
+                />
+              </View>
+              <Text
+                style={{ color: theme.gray400 }}
+                className="text-xs font-medium text-center"
+              >
+                No activity yet
+              </Text>
+              <Text
+                style={{ color: theme.gray300 }}
+                className="text-[10px] text-center mt-1"
+              >
+                Data from Transactions of the last 6 months{"\n"}will appear
+                here.
               </Text>
             </View>
           )}
@@ -356,7 +388,7 @@ export default function MemberSavings() {
   return (
     <SafeAreaView
       style={{ backgroundColor: theme.background }}
-      className="flex-1 w-full max-w-md h-full md:h-[90vh] md:max-h-[850px]"
+      className="flex-1"
     >
       <View
         style={{ backgroundColor: theme.primary }}
@@ -391,7 +423,7 @@ export default function MemberSavings() {
           ListHeaderComponent={ListHeader}
           ListEmptyComponent={
             <View
-              className="items-center justify-center py-10 mx-6 rounded-3xl border-2 border-dashed"
+              className="items-center justify-center py-10 mx-6 rounded-3xl border-2 border-dashed mb-16"
               style={{ borderColor: theme.border }}
             >
               <View

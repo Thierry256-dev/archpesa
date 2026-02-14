@@ -343,7 +343,6 @@ export default function Step1() {
             if (validateStep()) {
               router.push("/(onboarding)/register/step-2");
             } else {
-              // Optional: Shake animation or toast could go here
             }
           }}
           className="bg-arch-blue h-16 rounded-2xl flex-row items-center justify-center shadow-xl shadow-indigo-200"

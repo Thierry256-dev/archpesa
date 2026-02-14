@@ -33,7 +33,7 @@ export default function RegisterIndex() {
             <Ionicons name="business" size={32} color="#4F46E5" />
           </View>
           <Text className="text-3xl font-extrabold text-slate-900 tracking-tight">
-            SACCO Membership
+            MONETA SACCO Membership
           </Text>
           <Text className="text-lg text-slate-500 mt-2 font-medium">
             Join our community in just a few steps.
@@ -67,9 +67,9 @@ export default function RegisterIndex() {
         <View className="bg-slate-50 p-5 rounded-[24px] border border-slate-100 flex-row items-start mb-10">
           <Ionicons name="information-circle" size={22} color="#64748B" />
           <Text className="text-slate-500 text-sm ml-3 leading-5 flex-1 font-medium">
-            Your application will be reviewed by SACCO administrators. Access to
-            savings, loans, and dividends will be granted immediately after
-            approval.
+            Your application will be reviewed by MONETA SACCO administrators.
+            Access to savings, loans, and dividends will be granted immediately
+            after approval.
           </Text>
         </View>
       </ScrollView>

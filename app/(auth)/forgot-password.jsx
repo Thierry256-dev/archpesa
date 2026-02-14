@@ -28,7 +28,7 @@ export default function ForgotPassword() {
   };
 
   return (
-    <View className="flex-1 w-full max-w-md h-full md:h-[90vh] md:max-h-[850px] justify-center px-6 bg-arch-blue">
+    <View className="flex-1 w-full">
       <Text className="text-2xl font-bold mb-2 text-white">Reset Password</Text>
       <Text className="text-gray-50 mb-6">
         Enter your email to receive a password reset link.

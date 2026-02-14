@@ -19,8 +19,6 @@ export default function MemberTabsLayout() {
           backgroundColor: theme.primary,
           height: 60,
           position: "absolute",
-
-          bottom: 20,
           left: isWeb ? "55%" : 20,
           right: isWeb ? "auto" : 20,
           transform: isWeb

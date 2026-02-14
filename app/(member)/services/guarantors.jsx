@@ -15,7 +15,7 @@ export default function Guarantors() {
   const [activeTab, setActiveTab] = useState("backing");
   const [confirmingRequest, setConfirmingRequest] = useState(null);
 
-  const { guarantorRequests } = useMemberAllInfo();
+  const { guarantorRequests } = useMemberAllInfo() || [];
 
   const acceptedRequests = guarantorRequests.filter(
     (r) => r.status === "accepted",
