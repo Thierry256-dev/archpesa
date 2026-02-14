@@ -38,6 +38,21 @@ const RISK_STYLES = {
   Loss: { bg: "bg-red-200", text: "text-red-900", icon: "skull" },
 };
 
+// ---------- SAFETY HELPERS ----------
+
+const safeArray = (v) => (Array.isArray(v) ? v : []);
+
+const safeString = (v) => (typeof v === "string" ? v : "");
+
+const safeNumber = (v) => (typeof v === "number" && !isNaN(v) ? v : 0);
+
+const safeId = (v, i) => v?.id?.toString?.() ?? i.toString();
+
+const safeDividePercent = (a, b) => {
+  if (!b || isNaN(a) || isNaN(b)) return 0;
+  return Math.floor((a / b) * 100);
+};
+
 export default function Loans() {
   const [statusFilter, setStatusFilter] = useState("All");
   const [riskFilter, setRiskFilter] = useState("All");
@@ -47,32 +62,61 @@ export default function Loans() {
   const [actionType, setActionType] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const { members, loans } = useAdminAllInfo();
+  const adminData = useAdminAllInfo() || {};
+
+  const members = safeArray(adminData.members);
+  const loans = safeArray(adminData.loans);
 
   const totals = useMemo(() => {
-    return computeSaccoTotals(members);
+    try {
+      return computeSaccoTotals(members) || {};
+    } catch (err) {
+      console.error("Totals error:", err);
+
+      return {
+        totalRepaidLoan: 0,
+        totalPayableLoans: 0,
+        totalOutstandingLoans: 0,
+        totalActiveLoan: 0,
+        totalPrincipal: 0,
+      };
+    }
   }, [members]);
 
-  const repaymentRate =
-    Math.floor(totals.totalRepaidLoan / totals.totalPayableLoans) * 100;
+  const repaymentRate = safeDividePercent(
+    safeNumber(totals.totalRepaidLoan),
+    safeNumber(totals.totalPayableLoans),
+  );
 
-  /* ----------------Filter LOGIC---------------- */
+  /* ----------------Filter---------------- */
   const filteredLoans = useMemo(() => {
-    return loans.filter((loan) => {
-      const matchesStatus =
-        statusFilter === "All" || loan.status === statusFilter;
-      const matchesRisk =
-        riskFilter === "All" || loan.risk_category === riskFilter;
+    const safeLoans = safeArray(loans);
+    const normalizedSearch = safeString(search).toLowerCase();
+
+    return safeLoans.filter((loan) => {
+      if (!loan || typeof loan !== "object") return false;
+
+      const status = safeString(loan.status);
+      const risk = safeString(loan.risk_category);
+      const name = safeString(loan.userName).toLowerCase();
+      const memberNo = safeString(loan.membership_no).toLowerCase();
+
+      const matchesStatus = statusFilter === "All" || status === statusFilter;
+
+      const matchesRisk = riskFilter === "All" || risk === riskFilter;
+
       const matchesSearch =
-        loan.userName.toLowerCase().includes(search.toLowerCase()) ||
-        loan.membership_no.toLowerCase().includes(search.toLowerCase());
+        name.includes(normalizedSearch) || memberNo.includes(normalizedSearch);
 
       return matchesStatus && matchesRisk && matchesSearch;
     });
   }, [statusFilter, riskFilter, search, loans]);
 
   const handleDisbursement = async () => {
-    if (!selectedLoan?.id) return;
+    if (!selectedLoan?.id) {
+      Alert.alert("Error", "Invalid loan selected.");
+      return;
+    }
 
     try {
       setIsProcessing(true);
@@ -101,7 +145,7 @@ export default function Loans() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-[#F1F5F9] w-full max-w-md h-full md:h-[90vh] md:max-h-[850px]">
+    <SafeAreaView className="flex-1 bg-[#F1F5F9] w-full">
       {/* 1. PROFESSIONAL HEADER & SEARCH */}
       <View className="px-5 pt-2 pb-4 bg-white border-b border-slate-100">
         <View className="flex-row justify-between items-center mb-4">
@@ -133,10 +177,9 @@ export default function Loans() {
 
       <FlatList
         data={filteredLoans}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item, index) => safeId(item, index)}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ padding: 20, paddingBottom: 100 }}
-        // HEADER COMPONENT (Metrics & Filters)
         ListHeaderComponent={
           <View className="mb-6">
             {/* 2. DASHBOARD SUMMARY CARD */}
@@ -184,7 +227,7 @@ export default function Loans() {
               </View>
             </View>
             <ExportButtons
-              filteredLoans={filteredLoans}
+              filteredLoans={safeArray(filteredLoans)}
               generateLoansExcelReport={generateLoansExcelReport}
               generateLoansPdfReport={generateLoansPdfReport}
             />
@@ -262,14 +305,17 @@ export default function Loans() {
             )}
           </View>
         }
-        renderItem={({ item }) => (
-          <LoanCard
-            loan={item}
-            RISK_STYLES={RISK_STYLES}
-            formatUGX={formatCurrency}
-            onPress={() => setSelectedLoan(item)}
-          />
-        )}
+        renderItem={({ item }) => {
+          if (!item) return null;
+          return (
+            <LoanCard
+              loan={item}
+              RISK_STYLES={RISK_STYLES}
+              formatUGX={formatCurrency}
+              onPress={() => setSelectedLoan(item)}
+            />
+          );
+        }}
         // Empty State
         ListEmptyComponent={
           <View className="items-center justify-center py-10">
@@ -296,15 +342,15 @@ export default function Loans() {
             {/* Loan Summary */}
             <View className="bg-slate-50 p-4 rounded-xl border border-slate-200 mb-4">
               <Text className="font-bold text-slate-800">
-                {selectedLoan.userName}
+                {safeString(selectedLoan?.userName) || "Unknown Member"}
               </Text>
               <Text className="text-xs text-slate-500 mb-2">
-                {selectedLoan.membership_no}
+                {safeString(selectedLoan?.membership_no) || "N/A"}
               </Text>
               <Text className="text-sm text-slate-700">
                 Principal:{" "}
                 <Text className="font-bold">
-                  {formatCurrency(selectedLoan.principal_amount)}
+                  {formatCurrency(safeNumber(selectedLoan?.principal_amount))}
                 </Text>
               </Text>
             </View>

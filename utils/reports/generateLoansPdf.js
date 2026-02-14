@@ -13,12 +13,10 @@ import { savePdfToDownloads } from "../saveToStorage";
 export const generateLoansPdfReport = async (
   loans,
   saccoInfo = {
-    name: "UMOJA SACCO LTD",
-    address: "P.O. Box 772, Kampala",
-    regNo: "SACCO-2024-8892",
+    name: "MONETA SAVINGS GROUP",
+    address: "Jinja Road, Kampala",
   },
 ) => {
-  // 1. Calculate Summary Stats for the "Executive Dashboard" at the top
   const totalPrincipal = loans.reduce((sum, l) => sum + l.principal, 0);
   const totalOutstanding = loans.reduce((sum, l) => sum + l.balance_due, 0);
   const totalArrears = loans.filter((l) => l.days_in_arrears > 0).length;
@@ -26,9 +24,8 @@ export const generateLoansPdfReport = async (
     ["Substandard", "Doubtful", "Loss"].includes(l.risk_category),
   ).length;
 
-  // 2. Helper for formatting currency
   const fmt = (n) =>
-    Number(n).toLocaleString("en-US", { minimumFractionDigits: 0 });
+    Number(n).toLocaleString("en-GB", { minimumFractionDigits: 0 });
   const dateStr = new Date().toLocaleDateString("en-GB", {
     day: "numeric",
     month: "long",
@@ -37,14 +34,12 @@ export const generateLoansPdfReport = async (
     minute: "2-digit",
   });
 
-  // 3. Generate Table Rows with Logic (Risk Colors)
   const rows = loans
     .map((l, i) => {
-      // Determine color for risk column
-      let riskColor = "#1e293b"; // Default dark slate
-      if (l.risk_category === "Substandard") riskColor = "#d97706"; // Orange
-      if (l.risk_category === "Doubtful") riskColor = "#dc2626"; // Red
-      if (l.risk_category === "Loss") riskColor = "#991b1b"; // Dark Red
+      let riskColor = "#1e293b";
+      if (l.risk_category === "Substandard") riskColor = "#d97706";
+      if (l.risk_category === "Doubtful") riskColor = "#dc2626";
+      if (l.risk_category === "Loss") riskColor = "#991b1b";
 
       return `
       <tr style="background-color: ${i % 2 === 0 ? "#ffffff" : "#f8fafc"}; border-bottom: 1px solid #e2e8f0;">
@@ -127,8 +122,7 @@ export const generateLoansPdfReport = async (
         <div class="header-grid">
           <div>
             <div class="sacco-name">${saccoInfo.name}</div>
-            <div class="sacco-address">${saccoInfo.address}</div>
-            <div class="sacco-address">Reg No: ${saccoInfo.regNo}</div>
+            <div class="sacco-address">${saccoInfo.address}</div>           
           </div>
           <div class="report-meta">
             <div class="report-title">Loan Portfolio Report</div>
@@ -197,6 +191,11 @@ export const generateLoansPdfReport = async (
   `;
 
   try {
+    if (Platform.OS === "web") {
+      await Print.printAsync({ html });
+      return;
+    }
+
     const { uri } = await Print.printToFileAsync({ html });
 
     if (Platform.OS === "android") {
@@ -210,7 +209,7 @@ export const generateLoansPdfReport = async (
       await Sharing.shareAsync(uri);
     }
   } catch (err) {
-    console.error("PDF Error:", err);
+    console.log("PDF Error:", err);
     Alert.alert("Error", "Failed to generate loan report");
   }
 };

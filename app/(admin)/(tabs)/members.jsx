@@ -15,17 +15,26 @@ export default function Members() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
 
-  const { members } = useAdminAllInfo();
+  const { members } = useAdminAllInfo() || {};
 
   const filteredMembers = useMemo(() => {
+    if (!Array.isArray(members)) return [];
+
     return members.filter((member) => {
+      if (!member) return false;
+
       const searchLower = search.toLowerCase();
 
+      const fName = (member.first_name || "").toLowerCase();
+      const lName = (member.last_name || "").toLowerCase();
+      const memNo = (member.membership_no || "").toLowerCase();
+      const phone = member.phone_number || "";
+
       const matchesSearch =
-        member.first_name?.toLowerCase().includes(searchLower) ||
-        member.last_name?.toLowerCase().includes(searchLower) ||
-        member.membership_no?.toLowerCase().includes(searchLower) ||
-        member.phone_number?.includes(search);
+        fName.includes(searchLower) ||
+        lName.includes(searchLower) ||
+        memNo.includes(searchLower) ||
+        phone.includes(search);
 
       const matchesFilter =
         filter === "all" ||
@@ -36,11 +45,13 @@ export default function Members() {
     });
   }, [members, search, filter]);
 
+  const totalMembers = members?.length || 0;
+  const suspendedCount = Array.isArray(members)
+    ? members.filter((m) => m?.member_status === "suspended").length
+    : 0;
+
   return (
-    <SafeAreaView
-      className="flex-1 bg-gray-50 w-full max-w-md h-full md:h-[90vh] md:max-h-[850px]"
-      edges={["top"]}
-    >
+    <SafeAreaView className="flex-1 bg-gray-50 w-full" edges={["top"]}>
       <View className="bg-arch-blue absolute w-full top-0 h-32" />
       <View>
         {/* HEADER SECTION */}
@@ -89,14 +100,8 @@ export default function Members() {
 
         {/* SUMMARY STATS */}
         <View className="flex-row justify-between px-6 mt-6 mb-4">
-          <StatCard label="Total Members" value={members?.length || 0} />
-          <StatCard
-            label="Suspended"
-            value={
-              members.filter((m) => m.member_status === "suspended").length
-            }
-            danger
-          />
+          <StatCard label="Total Members" value={totalMembers} />
+          <StatCard label="Suspended" value={suspendedCount} danger />
         </View>
 
         <Text className="px-6 mb-2 text-slate-400 text-[10px] font-bold uppercase tracking-widest">

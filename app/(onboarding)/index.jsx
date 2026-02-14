@@ -11,6 +11,7 @@ import {
   View,
   useWindowDimensions,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const slides = [
   {
@@ -44,6 +45,7 @@ export default function OnboardingScreen() {
   const router = useRouter();
   const flatListRef = useRef(null);
   const [index, setIndex] = useState(0);
+  const insets = useSafeAreaInsets();
 
   const { width, height } = useWindowDimensions();
 
@@ -59,7 +61,10 @@ export default function OnboardingScreen() {
   });
 
   return (
-    <View className="flex-1 bg-white z-1">
+    <View
+      style={{ paddingBottom: insets.bottom + 16 }}
+      className="flex-1 bg-white z-1"
+    >
       <StatusBar barStyle="light-content" />
 
       {/* Ambient Glows */}
@@ -111,7 +116,12 @@ export default function OnboardingScreen() {
         onViewableItemsChanged={onViewRef.current}
         viewabilityConfig={viewConfigRef.current}
         renderItem={({ item }) => (
-          <View style={{ width, height: height * 0.7 }}>
+          <View
+            style={{
+              width,
+              height: Math.min(height * 0.7, 520),
+            }}
+          >
             <Image
               source={item.image}
               style={{ width: "100%", height: "100%" }}
@@ -145,7 +155,10 @@ export default function OnboardingScreen() {
 
       {/* Floating Card */}
       <View className="flex-1 justify-end z-20">
-        <View className="mx-5 mb-10 bg-white rounded-[32px] p-8 shadow-2xl shadow-black/40">
+        <View
+          style={{ marginBottom: insets.bottom + 24 }}
+          className="mx-5 bg-white rounded-[32px] p-8 shadow-2xl shadow-black/40"
+        >
           {/* Indicators */}
           <View className="flex-row space-x-2 mb-6">
             {slides.map((_, i) => (

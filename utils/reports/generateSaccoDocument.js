@@ -64,8 +64,7 @@ export const generateAllMembersReportPdf = async (members = []) => {
         <td>${m.phone_number}</td>
         <td>${m.member_status.toUpperCase()}</td>
         <td style="text-align:right;">${Number(m.accounts[0].balance).toLocaleString()}</td>
-        <td style="text-align:right;">${Number(m.accounts[1].balance / 10000).toLocaleString()}</td>
-         <td style="text-align:right;">${Number(m.accounts[2].balance).toLocaleString()}</td>
+        <td style="text-align:right;">${Number(m.accounts[1].balance / 10000).toLocaleString()}</td>        
         
       </tr>
     `,
@@ -132,7 +131,7 @@ export const generateAllMembersReportPdf = async (members = []) => {
     </head>
     <body>
       <div class="header">
-        <div class="title">UMOJA SACCO SOCIETY</div>
+        <div class="title">MONETA SACCO SAVINGS GROUP</div>
         <div class="subtitle">Members Register & Financial Position</div>
       </div>
 
@@ -163,8 +162,7 @@ export const generateAllMembersReportPdf = async (members = []) => {
             <th>Phone</th>
             <th>Status</th>
             <th>Savings</th>
-            <th>Shares</th>
-            <th>Fixed Deposit</th>            
+            <th>Shares</th>                   
           </tr>
         </thead>
         <tbody>
@@ -181,6 +179,11 @@ export const generateAllMembersReportPdf = async (members = []) => {
 
   /* 4. Generate + Download */
   try {
+    if (Platform.OS === "web") {
+      await Print.printAsync({ html });
+      return;
+    }
+
     const { uri } = await Print.printToFileAsync({ html });
 
     if (Platform.OS === "android") {
@@ -201,7 +204,7 @@ export const generateAllMembersReportPdf = async (members = []) => {
       });
     }
   } catch (error) {
-    console.error("Members PDF Error:", error);
+    console.log("Members PDF Error:", error);
     Alert.alert("Error", "Failed to generate members report.");
   }
 };
@@ -284,7 +287,7 @@ export const generateSaccoLedger = async (transactions) => {
       </head>
       <body>
         <div class="header-container">
-          <h1 class="sacco-logo-text">UMOJA SACCO SOCIETY LIMITED</h1>
+          <h1 class="sacco-logo-text">MONETA SAVINGS GROUP</h1>
           <p class="sacco-tagline">"Empowering Members through Sustainable Financial Inclusion"</p>
           <span class="reg-info">Licensed & Regulated by UMRA</span>
           
@@ -357,6 +360,11 @@ export const generateSaccoLedger = async (transactions) => {
   `;
 
   try {
+    if (Platform.OS === "web") {
+      await Print.printAsync({ html });
+      return;
+    }
+
     const { uri } = await Print.printToFileAsync({ html });
     const pdfBase64 = await FileSystem.readAsStringAsync(uri, {
       encoding: FileSystem.EncodingType.Base64,
@@ -390,8 +398,7 @@ export const generateSaccoExcel = async (transactions = []) => {
 
     const worksheetData = [
       ["OFFICIAL SACCO TREASURY LEDGER"],
-      ["ORGANIZATION", "UMOJA SACCO SOCIETY LIMITED"],
-      ["REGULATION", "Licensed by UMRA"],
+      ["ORGANIZATION", "MONETA SAVINGS GROUP"],
       ["GENERATED AT", new Date().toLocaleString()],
       ["SUMMARY"],
       ["Total Credits (Inflow)", totalInflow],
@@ -480,7 +487,7 @@ export const generateSaccoExcel = async (transactions = []) => {
       });
     }
   } catch (error) {
-    console.error("Excel Export Error:", error);
+    console.log("Excel Export Error:", error);
     Alert.alert(
       "Export Failed",
       "Unable to generate the Excel report. Please ensure you have granted storage permissions.",
@@ -676,7 +683,7 @@ export const generateMemberStatementPdf = async ({
       
       <div class="header-container">
         <div class="brand-section">
-          <h1>MONETA SACCO SAVINGS GROUP</h1>
+          <h1>MONETA SAVINGS GROUP</h1>
           <p>Jinja Road, Kampala, Uganda</p>
           <p>+256 756 124 346</p>
         </div>

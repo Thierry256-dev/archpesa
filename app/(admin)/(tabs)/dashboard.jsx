@@ -16,22 +16,33 @@ import { formatCurrency } from "../../../utils/formatCurrency";
 
 export default function AdminDashboard() {
   const { theme } = useTheme();
-  const unreadCount = useUnreadNotificationCount();
+  const unreadCount = useUnreadNotificationCount(0);
   const [showBalance, setShowBalance] = useState(true);
   const router = useRouter();
   const adminRole = "treasurer";
   const roleConfig = ROLE_CONFIG[adminRole];
 
-  const { members } = useAdminAllInfo();
+  const alerts = [];
+  const activities = [];
 
+  const { members } = useAdminAllInfo() || 0;
   const totals = useMemo(() => {
-    return computeSaccoTotals(members);
+    if (!members || !Array.isArray(members)) {
+      return { totalSaccoValue: 0, cashAtHand: 0, totalSavings: 0 };
+    }
+
+    try {
+      return computeSaccoTotals(members);
+    } catch (error) {
+      console.error("Error computing totals:", error);
+      return { totalSaccoValue: 0, cashAtHand: 0, totalSavings: 0 };
+    }
   }, [members]);
 
   return (
     <View
       style={{ backgroundColor: theme.background }}
-      className="flex-1 w-full max-w-md h-full md:h-[90vh] md:max-h-[850px]"
+      className="flex-1 w-full"
     >
       <View className="relative w-full h-80 rounded-b-[20px] overflow-hidden z-0">
         <Image
@@ -86,7 +97,7 @@ export default function AdminDashboard() {
 
           <View className="px-2">
             <Text className="text-white/80 font-medium text-base mb-1">
-              UMOJA SACCO
+              MONETA SACCO
             </Text>
             <Text className="text-white font-black text-3xl shadow-sm">
               Admin Dashboard
@@ -129,7 +140,7 @@ export default function AdminDashboard() {
             className="text-3xl text-center font-extrabold mb-4"
           >
             {showBalance
-              ? `${formatCurrency(totals.totalSaccoValue)}`
+              ? `${formatCurrency(totals.totalSaccoValue || 0)}`
               : "••••••••••"}
           </Text>
 
@@ -149,7 +160,7 @@ export default function AdminDashboard() {
                 className="text-lg font-semibold mt-1"
               >
                 {showBalance
-                  ? `${formatCurrency(totals.cashAtHand)}`
+                  ? `${formatCurrency(totals.cashAtHand || 0)}`
                   : "••••••"}
               </Text>
             </View>
@@ -165,7 +176,7 @@ export default function AdminDashboard() {
                 className="text-lg font-semibold mt-1"
               >
                 {showBalance
-                  ? `${formatCurrency(totals.totalSavings)}`
+                  ? `${formatCurrency(totals.totalSavings || 0)}`
                   : "••••••"}
               </Text>
             </View>
@@ -200,7 +211,7 @@ export default function AdminDashboard() {
             </View>
           </View>
 
-          <View className="mb-12">
+          <View>
             <View className="flex-row justify-between items-center mb-4">
               <Text style={{ color: theme.text }} className="text-lg font-bold">
                 Attention Needed
@@ -213,62 +224,130 @@ export default function AdminDashboard() {
                   style={{ color: theme.rose }}
                   className="text-sm font-bold"
                 >
-                  3 Alerts
+                  {alerts.length} Alerts
                 </Text>
               </View>
             </View>
 
-            <View className="gap-y-3">
-              <AlertCard
-                icon="alert-circle-outline"
-                iconColor={theme.rose}
-                bgColor={theme.rose + "10"}
-                title="Kabazi Fred"
-                subtitle="Loan overdue by 3 days"
-                status="overdue"
-                amount="UGX 50k"
-                action="Call"
-              />
-              <AlertCard
-                icon="document-text-outline"
-                iconColor={theme.primary}
-                bgColor={theme.primary + "10"}
-                title="Sarah K."
-                subtitle="Loan pending"
-                status="pending"
-                amount="UGX 20k"
-                action="Review"
-              />
-            </View>
+            {!alerts || alerts.length === 0 ? (
+              <View
+                style={{
+                  backgroundColor: theme.card,
+                  borderStyle: "dashed",
+                  borderWidth: 1,
+                  borderColor: theme.border,
+                }}
+                className="rounded-3xl p-10 items-center justify-center"
+              >
+                <View
+                  style={{ backgroundColor: theme.emerald + "15" }}
+                  className="p-4 rounded-full mb-4"
+                >
+                  <Ionicons
+                    name="shield-checkmark-outline"
+                    size={32}
+                    color={theme.emerald}
+                  />
+                </View>
+                <Text
+                  style={{ color: theme.text }}
+                  className="text-base font-bold text-center"
+                >
+                  All caught up!
+                </Text>
+                <Text
+                  style={{ color: theme.gray400 }}
+                  className="text-xs text-center mt-1"
+                >
+                  No urgent alerts or overdue loans to display.
+                </Text>
+              </View>
+            ) : (
+              <View className="gap-y-3">
+                <View className="mb-12">
+                  <View className="gap-y-3">
+                    <AlertCard
+                      icon="alert-circle-outline"
+                      iconColor={theme.rose}
+                      bgColor={theme.rose + "10"}
+                      title="Kabazi Fred"
+                      subtitle="Loan overdue by 3 days"
+                      status="overdue"
+                      amount="UGX 50k"
+                      action="Call"
+                    />
+                    <AlertCard
+                      icon="document-text-outline"
+                      iconColor={theme.primary}
+                      bgColor={theme.primary + "10"}
+                      title="Sarah K."
+                      subtitle="Loan pending"
+                      status="pending"
+                      amount="UGX 20k"
+                      action="Review"
+                    />
+                  </View>
+                </View>
+              </View>
+            )}
           </View>
 
-          <View className="mb-20">
+          <View>
             <Text
               style={{ color: theme.text }}
-              className="text-lg font-bold mb-4"
+              className="text-lg font-bold my-4"
             >
               Recent Activity
             </Text>
             <View
               style={{ backgroundColor: theme.card }}
-              className="rounded-2xl p-4"
+              className="rounded-2xl p-8 items-center mb-20"
             >
-              <ActivityItem
-                icon="checkmark-circle-outline"
-                color={theme.emerald}
-                title="Loan Approved"
-                description="Jane M. • UGX 15,000"
-                time="2h ago"
-                theme={theme}
-              />
-              <ActivityItem
-                icon="arrow-down-circle-outline"
-                color={theme.primary}
-                title="Deposit Received"
-                description="Peter K. • UGX 5,000"
-                time="Yesterday"
-                theme={theme}
-              />
+              {!activities || activities.length === 0 ? (
+                <>
+                  <Ionicons
+                    name="receipt-outline"
+                    size={40}
+                    color={theme.gray300}
+                  />
+                  <Text
+                    style={{ color: theme.gray500 }}
+                    className="text-sm font-medium mt-3 text-center"
+                  >
+                    Feature Coming Soon!
+                  </Text>
+                  <Text
+                    style={{ color: theme.gray400 }}
+                    className="text-[10px] text-center mt-1"
+                  >
+                    New activity will appear here as it happens.
+                  </Text>
+                </>
+              ) : (
+                <View className="mb-20">
+                  <View
+                    style={{ backgroundColor: theme.card }}
+                    className="rounded-2xl p-4"
+                  >
+                    <ActivityItem
+                      icon="checkmark-circle-outline"
+                      color={theme.emerald}
+                      title="Loan Approved"
+                      description="Jane M. • UGX 15,000"
+                      time="2h ago"
+                      theme={theme}
+                    />
+                    <ActivityItem
+                      icon="arrow-down-circle-outline"
+                      color={theme.primary}
+                      title="Deposit Received"
+                      description="Peter K. • UGX 5,000"
+                      time="Yesterday"
+                      theme={theme}
+                    />
+                  </View>
+                </View>
+              )}
             </View>
           </View>
         </View>

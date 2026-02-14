@@ -295,7 +295,7 @@ export default function LedgerPage() {
   );
 
   return (
-    <SafeAreaView className="flex-1 bg-[#F8FAFC] w-full max-w-md h-full md:h-[90vh] md:max-h-[850px]">
+    <SafeAreaView className="flex-1 bg-[#F8FAFC] w-full">
       {/* --- NAVIGATION HEADER --- */}
       <View className="px-6 py-4 bg-white border-b border-slate-100 flex-row justify-between items-center z-50">
         <View>

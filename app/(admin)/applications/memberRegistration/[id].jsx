@@ -130,7 +130,7 @@ export default function ApplicationDetail() {
   );
 
   return (
-    <View className="flex-1 bg-slate-50 w-full max-w-md h-full md:h-[90vh] md:max-h-[850px]">
+    <View className="flex-1 bg-slate-50 w-full">
       <StatusBar barStyle="dark-content" />
 
       {/* HEADER WITH BACK BUTTON */}

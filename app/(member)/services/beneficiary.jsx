@@ -16,7 +16,7 @@ export default function Beneficiary() {
   return (
     <SafeAreaView
       style={{ flex: 1, backgroundColor: theme.background }}
-      className="w-full max-w-md h-full md:h-[90vh] md:max-h-[850px]"
+      className="w-full"
     >
       <View className="absolute top-0 w-full h-20 bg-arch-blue" />
       {/* HEADER */}

@@ -3,36 +3,69 @@ import {
   debitTransactionTypes,
 } from "../../constants/admin/transactionTypes";
 
+function safeLower(value) {
+  if (typeof value !== "string") return "";
+  return value.toLowerCase();
+}
+
+function safeDate(value) {
+  const d = new Date(value);
+  return isNaN(d.getTime()) ? null : d;
+}
+
+function safeArray(value) {
+  return Array.isArray(value) ? value : [];
+}
+
 export function filterMemberTransactions(
   transactions = [],
   { filterType = "all", searchQuery = "", range, isFilterActive = false } = {},
 ) {
-  const normalizedSearch = searchQuery.toLowerCase();
+  const safeTransactions = safeArray(transactions);
 
-  return transactions.filter((tx) => {
-    const txDate = new Date(tx.created_at);
+  const normalizedSearch = safeLower(searchQuery);
 
-    const matchesStatus = tx.status === "Completed";
+  return safeTransactions.filter((tx) => {
+    if (!tx || typeof tx !== "object") return false;
 
-    const matchesRange =
-      !isFilterActive ||
-      (txDate >= new Date(range.start).setHours(0, 0, 0, 0) &&
-        txDate <= new Date(range.end).setHours(23, 59, 59, 999));
+    const matchesStatus =
+      typeof tx.status === "string" ? tx.status === "Completed" : false;
 
-    const matchesType =
-      filterType === "all"
-        ? true
-        : filterType === "Credit"
-          ? creditTransactionTypes.includes(tx.transaction_type)
-          : debitTransactionTypes.includes(tx.transaction_type);
+    let matchesRange = true;
+
+    if (isFilterActive && range?.start && range?.end) {
+      const txDate = safeDate(tx.created_at);
+      const start = safeDate(range.start);
+      const end = safeDate(range.end);
+
+      if (!txDate || !start || !end) {
+        matchesRange = false;
+      } else {
+        start.setHours(0, 0, 0, 0);
+        end.setHours(23, 59, 59, 999);
+
+        matchesRange = txDate >= start && txDate <= end;
+      }
+    }
+
+    let matchesType = true;
+
+    if (filterType !== "all") {
+      const txType =
+        typeof tx.transaction_type === "string" ? tx.transaction_type : "";
+
+      if (filterType === "Credit") {
+        matchesType = creditTransactionTypes?.includes(txType) ?? false;
+      } else if (filterType === "Debit") {
+        matchesType = debitTransactionTypes?.includes(txType) ?? false;
+      }
+    }
 
     const matchesSearch =
-      (tx.external_reference &&
-        tx.external_reference.toLowerCase().includes(normalizedSearch)) ||
-      (tx.reference_id &&
-        tx.reference_id.toLowerCase().includes(normalizedSearch)) ||
-      tx.id.toLowerCase().includes(normalizedSearch) ||
-      (tx.notes && tx.notes.toLowerCase().includes(normalizedSearch));
+      safeLower(tx.external_reference).includes(normalizedSearch) ||
+      safeLower(tx.reference_id).includes(normalizedSearch) ||
+      safeLower(tx.id).includes(normalizedSearch) ||
+      safeLower(tx.notes).includes(normalizedSearch);
 
     return matchesStatus && matchesType && matchesSearch && matchesRange;
   });
@@ -42,24 +75,25 @@ export function filterTransactionsByTotalsType(
   transactions = [],
   totalsFilter = "all",
 ) {
-  if (totalsFilter === "all") return transactions;
+  const safeTransactions = safeArray(transactions);
 
-  return transactions.filter((tx) => {
+  if (totalsFilter === "all") return safeTransactions;
+
+  return safeTransactions.filter((tx) => {
+    if (!tx || typeof tx !== "object") return false;
+
+    const type =
+      typeof tx.transaction_type === "string" ? tx.transaction_type : "";
+
     switch (totalsFilter) {
       case "loans":
-        return (
-          tx.transaction_type === "Loan_Repayment" ||
-          tx.transaction_type === "Loan_Disbursement"
-        );
+        return type === "Loan_Repayment" || type === "Loan_Disbursement";
 
       case "savings":
-        return (
-          tx.transaction_type === "Savings_Deposit" ||
-          tx.transaction_type === "Savings_Withdraw"
-        );
+        return type === "Savings_Deposit" || type === "Savings_Withdraw";
 
       case "shares":
-        return tx.transaction_type === "Share_Purchase";
+        return type === "Share_Purchase";
 
       default:
         return true;
@@ -69,16 +103,22 @@ export function filterTransactionsByTotalsType(
 
 export function applyAllTransactionFilters(
   transactions,
-  { filterType, totalsFilter, searchQuery, range, isFilterActive },
+  { filterType, totalsFilter, searchQuery, range, isFilterActive } = {},
 ) {
-  let result = filterTransactionsByTotalsType(transactions, totalsFilter);
+  try {
+    let result = filterTransactionsByTotalsType(transactions, totalsFilter);
 
-  result = filterMemberTransactions(result, {
-    filterType,
-    searchQuery,
-    range,
-    isFilterActive,
-  });
+    result = filterMemberTransactions(result, {
+      filterType,
+      searchQuery,
+      range,
+      isFilterActive,
+    });
 
-  return result;
+    return safeArray(result);
+  } catch (error) {
+    console.error("applyAllTransactionFilters error:", error);
+
+    return [];
+  }
 }

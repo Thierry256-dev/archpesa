@@ -22,7 +22,7 @@ export default function PendingApplications() {
   }, [registrationForms]);
 
   return (
-    <SafeAreaView className="flex-1 bg-slate-50 w-full max-w-md h-full md:h-[90vh] md:max-h-[850px]">
+    <SafeAreaView className="flex-1 bg-slate-50 w-full">
       <StatusBar barStyle="dark-content" />
 
       <View className="px-6 pt-6 pb-4 bg-white border-b border-slate-100">
