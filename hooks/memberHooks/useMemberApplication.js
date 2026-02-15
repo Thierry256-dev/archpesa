@@ -41,7 +41,7 @@ export function useMemberApplication(userId, options = {}) {
       table: "member_applications",
       filter: `auth_user_id=eq.${userId}`,
       onChange: (payload) => {
-        console.log("Realtime update:", payload);
+        console.log("Realtime update:");
         queryClient.invalidateQueries({ queryKey: QUERY_KEY });
       },
     });

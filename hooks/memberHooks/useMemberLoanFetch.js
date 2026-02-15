@@ -33,7 +33,7 @@ export function useMemberLoanFetch(userId, options = {}) {
       table: "loans",
       filter: `user_id=eq.${userId}`,
       onChange: (payload) => {
-        console.log("Realtime update:", payload);
+        console.log("Realtime update:");
         queryClient.invalidateQueries({ queryKey: QUERY_KEY });
       },
     });

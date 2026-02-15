@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase";
+import { Platform } from "react-native";
 
 export async function uploadTransactionProof({ uri, userId }) {
   const fileName = `user_${userId}_${Date.now()}.jpg`;
@@ -6,11 +7,15 @@ export async function uploadTransactionProof({ uri, userId }) {
 
   const formData = new FormData();
 
-  formData.append("file", {
-    uri,
-    name: fileName,
-    type: "image/jpeg",
-  });
+  if (Platform.OS === "web") {
+    formData.append("file", uri);
+  } else {
+    formData.append("file", {
+      uri,
+      name: fileName,
+      type: "image/jpeg",
+    });
+  }
 
   const { data, error } = await supabase.storage
     .from("transaction-proofs")
@@ -19,7 +24,7 @@ export async function uploadTransactionProof({ uri, userId }) {
     });
 
   if (error) {
-    console.error("Storage upload error:", error);
+    console.log("Storage upload error:", error);
     throw error;
   }
 

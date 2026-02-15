@@ -333,12 +333,15 @@ export default function MemberDashboard() {
                 style={{ color: theme.gray500 }}
                 className="text-[10px] mt-1.5"
               >
-                You can borrow up to
+                You can borrow up to{" "}
                 <Text style={{ color: theme.emerald }} className="font-bold">
                   UGX{" "}
-                  {(
-                    dashboardData.loanLimit - activeLoanObj?.outstanding_balance
-                  ).toLocaleString()}
+                  {activeLoanObj?.outstanding_balance
+                    ? (
+                        dashboardData.loanLimit -
+                        activeLoanObj?.outstanding_balance
+                      ).toLocaleString()
+                    : dashboardData.loanLimit}
                 </Text>{" "}
                 more.
               </Text>

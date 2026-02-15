@@ -2,51 +2,70 @@ import { useTheme } from "@/context/ThemeProvider";
 import { Ionicons } from "@expo/vector-icons";
 import { Pressable, Text, View } from "react-native";
 
-export function ChartBar({ label, value, dataPointText, maxValue }) {
+export function ChartBar({
+  label = "",
+  value = 0,
+  dataPointText = "",
+  maxValue = 100,
+  style,
+  onPress,
+  isActive,
+}) {
   const { theme } = useTheme();
-
   const MAX_BAR_HEIGHT = 150;
+  const safeValue = Number(value) || 0;
+  const safeMax = Number(maxValue) || 0;
 
-  const barHeight = maxValue > 0 ? (value / maxValue) * MAX_BAR_HEIGHT : 0;
+  let calculatedHeight =
+    safeMax > 0 ? (safeValue / safeMax) * MAX_BAR_HEIGHT : 0;
+  const barHeight = Math.min(Math.max(calculatedHeight, 0), MAX_BAR_HEIGHT);
 
-  const isActive = value === maxValue;
+  const displayLabel = (label || "---").toString();
+  const displayValue = dataPointText || safeValue.toLocaleString();
 
   return (
-    <Pressable className="items-center w-12 h-full justify-end">
+    <Pressable
+      onPress={onPress}
+      style={style}
+      className="items-center h-full justify-end"
+    >
+      {/* Tooltip */}
       {isActive && (
         <View
           style={{
             backgroundColor: theme.gray800,
-            bottom: barHeight + 25,
+            bottom: barHeight + 10,
+            zIndex: 50,
           }}
-          className="w-16 px-2 py-1 rounded mb-1 shadow-sm absolute"
+          className="px-2 py-1 rounded shadow-sm absolute items-center min-w-[40px]"
         >
-          <Text className="text-white text-[10px] font-bold">
-            {dataPointText}
+          <Text className="text-white text-[10px] font-bold" numberOfLines={1}>
+            {displayValue}
           </Text>
           <View
             style={{ backgroundColor: theme.gray800 }}
-            className="absolute -bottom-1 left-7 w-2 h-2 rotate-45"
+            className="absolute -bottom-1 w-2 h-2 rotate-45"
           />
         </View>
       )}
 
+      {/* The Bar */}
       <View
-        className="w-4"
+        className="w-4 rounded-t-md"
         style={{
           height: barHeight,
           backgroundColor: isActive ? theme.primary : theme.gray200,
-          borderTopRightRadius: 6,
-          borderTopLeftRadius: 6,
-          opacity: value === maxValue ? 1 : 0.7,
+          opacity: isActive ? 1 : 0.6,
         }}
       />
 
+      {/* The Label */}
       <Text
         style={{ color: theme.gray400 }}
-        className="text-[10px] mt-2 font-bold uppercase"
+        className="text-[10px] mt-2 font-bold uppercase text-center"
+        numberOfLines={1}
       >
-        {label.substring(0, 3)}
+        {displayLabel.substring(0, 3)}
       </Text>
     </Pressable>
   );

@@ -18,7 +18,7 @@ export function AuthProvider({ children }) {
       await storage.setItem("rememberMe", value ? "1" : "0");
       setRememberMeState(value);
     } catch (error) {
-      console.error("Failed to save rememberMe preference:", error);
+      console.log("Failed to save rememberMe preference:", error);
     }
   };
 
@@ -35,7 +35,7 @@ export function AuthProvider({ children }) {
       await supabase.auth.signOut();
       await storage.removeItem("rememberMe");
     } catch (error) {
-      console.error("Error during sign out:", error);
+      console.log("Error during sign out:", error);
     }
   };
 
@@ -47,7 +47,7 @@ export function AuthProvider({ children }) {
 
       return data;
     } catch (err) {
-      console.error("Context fetch failed:", err);
+      console.log("Context fetch failed:", err);
       return null;
     }
   };
@@ -91,7 +91,7 @@ export function AuthProvider({ children }) {
           setContextLoading(false);
         }
       } catch (error) {
-        console.error("Auth init failed:", error);
+        console.log("Auth init failed:", error);
         if (isMounted) setAuthLoading(false);
       }
     };

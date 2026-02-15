@@ -144,16 +144,24 @@ export default function LoanApplicationForm({ onClose }) {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      className="flex-1 justify-end"
+      className={`flex-1 ${
+        Platform.OS === "web" ? "items-center justify-center" : "justify-end"
+      }`}
       style={{
         backgroundColor: theme.surface,
       }}
     >
       <Animated.View
         style={{
+          backgroundColor: theme.card,
           transform: [{ translateY: pan.y }],
+          width: Platform.OS === "web" ? "100%" : undefined,
+          maxWidth: Platform.OS === "web" ? 430 : undefined,
+          maxHeight: Platform.OS === "web" ? "90vh" : undefined,
         }}
-        className="bg-white rounded-t-[40px] h-[92%] p-8"
+        className={`p-8 ${
+          Platform.OS === "web" ? "rounded-3xl" : "rounded-t-[40px] h-[92%]"
+        }`}
       >
         <View
           {...panResponder.panHandlers}
@@ -162,7 +170,12 @@ export default function LoanApplicationForm({ onClose }) {
           <View className="w-12 h-1.5 bg-gray-200 rounded-full" />
         </View>
 
-        <ScrollView showsVerticalScrollIndicator={false}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{
+            paddingBottom: Platform.OS === "web" ? 24 : 0,
+          }}
+        >
           {/* HEADER */}
           <View className="flex-row justify-between items-center mb-6">
             <View>

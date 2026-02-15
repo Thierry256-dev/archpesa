@@ -47,7 +47,10 @@ export default function AdminDashboard() {
       <View className="relative w-full h-80 rounded-b-[20px] overflow-hidden z-0">
         <Image
           source={require("../../../assets/images/welcome.png")}
-          className="w-full h-full object-cover"
+          style={{
+            width: "100%",
+            height: "100%",
+          }}
         />
         <View className="absolute inset-0 bg-black/40" />
       </View>

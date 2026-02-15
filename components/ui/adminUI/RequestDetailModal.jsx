@@ -31,6 +31,8 @@ export const RequestDetailModal = ({
   const [loadingProof, setLoadingProof] = useState(false);
   const [confirmApprove, setConfirmApprove] = useState(false);
   const [confirmReject, setConfirmReject] = useState(false);
+  const [isImageModalVisible, setIsImageModalVisible] = useState(false);
+  const [imgLoading, setImgLoading] = useState(true);
 
   useEffect(() => {
     let mounted = true;
@@ -204,7 +206,7 @@ export const RequestDetailModal = ({
             />
             <DetailBox
               icon="barcode-outline"
-              label="Reference"
+              label="Transaction ID"
               value={req.external_reference || "System Generated"}
               theme={theme}
             />
@@ -243,7 +245,10 @@ export const RequestDetailModal = ({
                 <ActivityIndicator color={theme.primary} />
               </View>
             ) : proofUrl ? (
-              <Pressable className="relative h-64 w-full bg-black/5">
+              <Pressable
+                onPress={() => setIsImageModalVisible(true)}
+                className="relative h-64 w-full bg-black/5"
+              >
                 <Image
                   source={{ uri: proofUrl }}
                   className="w-full h-full"
@@ -353,6 +358,36 @@ export const RequestDetailModal = ({
           }}
         />
       </View>
+      <Modal
+        visible={isImageModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setIsImageModalVisible(false)}
+      >
+        <View className="flex-1 bg-black/90 justify-center items-center relative">
+          <Pressable
+            onPress={() => setIsImageModalVisible(false)}
+            className="absolute top-12 right-6 z-50 bg-white/20 p-2 rounded-full"
+          >
+            <Ionicons name="close" size={24} color="white" />
+          </Pressable>
+
+          {imgLoading && (
+            <ActivityIndicator
+              size="large"
+              color="white"
+              className="absolute"
+            />
+          )}
+
+          <Image
+            source={{ uri: proofUrl }}
+            className="w-full h-full"
+            resizeMode="contain"
+            onLoadEnd={() => setImgLoading(false)}
+          />
+        </View>
+      </Modal>
     </Modal>
   );
 };

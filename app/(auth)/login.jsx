@@ -169,19 +169,21 @@ export default function Login() {
 
             {/* Remember Me & Forgot Password */}
             <View className="flex-row items-center justify-between mb-8">
-              <Pressable
-                className="flex-row items-center py-2"
-                onPress={() => setRememberMe(!rememberMe)}
-              >
-                <Ionicons
-                  name={rememberMe ? "checkbox" : "square-outline"}
-                  size={22}
-                  color={rememberMe ? "#0F172A" : "#94A3B8"} // Assuming #0F172A is close to primary
-                />
-                <Text className="ml-2 text-gray-600 font-medium text-sm">
-                  Remember me
-                </Text>
-              </Pressable>
+              {Platform.OS !== "web" && (
+                <Pressable
+                  className="flex-row items-center py-2"
+                  onPress={() => setRememberMe(!rememberMe)}
+                >
+                  <Ionicons
+                    name={rememberMe ? "checkbox" : "square-outline"}
+                    size={22}
+                    color={rememberMe ? "#0F172A" : "#94A3B8"}
+                  />
+                  <Text className="ml-2 text-gray-600 font-medium text-sm">
+                    Remember me
+                  </Text>
+                </Pressable>
+              )}
 
               <Pressable onPress={() => router.push("/(auth)/forgot-password")}>
                 <Text className="text-brand-secondary font-semibold text-sm">

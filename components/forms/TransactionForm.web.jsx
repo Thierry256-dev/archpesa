@@ -9,6 +9,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Image,
+  Platform,
   Pressable,
   ScrollView,
   Text,
@@ -51,7 +52,10 @@ export default function TransactionForm({
   const [targetAccount, setTargetAccount] = useState("Savings");
   const [amount, setAmount] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("MTN_MoMo");
-  const [proofImage, setProofImage] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
+  const [ocrImage, setOcrImage] = useState(null);
+  const [uploadFile, setUploadFile] = useState(null);
+
   const [manualTransactionId, setManualTransactionId] = useState("");
   const [notes, setNotes] = useState("");
 
@@ -94,7 +98,7 @@ export default function TransactionForm({
   const isSubmitDisabled =
     !isDeclared ||
     !numericAmount ||
-    (requiresProof && !proofImage) ||
+    (requiresProof && !previewUrl) ||
     (requiresProof && !finalExternalReference) ||
     exceedsBalance ||
     isSubmitting;
@@ -116,7 +120,7 @@ export default function TransactionForm({
         setOcrData(null);
       }
     } catch (err) {
-      console.error("OCR error:", err);
+      console.log("OCR error:", err);
       setOcrData(null);
     } finally {
       setIsOCRProcessing(false);
@@ -133,28 +137,53 @@ export default function TransactionForm({
 
   const handleFileChange = (event) => {
     const file = event.target.files?.[0];
-    if (file && file.type.startsWith("image/")) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setProofImage(reader.result);
-      };
-      reader.readAsDataURL(file);
-    }
+
+    if (!file || !file.type.startsWith("image/")) return;
+
+    setUploadFile(file);
+
+    const blobUrl = URL.createObjectURL(file);
+    setPreviewUrl(blobUrl);
+
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      const base64 = reader.result;
+      setOcrImage(base64);
+      runOCR(base64);
+    };
+
+    reader.readAsDataURL(file);
   };
 
   const handleFormSubmit = () => {
     if (exceedsBalance) return;
 
-    onSubmit({
+    if (!finalExternalReference) {
+      alert("Transaction reference is required");
+      return;
+    }
+
+    const payload = {
       targetAccount,
       amount: numericAmount,
       transactionType,
       paymentMethod,
       external_reference: finalExternalReference,
-      proofImage,
       notes,
       isDeclared,
-    });
+
+      proofImage:
+        Platform.OS === "web"
+          ? uploadFile
+          : {
+              uri: previewUrl,
+              name: "proof.jpg",
+              type: "image/jpeg",
+            },
+    };
+
+    onSubmit(payload);
   };
 
   useEffect(() => {
@@ -163,14 +192,13 @@ export default function TransactionForm({
     }
   }, [txType]);
 
-  const lastScannedRef = useRef(null);
-
   useEffect(() => {
-    if (!proofImage || proofImage === lastScannedRef.current) return;
-
-    lastScannedRef.current = proofImage;
-    runOCR(proofImage);
-  }, [proofImage]);
+    return () => {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
 
   return (
     <View>
@@ -434,7 +462,7 @@ export default function TransactionForm({
             Proof of Payment
           </Text>
 
-          {!proofImage ? (
+          {!previewUrl ? (
             <Pressable
               onPress={pickImage}
               style={{
@@ -461,7 +489,7 @@ export default function TransactionForm({
             <View className="w-full">
               <View className="relative h-48 w-full rounded-2xl overflow-hidden mb-4">
                 <Image
-                  source={{ uri: proofImage }}
+                  source={{ uri: previewUrl }}
                   className="w-full h-full"
                   resizeMode="cover"
                 />
@@ -664,9 +692,9 @@ export default function TransactionForm({
             backgroundColor: theme.primary,
             shadowColor: theme.primary,
             shadowOffset: { width: 0, height: 10 },
-            shadowOpacity: !isDeclared || !amount || !proofImage ? 0 : 0.3,
+            shadowOpacity: !isDeclared || !amount || !previewUrl ? 0 : 0.3,
             shadowRadius: 15,
-            elevation: !isDeclared || !amount || !proofImage ? 0 : 8,
+            elevation: !isDeclared || !amount || !previewUrl ? 0 : 8,
           }}
           className="w-full h-16 rounded-2xl items-center justify-center flex-row bg-arch-blue"
         >
@@ -681,7 +709,7 @@ export default function TransactionForm({
             <>
               <Text
                 className={`font-bold text-lg ${
-                  !isDeclared || !amount || !proofImage
+                  !isDeclared || !amount || !previewUrl
                     ? "text-gray-400"
                     : "text-white"
                 }`}
@@ -689,7 +717,7 @@ export default function TransactionForm({
                 Submit Transaction
               </Text>
 
-              {isDeclared && amount && proofImage && (
+              {isDeclared && amount && previewUrl && (
                 <View className="absolute right-6 bg-white/20 p-1.5 rounded-full">
                   <Ionicons name="arrow-forward" size={18} color="white" />
                 </View>

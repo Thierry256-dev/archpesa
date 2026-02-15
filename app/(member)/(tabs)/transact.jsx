@@ -11,7 +11,6 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { toast } from "sonner-native";
 
 // --- Hooks & Services ---
 import { useAuth } from "@/context/AuthContext";
@@ -44,13 +43,31 @@ export default function TransactPage() {
   const [txType, setTxType] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const safeLoans = Array.isArray(loans) ? loans : [];
+  const safeTxRequests = Array.isArray(transactionRequests)
+    ? transactionRequests
+    : [];
+
   const handleSelectType = (typeId) => {
-    if (isApproved) {
-      setTxType(typeId);
-      setStep("form");
-    } else {
+    if (!isApproved) {
       alert("Feature will be available upon member application approval");
+      return;
     }
+
+    if (typeId === "repay") {
+      const activeLoan = safeLoans.find((l) => l.status === "Disbursed");
+
+      if (!activeLoan) {
+        alert(
+          "No Active Loan Found",
+          "You do not have any disbursed loans currently requiring repayment.",
+        );
+        return;
+      }
+    }
+
+    setTxType(typeId);
+    setStep("form");
   };
 
   const handleChangeStep = (newStep) => {
@@ -70,8 +87,8 @@ export default function TransactPage() {
       const payload = buildTransactionPayload({
         txType,
         profile,
-        accounts,
-        loans,
+        accounts: accounts ?? [],
+        loans: safeLoans,
         formData,
         directionMap,
       });
@@ -92,8 +109,8 @@ export default function TransactPage() {
 
       setStep("success");
     } catch (err) {
-      console.error(err);
-      toast?.error?.(err.message ?? "Failed to submit transaction");
+      console.log(err);
+      alert(err.message ?? "Failed to submit transaction");
     } finally {
       setIsSubmitting(false);
     }
@@ -135,13 +152,13 @@ export default function TransactPage() {
                       >
                         Pending Approval
                       </Text>
-                      {transactionRequests?.length > 0 && (
+                      {safeTxRequests?.length > 0 && (
                         <View
                           style={{ backgroundColor: theme.orange }}
                           className="ml-2 px-2 py-0.5 rounded-full"
                         >
                           <Text className="text-white text-[10px] font-bold">
-                            {transactionRequests.length}
+                            {safeTxRequests.length}
                           </Text>
                         </View>
                       )}
@@ -158,9 +175,9 @@ export default function TransactPage() {
                   </View>
 
                   {/* PENDING LIST */}
-                  {transactionRequests?.length > 0 ? (
+                  {safeTxRequests?.length > 0 ? (
                     <View>
-                      {transactionRequests.map((item, index) => (
+                      {safeTxRequests.map((item, index) => (
                         <PendingTransactionDetail
                           key={item.id || index}
                           item={item}

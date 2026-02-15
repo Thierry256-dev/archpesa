@@ -44,9 +44,17 @@ export default function MemberDetail() {
   const [isEditing, setIsEditing] = useState(false);
   const { id } = useLocalSearchParams();
 
-  const { members } = useAdminAllInfo();
+  const { members = [] } = useAdminAllInfo() || {};
 
-  const member = members.find((m) => String(m.id) === String(id));
+  const member = Array.isArray(members)
+    ? members.find((m) => String(m?.id) === String(id))
+    : null;
+
+  const safeMemberData = member || {};
+  const accounts = Array.isArray(safeMemberData.accounts)
+    ? safeMemberData.accounts
+    : [];
+  const loan = safeMemberData.loan || null;
 
   if (!member) {
     return (
@@ -98,43 +106,43 @@ export default function MemberDetail() {
         <View className="items-center mb-4 flex-row gap-8">
           <View className="w-24 h-24 bg-blue-100 rounded-full items-center justify-center border-4 border-white shadow-sm shadow-blue-100">
             <Text className="text-3xl font-black text-blue-600">
-              {member.first_name?.charAt(0) ?? ""}
-              {member.last_name?.charAt(0) ?? ""}
+              {safeMemberData.first_name?.charAt(0) || ""}
+              {safeMemberData.last_name?.charAt(0) || ""}
             </Text>
           </View>
           <View>
             <Text className="text-2xl font-black text-slate-900">
-              {member.first_name} {member.last_name}
+              {safeMemberData.first_name || ""} {safeMemberData.last_name || ""}
             </Text>
             <View className="bg-slate-200 px-3 py-1 rounded-md mt-2">
               <Text className="text-slate-500 text-[10px] font-bold uppercase tracking-widest">
-                ID: {member.membership_no}
+                ID: {safeMemberData.membership_no || "N/A"}
               </Text>
             </View>
             {/* Status Badge */}
             <Pressable
               disabled={!isEditing}
               className={`mt-1 w-32 flex-row items-center px-4 py-1.5 rounded-full border ${
-                member.member_status === "Active"
+                safeMemberData.member_status === "Active"
                   ? "bg-emerald-50 border-emerald-100"
                   : "bg-red-50 border-red-100"
               }`}
             >
               <View
                 className={`w-2 h-2 rounded-full mr-2 ${
-                  member.member_status === "Active"
+                  safeMemberData.member_status === "Active"
                     ? "bg-emerald-500"
                     : "bg-red-500"
                 }`}
               />
               <Text
                 className={`text-xs font-bold uppercase ${
-                  member.member_status === "Active"
+                  safeMemberData.member_status === "Active"
                     ? "text-emerald-700"
                     : "text-red-700"
                 }`}
               >
-                {member.member_status} {isEditing && "(Tap to Toggle)"}
+                {safeMemberData.member_status} {isEditing && "(Tap to Toggle)"}
               </Text>
             </Pressable>
           </View>
@@ -147,28 +155,28 @@ export default function MemberDetail() {
           </Text>
           <MemberField
             label="First Name"
-            value={member.first_name}
+            value={safeMemberData.first_name}
             fieldName="firstName"
             icon="person-outline"
             isEditing={isEditing}
           />
           <MemberField
             label="First Name"
-            value={member.last_name}
+            value={safeMemberData.last_name}
             fieldName="lastName"
             icon="person-outline"
             isEditing={isEditing}
           />
           <MemberField
             label="Phone Number"
-            value={member.phone_number}
+            value={safeMemberData.phone_number}
             fieldName="phone"
             icon="call-outline"
             isEditing={isEditing}
           />
           <MemberField
             label="Email Address"
-            value={member.email}
+            value={safeMemberData.email}
             fieldName="email"
             icon="mail-outline"
             isEditing={isEditing}
@@ -190,7 +198,7 @@ export default function MemberDetail() {
                 Savings
               </Text>
               <TextInput
-                value={String(member.accounts[0].balance)}
+                value={String(accounts[0].balance)}
                 editable={isEditing}
                 keyboardType="numeric"
                 className={`text-white font-bold text-lg border-b pb-1 ${
@@ -204,7 +212,7 @@ export default function MemberDetail() {
                 Shares
               </Text>
               <TextInput
-                value={String(member.accounts[0].balance / 10000)}
+                value={String(accounts[0].balance / 10000)}
                 editable={isEditing}
                 keyboardType="numeric"
                 className={`text-emerald-400 font-black text-xl border-b ${
@@ -213,24 +221,6 @@ export default function MemberDetail() {
                 selectTextOnFocus={isEditing}
               />
             </View>
-          </View>
-
-          {/* Penalties Row */}
-          <View className="flex-row items-center justify-between  bg-white/10 p-4 rounded-2xl">
-            <View className="flex-row items-center">
-              <Text className="text-slate-400 text-[10px] font-bold uppercase mb-1">
-                Fixed Deposit
-              </Text>
-            </View>
-            <TextInput
-              value={String(member.accounts[2].balance)}
-              editable={isEditing}
-              keyboardType="numeric"
-              className={`text-white font-bold text-sm w-20 text-right border-b ${
-                isEditing ? "border-white/30" : "border-transparent"
-              }`}
-              selectTextOnFocus={isEditing}
-            />
           </View>
         </View>
 
@@ -243,35 +233,35 @@ export default function MemberDetail() {
           </View>
           <MemberField
             label="Tatal Amount"
-            value={member.loan ? member.loan.total_payable : "N/A"}
+            value={loan ? loan.total_payable : "N/A"}
             fieldName="outstanding"
             icon="card-outline"
             isEditing={isEditing}
           />
           <MemberField
             label="Outstanding Balance"
-            value={member.loan ? member.loan.outstanding_balance : "N/A"}
+            value={loan ? loan.outstanding_balance : "N/A"}
             fieldName="outstanding"
             icon="card-outline"
             isEditing={isEditing}
           />
           <MemberField
             label="Next Due Date"
-            value={member.loan ? getNextDate(member.loan.disbursed_at) : "N/A"}
+            value={loan ? getNextDate(loan.disbursed_at) : "N/A"}
             fieldName="nextDueDate"
             icon="calendar-outline"
             isEditing={isEditing}
           />
           <MemberField
             label="Interest Rate"
-            value={member.loan ? member.loan.interest_rate * 100 : "N/A"}
+            value={loan ? loan.interest_rate * 100 : "N/A"}
             fieldName="apr"
             icon="trending-up-outline"
             isEditing={isEditing}
           />
           <MemberField
             label="Loan Purpose"
-            value={member.loan ? member.loan.purpose : "N/A"}
+            value={loan ? loan.purpose : "N/A"}
             fieldName="apr"
             icon="rocket-outline"
             isEditing={isEditing}

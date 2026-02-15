@@ -54,7 +54,7 @@ export default function MemberLoans() {
       safeLoans.find(
         (l) =>
           l?.status === "Disbursed" && Number(l?.outstanding_balance ?? 0) > 0,
-      ) ?? {};
+      ) || {};
 
     const approvedLoan =
       safeLoans.find((l) => l?.status === "Approved") ?? null;
@@ -373,13 +373,7 @@ export default function MemberLoans() {
           <Pressable
             disabled={!isApprovedMember}
             onPress={() => {
-              if (currentLoan) {
-                alert(
-                  "You cannot apply for another loan until you complete the current loan.",
-                );
-              } else {
-                setIsLoanFormVisible(true);
-              }
+              setIsLoanFormVisible(true);
             }}
             style={{
               backgroundColor: isApprovedMember ? theme.primary : theme.gray300,

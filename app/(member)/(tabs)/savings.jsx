@@ -34,60 +34,87 @@ export default function MemberSavings() {
   const router = useRouter();
   const { theme } = useTheme();
   const { user } = useAuth();
+  const safeUserId = user?.id ?? null;
 
   const [isGoalModalVisible, setIsGoalModalVisible] = useState(false);
 
-  const { data: application } = useMemberApplication(user?.id);
+  const { data: application } = useMemberApplication(safeUserId);
   const { balances, transactions } = useMemberAllInfo();
   const { goals, loading: goalsLoading, addGoal } = useSavingsGoals();
   const growthData = useGrowthData(transactions);
+  const [activeChartIndex, setActiveChartIndex] = useState(null);
+
+  const safeBalances = balances || {
+    Savings: 0,
+    Shares: 0,
+    Fixed_Deposit: 0,
+  };
+
+  const safeGoals = Array.isArray(goals) ? goals : [];
 
   const isApproved = application?.status === "approved";
   const sharePrice = 10000;
 
   // 1. Sort & Filter Transactions
   const savingsTransactions = useMemo(() => {
-    if (!transactions) return [];
-    return transactions
-      .filter((tx) =>
-        ["Savings_Deposit", "Savings_Withdraw"].includes(tx.transaction_type),
+    if (!Array.isArray(transactions)) return [];
+    const transactionsToProcess = Array.isArray(transactions)
+      ? transactions
+      : [];
+
+    return transactionsToProcess
+      .filter(
+        (tx) =>
+          tx &&
+          ["Savings_Deposit", "Savings_Withdraw"].includes(tx.transaction_type),
       )
-      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+      .sort(
+        (a, b) => new Date(b?.created_at || 0) - new Date(a?.created_at || 0),
+      );
   }, [transactions]);
 
   // 2. Chart Data
   const { chartData, maxValue } = useMemo(() => {
-    const data = growthData.map((item) => ({
-      value: item.closingBalance,
-      label: item.month,
-      dataPointText: item.closingBalance.toLocaleString(),
-    }));
+    const dataToProcess = Array.isArray(growthData) ? growthData : [];
+
+    if (!dataToProcess.length) return { chartData: [], maxValue: 0 };
+
+    const data = dataToProcess.map((item) => {
+      const value = Number(item?.closingBalance || 0);
+      return {
+        value,
+        label: item?.month ?? "",
+        dataPointText: value.toLocaleString(),
+      };
+    });
+
     const max = Math.max(...data.map((d) => d.value), 0);
     return { chartData: data, maxValue: max };
   }, [growthData]);
 
   // 3. Goal Progress Helper
   const getGoalProgress = useCallback(
-    (goalTarget) => {
-      if (!goals?.length) return { saved: 0, percent: 0 };
+    (goalTarget = 0) => {
+      const currentGoals = Array.isArray(goals) ? goals : [];
+      if (!currentGoals.length) return { saved: 0, percent: 0 };
 
-      const totalTargetSum = goals.reduce(
-        (sum, g) => sum + Number(g.target_amount),
+      const totalTargetSum = currentGoals.reduce(
+        (sum, g) => sum + Number(g?.target_amount || 0),
         0,
       );
-      const currentSavings = Number(
-        String(balances.Savings || "0").replace(/,/g, ""),
-      );
 
-      if (totalTargetSum === 0) return { saved: 0, percent: 0 };
+      const rawSavings = balances?.Savings || 0;
+      const currentSavings = Number(String(rawSavings).replace(/,/g, ""));
+
+      if (!totalTargetSum || !currentSavings) return { saved: 0, percent: 0 };
 
       const fundedRatio = Math.min(currentSavings / totalTargetSum, 1);
       return {
-        saved: goalTarget * fundedRatio,
+        saved: Number(goalTarget || 0) * fundedRatio,
         percent: Math.round(fundedRatio * 100),
       };
     },
-    [goals, balances.Savings],
+    [goals, balances],
   );
 
   // --- Render Helpers ---
@@ -132,7 +159,7 @@ export default function MemberSavings() {
             style={{ color: theme.white }}
             className="text-2xl font-bold mb-1"
           >
-            {formatCurrency(balances.Savings)}
+            {formatCurrency(safeBalances?.Savings || 0)}
           </Text>
           <Text
             style={{ color: theme.gray200 }}
@@ -147,9 +174,21 @@ export default function MemberSavings() {
           style={{ backgroundColor: theme.card, borderTopColor: theme.yellow }}
           className="p-5 rounded-3xl w-full shadow-sm border-t-4"
         >
-          <View className="flex-row justify-between items-start mb-6">
-            <View className="bg-amber-100 p-2 rounded-full">
-              <Ionicons name="ribbon-outline" size={24} color={theme.yellow} />
+          <View className="flex-row justify-between items-start mb-2">
+            <View className="">
+              <View className="bg-amber-100 p-2 rounded-full w-14 items-center">
+                <Ionicons
+                  name="ribbon-outline"
+                  size={24}
+                  color={theme.yellow}
+                />
+              </View>
+              <Text
+                style={{ color: theme.yellow }}
+                className="text-xs font-semibold bg-amber-50 self-start px-2 py-1 rounded mt-2"
+              >
+                🔒 Non-Withdrawable
+              </Text>
             </View>
             <View className="items-end">
               <Text
@@ -162,30 +201,12 @@ export default function MemberSavings() {
                 style={{ color: theme.text }}
                 className="text-2xl font-bold mb-1"
               >
-                {Number(balances.Shares / sharePrice).toLocaleString() || 0}
+                {Number(
+                  (safeBalances?.Shares || 0) / sharePrice,
+                ).toLocaleString()}
               </Text>
             </View>
           </View>
-          <View>
-            <Text
-              style={{ color: theme.gray500 }}
-              className="text-sm font-medium"
-            >
-              Fixed Deposit
-            </Text>
-            <Text
-              style={{ color: theme.text }}
-              className="text-2xl font-bold mb-1"
-            >
-              {formatCurrency(balances.Fixed_Deposit)}
-            </Text>
-          </View>
-          <Text
-            style={{ color: theme.yellow }}
-            className="text-xs font-semibold bg-amber-50 self-start px-2 py-1 rounded mt-2"
-          >
-            🔒 Non-Withdrawable
-          </Text>
         </View>
       </View>
 
@@ -255,7 +276,7 @@ export default function MemberSavings() {
           </View>
         ) : (
           <View>
-            {goals.map((item, index) => {
+            {safeGoals.map((item, index) => {
               const stats = getGoalProgress(item.target_amount);
               return (
                 <CurrentGoal
@@ -327,19 +348,29 @@ export default function MemberSavings() {
 
         {/* Chart Container */}
         <View
-          className="flex-row justify-between items-end w-full px-4 mt-4" // Increased padding for breathability
+          className="flex-row justify-between items-end w-full px-2 mt-4"
           style={{ height: 180 }}
         >
           {chartData.length > 0 ? (
-            chartData.map((item, index) => (
-              <ChartBar
-                key={index}
-                label={item.month}
-                value={item.closingBalance}
-                maxValue={maxValue}
-                style={{ width: `${100 / Math.max(chartData.length, 6)}%` }}
-              />
-            ))
+            chartData.map((item, index) => {
+              const isSelected =
+                activeChartIndex === null
+                  ? index === chartData.length - 1
+                  : activeChartIndex === index;
+
+              return (
+                <ChartBar
+                  key={index}
+                  label={item.label}
+                  value={item.value}
+                  dataPointText={item.dataPointText}
+                  maxValue={maxValue}
+                  isActive={isSelected}
+                  onPress={() => setActiveChartIndex(index)}
+                  style={{ width: `${100 / chartData.length}%` }}
+                />
+              );
+            })
           ) : (
             <View className="flex-1 items-center justify-center h-full opacity-50">
               <View className="bg-gray-100 p-4 rounded-full mb-2">
@@ -376,14 +407,15 @@ export default function MemberSavings() {
     </View>
   );
 
-  const renderTransaction = useCallback(
-    ({ item }) => (
-      <View className="px-6">
+  const renderTransaction = useCallback(({ item }) => {
+    if (!item) return null;
+
+    return (
+      <View className="px-6 pb-10">
         <TransactionItem item={item} />
       </View>
-    ),
-    [],
-  );
+    );
+  }, []);
 
   return (
     <SafeAreaView
@@ -418,7 +450,9 @@ export default function MemberSavings() {
       >
         <FlatList
           data={savingsTransactions}
-          keyExtractor={(item) => item.id || item.created_at}
+          keyExtractor={(item, index) =>
+            item?.id?.toString() ?? item?.created_at ?? `tx-${index}`
+          }
           renderItem={renderTransaction}
           ListHeaderComponent={ListHeader}
           ListEmptyComponent={
@@ -464,8 +498,18 @@ export default function MemberSavings() {
       >
         <AddGoalModal
           onAdd={async (data) => {
-            const success = await addGoal(data);
-            if (success) setIsGoalModalVisible(false);
+            try {
+              if (!data) return;
+
+              const success = await addGoal(data);
+
+              if (success) {
+                setIsGoalModalVisible(false);
+              }
+            } catch (err) {
+              console.log("Add goal failed:", err);
+              alert("Failed to save goal. Try again.");
+            }
           }}
           onClose={() => setIsGoalModalVisible(false)}
         />
