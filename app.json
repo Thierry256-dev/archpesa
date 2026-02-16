@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Archpesa",
+    "name": "ArchPesa",
     "slug": "archpesa",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -10,7 +10,7 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.archpesa"
+      "bundleIdentifier": "com.munstacktechnologies.archpesa"
     },
     "android": {
       "adaptiveIcon": {
@@ -21,7 +21,7 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.anonymous.archpesa"
+      "package": "com.munstacktechnologies.archpesa"
     },
     "web": {
       "output": "static",
@@ -54,6 +54,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "23ae7041-c6c6-4e44-bb9d-096bd819d251"
+      }
     }
   }
 }

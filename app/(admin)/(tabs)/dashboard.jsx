@@ -102,7 +102,7 @@ export default function AdminDashboard() {
             <Text className="text-white/80 font-medium text-base mb-1">
               MONETA SACCO
             </Text>
-            <Text className="text-white font-black text-3xl shadow-sm">
+            <Text className="text-white font-black text-3xl">
               Admin Dashboard
             </Text>
           </View>

@@ -212,7 +212,7 @@ export default function MemberDetail() {
                 Shares
               </Text>
               <TextInput
-                value={String(accounts[0].balance / 10000)}
+                value={String(accounts[1].balance / 10000)}
                 editable={isEditing}
                 keyboardType="numeric"
                 className={`text-emerald-400 font-black text-xl border-b ${

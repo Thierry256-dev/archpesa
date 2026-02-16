@@ -20,11 +20,9 @@ export default function Index() {
     return <Redirect href="/(auth)/login" />;
   }
 
-  if (!userType) {
+  if (userType === "new_user") {
     return <Redirect href="/(onboarding)" />;
-  }
-
-  if (!userType) {
+  } else if (!userType) {
     return <Redirect href="/(auth)/login" />;
   }
 
