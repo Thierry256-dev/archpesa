@@ -1,9 +1,13 @@
+import { useTheme } from "@/context/ThemeProvider";
 import { Ionicons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 import { Dimensions, Platform } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function AdminTabsLayout() {
+  const { theme } = useTheme();
   const { width } = Dimensions.get("window");
+  const insets = useSafeAreaInsets();
   const isWeb = Platform.OS === "web";
 
   const MAX_WIDTH = 448;
@@ -11,30 +15,40 @@ export default function AdminTabsLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: "white",
-        tabBarInactiveTintColor: "#94A3B8",
+        tabBarShowLabel: true,
+        tabBarActiveTintColor: theme.white,
+        tabBarInactiveTintColor: theme.gray400,
         tabBarStyle: {
-          backgroundColor: "#07193f",
+          backgroundColor: theme.primary,
           height: 60,
-          position: "absolute",
-          left: isWeb ? "55%" : 20,
-          right: isWeb ? "auto" : 20,
-          transform: isWeb
-            ? [{ translateX: -Math.min(width, MAX_WIDTH) / 2 }]
-            : [],
-
-          width: isWeb ? Math.min(width, MAX_WIDTH) - 40 : undefined,
-          maxWidth: MAX_WIDTH,
           alignSelf: "center",
-
-          borderRadius: 25,
+          marginBottom: insets.bottom + 10,
+          marginHorizontal: 20,
+          width: isWeb ? Math.min(width, MAX_WIDTH) - 40 : "90%",
+          maxWidth: MAX_WIDTH,
+          borderRadius: 35,
+          borderTopWidth: 0,
           elevation: 5,
-          shadowColor: "#000",
+          shadowColor: theme.black,
           shadowOffset: { width: 0, height: 10 },
           shadowOpacity: 0.1,
           shadowRadius: 10,
-          borderTopWidth: 0,
-          paddingBottom: 10,
+        },
+
+        tabBarLabelStyle: {
+          fontSize: 10,
+          fontWeight: "600",
+          marginBottom: 8,
+        },
+
+        tabBarIconStyle: {
+          marginTop: 8,
+        },
+
+        tabBarItemStyle: {
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
         },
       }}
     >
