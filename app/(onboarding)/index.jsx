@@ -3,9 +3,10 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { useRef, useState } from "react";
 import {
-  FlatList,
   Image,
+  Platform,
   Pressable,
+  ScrollView,
   StatusBar,
   Text,
   View,
@@ -43,22 +44,31 @@ const slides = [
 
 export default function OnboardingScreen() {
   const router = useRouter();
-  const flatListRef = useRef(null);
   const [index, setIndex] = useState(0);
   const insets = useSafeAreaInsets();
+  const scrollRef = useRef(null);
 
   const { width, height } = useWindowDimensions();
 
   const isLast = index === slides.length - 1;
   const archWhite = "#ffffff";
 
-  const viewConfigRef = useRef({ viewAreaCoveragePercentThreshold: 50 });
+  const imageHeight = Math.min(height * 0.7, 520);
 
-  const onViewRef = useRef(({ viewableItems }) => {
-    if (viewableItems.length > 0) {
-      setIndex(viewableItems[0].index);
+  const goToSlide = (targetIndex) => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTo({ x: targetIndex * width, animated: true });
     }
-  });
+    setIndex(targetIndex);
+  };
+
+  const handleScroll = (event) => {
+    const offsetX = event.nativeEvent.contentOffset.x;
+    const newIndex = Math.round(offsetX / width);
+    if (newIndex !== index && newIndex >= 0 && newIndex < slides.length) {
+      setIndex(newIndex);
+    }
+  };
 
   return (
     <View
@@ -105,21 +115,24 @@ export default function OnboardingScreen() {
         }}
       />
 
-      {/* Image Slider */}
-      <FlatList
-        ref={flatListRef}
-        data={slides}
+      {/* Image Slider — uses ScrollView instead of FlatList for web compatibility */}
+      <ScrollView
+        ref={scrollRef}
         horizontal
-        pagingEnabled
+        pagingEnabled={Platform.OS !== "web"}
         showsHorizontalScrollIndicator={false}
-        keyExtractor={(item) => item.key}
-        onViewableItemsChanged={onViewRef.current}
-        viewabilityConfig={viewConfigRef.current}
-        renderItem={({ item }) => (
+        onMomentumScrollEnd={handleScroll}
+        onScroll={Platform.OS === "web" ? handleScroll : undefined}
+        scrollEventThrottle={Platform.OS === "web" ? 32 : 16}
+        style={{ height: imageHeight, flexShrink: 0 }}
+        contentContainerStyle={{ alignItems: "flex-start" }}
+      >
+        {slides.map((item) => (
           <View
+            key={item.key}
             style={{
               width,
-              height: Math.min(height * 0.7, 520),
+              height: imageHeight,
             }}
           >
             <Image
@@ -150,8 +163,8 @@ export default function OnboardingScreen() {
               }}
             />
           </View>
-        )}
-      />
+        ))}
+      </ScrollView>
 
       {/* Floating Card */}
       <View className="flex-1 justify-end z-20">
@@ -162,12 +175,13 @@ export default function OnboardingScreen() {
           {/* Indicators */}
           <View className="flex-row space-x-2 mb-6">
             {slides.map((_, i) => (
-              <View
-                key={i}
-                className={`h-1.5 rounded-full ${
-                  i === index ? "w-8 bg-brand-primary" : "w-2 bg-gray-200"
-                }`}
-              />
+              <Pressable key={i} onPress={() => goToSlide(i)}>
+                <View
+                  className={`h-1.5 rounded-full ${
+                    i === index ? "w-8 bg-brand-primary" : "w-2 bg-gray-200"
+                  }`}
+                />
+              </Pressable>
             ))}
           </View>
 
@@ -185,24 +199,12 @@ export default function OnboardingScreen() {
           <View className="flex-row pb-6 items-center justify-between">
             {!isLast ? (
               <>
-                <Pressable
-                  onPress={() =>
-                    flatListRef.current?.scrollToIndex({
-                      index: slides.length - 1,
-                      animated: true,
-                    })
-                  }
-                >
+                <Pressable onPress={() => goToSlide(slides.length - 1)}>
                   <Text className="text-gray-400 font-semibold">Skip</Text>
                 </Pressable>
 
                 <Pressable
-                  onPress={() =>
-                    flatListRef.current?.scrollToIndex({
-                      index: index + 1,
-                      animated: true,
-                    })
-                  }
+                  onPress={() => goToSlide(index + 1)}
                   className="bg-arch-charcoal w-14 h-14 rounded-2xl items-center justify-center"
                 >
                   <Ionicons name="arrow-forward" size={24} color="white" />

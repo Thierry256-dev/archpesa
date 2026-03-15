@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useCallback, useContext, useState } from "react";
 
 const RegistrationContext = createContext(null);
 const initialFormState = {
@@ -35,16 +35,16 @@ const initialFormState = {
 export function RegistrationProvider({ children }) {
   const [formData, setFormData] = useState(initialFormState);
 
-  const updateForm = (key, value) => {
+  const updateForm = useCallback((key, value) => {
     setFormData((prev) => ({
       ...prev,
       [key]: value,
     }));
-  };
+  }, []);
 
-  const resetForm = () => {
+  const resetForm = useCallback(() => {
     setFormData(initialFormState);
-  };
+  }, []);
 
   return (
     <RegistrationContext.Provider

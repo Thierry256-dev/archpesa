@@ -14,6 +14,50 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+const FormField = ({
+  label,
+  placeholder,
+  value,
+  onChange,
+  icon,
+  error,
+  editable = true,
+  onPress,
+}) => (
+  <View className="mb-5">
+    <Text className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1 ml-1">
+      {label}
+    </Text>
+    <Pressable onPress={onPress}>
+      <View
+        className={`flex-row items-center bg-slate-50 border rounded-2xl px-4 h-14 ${
+          error
+            ? "border-red-400 bg-red-50"
+            : "border-slate-200 focus:border-arch-blue"
+        }`}
+      >
+        <Ionicons name={icon} size={20} color={error ? "#F87171" : "#94A3B8"} />
+        <TextInput
+          placeholder={placeholder}
+          value={value}
+          onChangeText={onChange}
+          editable={editable}
+          placeholderTextColor="#CBD5E1"
+          className={`flex-1 ml-3 font-semibold text-base ${
+            error ? "text-red-800" : "text-slate-900"
+          }`}
+          pointerEvents={editable ? "auto" : "none"}
+        />
+      </View>
+    </Pressable>
+    {error && (
+      <Text className="text-red-500 text-[10px] ml-2 mt-1 font-medium">
+        {error}
+      </Text>
+    )}
+  </View>
+);
+
 export default function Step1() {
   const router = useRouter();
   const { formData, updateForm } = useRegistration();
@@ -64,49 +108,6 @@ export default function Step1() {
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-  // Helper for Input Fields
-  const FormField = ({
-    label,
-    placeholder,
-    value,
-    onChange,
-    icon,
-    error,
-    editable = true,
-    onPress,
-  }) => (
-    <View className="mb-5">
-      <Text className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1 ml-1">
-        {label}
-      </Text>
-      <Pressable onPress={onPress}>
-        <View
-          className={`flex-row items-center bg-slate-50 border rounded-2xl px-4 h-14 ${
-            error
-              ? "border-red-400 bg-red-50"
-              : "border-slate-200 focus:border-arch-blue"
-          }`}
-        >
-          <Ionicons
-            name={icon}
-            size={20}
-            color={error ? "#F87171" : "#94A3B8"}
-          />
-          <TextInput
-            placeholder={placeholder}
-            value={value}
-            onChangeText={onChange}
-            editable={editable}
-            placeholderTextColor="#CBD5E1"
-            className={`flex-1 ml-3 font-semibold text-base ${
-              error ? "text-red-800" : "text-slate-900"
-            }`}
-            pointerEvents={editable ? "auto" : "none"}
-          />
-        </View>
-      </Pressable>
-    </View>
-  );
 
   return (
     <SafeAreaView className="flex-1 bg-white">
@@ -155,7 +156,7 @@ export default function Step1() {
               onChange={(v) => {
                 updateForm("first_name", v);
                 if (errors.first_name)
-                  setErrors({ ...errors, first_name: null });
+                  setErrors((prev) => ({ ...prev, first_name: null }));
               }}
               error={errors.first_name}
             />
@@ -166,7 +167,8 @@ export default function Step1() {
               value={formData.last_name}
               onChange={(v) => {
                 updateForm("last_name", v);
-                if (errors.last_name) setErrors({ ...errors, last_name: null });
+                if (errors.last_name)
+                  setErrors((prev) => ({ ...prev, last_name: null }));
               }}
               error={errors.last_name}
             />
@@ -247,7 +249,7 @@ export default function Step1() {
                     key={option}
                     onPress={() => {
                       updateForm("gender", option);
-                      setErrors({ ...errors, gender: null });
+                      setErrors((prev) => ({ ...prev, gender: null }));
                     }}
                     className={`flex-1 flex-row items-center justify-center h-14 rounded-2xl border ${
                       formData.gender === option
@@ -287,7 +289,7 @@ export default function Step1() {
               onChange={(v) => {
                 updateForm("marital_status", v);
                 if (errors.marital_status)
-                  setErrors({ ...errors, marital_status: null });
+                  setErrors((prev) => ({ ...prev, marital_status: null }));
               }}
               error={errors.marital_status}
             />
@@ -300,7 +302,7 @@ export default function Step1() {
               onChange={(v) => {
                 updateForm("education_level", v);
                 if (errors.education_level)
-                  setErrors({ ...errors, education_level: null });
+                  setErrors((prev) => ({ ...prev, education_level: null }));
               }}
               error={errors.education_level}
             />
@@ -313,7 +315,7 @@ export default function Step1() {
               onChange={(v) => {
                 updateForm("national_id", v);
                 if (errors.national_id)
-                  setErrors({ ...errors, national_id: null });
+                  setErrors((prev) => ({ ...prev, national_id: null }));
               }}
               error={errors.national_id}
             />
@@ -342,7 +344,6 @@ export default function Step1() {
           onPress={() => {
             if (validateStep()) {
               router.push("/(onboarding)/register/step-2");
-            } else {
             }
           }}
           className="bg-arch-blue h-16 rounded-2xl flex-row items-center justify-center shadow-xl shadow-indigo-200"

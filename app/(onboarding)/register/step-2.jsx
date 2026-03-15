@@ -13,6 +13,46 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+const FormField = ({
+  label,
+  placeholder,
+  value,
+  onChange,
+  icon,
+  keyboardType = "default",
+  error,
+}) => (
+  <View className="mb-4">
+    <Text className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">
+      {label}
+    </Text>
+
+    <View
+      className={`flex-row items-center bg-slate-50 border rounded-2xl px-4 ${
+        error ? "border-red-400 bg-red-50" : "border-slate-200"
+      }`}
+    >
+      <Ionicons name={icon} size={20} color={error ? "#F87171" : "#94A3B8"} />
+      <TextInput
+        placeholder={placeholder}
+        value={value}
+        onChangeText={onChange}
+        keyboardType={keyboardType}
+        placeholderTextColor="#CBD5E1"
+        className={`flex-1 ml-3 font-semibold text-base ${
+          error ? "text-red-800" : "text-slate-900"
+        }`}
+      />
+    </View>
+
+    {error && (
+      <Text className="text-red-500 text-[10px] ml-2 mt-1 font-medium">
+        {error}
+      </Text>
+    )}
+  </View>
+);
+
 export default function Step2() {
   const router = useRouter();
   const { formData, updateForm } = useRegistration();
@@ -59,46 +99,6 @@ export default function Step2() {
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-
-  const FormField = ({
-    label,
-    placeholder,
-    value,
-    onChange,
-    icon,
-    keyboardType = "default",
-    error,
-  }) => (
-    <View className="mb-4">
-      <Text className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">
-        {label}
-      </Text>
-
-      <View
-        className={`flex-row items-center bg-slate-50 border rounded-2xl px-4 ${
-          error ? "border-red-400 bg-red-50" : "border-slate-200"
-        }`}
-      >
-        <Ionicons name={icon} size={20} color={error ? "#F87171" : "#94A3B8"} />
-        <TextInput
-          placeholder={placeholder}
-          value={value}
-          onChangeText={onChange}
-          keyboardType={keyboardType}
-          placeholderTextColor="#CBD5E1"
-          className={`flex-1 ml-3 font-semibold text-base ${
-            error ? "text-red-800" : "text-slate-900"
-          }`}
-        />
-      </View>
-
-      {error && (
-        <Text className="text-red-500 text-[10px] ml-2 mt-1 font-medium">
-          {error}
-        </Text>
-      )}
-    </View>
-  );
 
   return (
     <SafeAreaView className="flex-1 bg-white">
@@ -148,7 +148,7 @@ export default function Step2() {
             onChange={(v) => {
               updateForm("phone_number", v);
               if (errors.phone_number)
-                setErrors({ ...errors, phone_number: null });
+                setErrors((prev) => ({ ...prev, phone_number: null }));
             }}
             error={errors.phone_number}
           />
@@ -161,7 +161,7 @@ export default function Step2() {
             value={formData.email}
             onChange={(v) => {
               updateForm("email", v.toLowerCase());
-              if (errors.email) setErrors({ ...errors, email: null });
+              if (errors.email) setErrors((prev) => ({ ...prev, email: null }));
             }}
             error={errors.email}
           />

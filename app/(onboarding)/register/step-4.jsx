@@ -13,6 +13,35 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+const FormField = ({ label, placeholder, value, onChange, icon, error }) => (
+  <View className="mb-5">
+    <Text className="text-[12px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">
+      {label}
+    </Text>
+
+    <View
+      className={`flex-row items-center bg-slate-50 border rounded-2xl px-4 ${
+        error ? "border-red-400" : "border-slate-200"
+      }`}
+    >
+      <Ionicons name={icon} size={20} color={error ? "#DC2626" : "#94A3B8"} />
+      <TextInput
+        placeholder={placeholder}
+        value={value}
+        onChangeText={onChange}
+        placeholderTextColor="#CBD5E1"
+        className="flex-1 ml-3 text-slate-900 font-semibold text-base"
+      />
+    </View>
+
+    {error && (
+      <Text className="text-red-500 text-xs mt-1 ml-1 font-medium">
+        {error}
+      </Text>
+    )}
+  </View>
+);
+
 export default function Step4() {
   const router = useRouter();
   const { formData, updateForm } = useRegistration();
@@ -49,35 +78,6 @@ export default function Step4() {
     if (!validate()) return;
     router.push("/(onboarding)/register/step-5");
   };
-
-  const FormField = ({ label, placeholder, value, onChange, icon, error }) => (
-    <View className="mb-5">
-      <Text className="text-[12px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">
-        {label}
-      </Text>
-
-      <View
-        className={`flex-row items-center bg-slate-50 border rounded-2xl px-4 ${
-          error ? "border-red-400" : "border-slate-200"
-        }`}
-      >
-        <Ionicons name={icon} size={20} color={error ? "#DC2626" : "#94A3B8"} />
-        <TextInput
-          placeholder={placeholder}
-          value={value}
-          onChangeText={onChange}
-          placeholderTextColor="#CBD5E1"
-          className="flex-1 ml-3 text-slate-900 font-semibold text-base"
-        />
-      </View>
-
-      {error && (
-        <Text className="text-red-500 text-xs mt-1 ml-1 font-medium">
-          {error}
-        </Text>
-      )}
-    </View>
-  );
 
   return (
     <SafeAreaView className="flex-1 bg-white">

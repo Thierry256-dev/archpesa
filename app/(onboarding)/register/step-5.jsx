@@ -13,35 +13,33 @@ import {
   View,
 } from "react-native";
 
+const SectionHeader = ({ title, icon, onEditStep, router }) => (
+  <View className="flex-row justify-between items-center mt-6 mb-3">
+    <View className="flex-row items-center">
+      <Ionicons name={icon} size={16} color="#4F46E5" />
+      <Text className="text-[12px] font-bold text-slate-400 uppercase tracking-widest ml-2">
+        {title}
+      </Text>
+    </View>
+    <Pressable onPress={() => router.push(onEditStep)}>
+      <Text className="text-indigo-600 text-xs font-bold">Edit</Text>
+    </Pressable>
+  </View>
+);
+
+const DataRow = ({ label, value }) => (
+  <View className="flex-row justify-between py-1 border-b border-slate-50">
+    <Text className="text-slate-500 text-sm font-medium">{label}</Text>
+    <Text className="text-slate-900 text-sm font-bold">{value || "—"}</Text>
+  </View>
+);
+
 export default function Step5() {
   const router = useRouter();
   const { user } = useAuth();
   const { formData, resetForm } = useRegistration();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-
-  // Helper for Section Headers
-  const SectionHeader = ({ title, icon, onEditStep }) => (
-    <View className="flex-row justify-between items-center mt-6 mb-3">
-      <View className="flex-row items-center">
-        <Ionicons name={icon} size={16} color="#4F46E5" />
-        <Text className="text-[12px] font-bold text-slate-400 uppercase tracking-widest ml-2">
-          {title}
-        </Text>
-      </View>
-      <Pressable onPress={() => router.push(onEditStep)}>
-        <Text className="text-indigo-600 text-xs font-bold">Edit</Text>
-      </Pressable>
-    </View>
-  );
-
-  // Helper for Data Rows
-  const DataRow = ({ label, value }) => (
-    <View className="flex-row justify-between py-1 border-b border-slate-50">
-      <Text className="text-slate-500 text-sm font-medium">{label}</Text>
-      <Text className="text-slate-900 text-sm font-bold">{value || "—"}</Text>
-    </View>
-  );
 
   const handleSubmit = async () => {
     if (!user) {
@@ -136,6 +134,7 @@ export default function Step5() {
             title="Personal Identity"
             icon="person"
             onEditStep="/(onboarding)/register/step-1"
+            router={router}
           />
           <View className="bg-slate-50/50 p-4 rounded-2xl border border-slate-100">
             <DataRow
@@ -148,7 +147,7 @@ export default function Step5() {
             <DataRow label="Education Level" value={formData.education_level} />
             <DataRow label="National ID (NIN)" value={formData.national_id} />
             {formData.passport_number !== "" && (
-              <DataRow label="Gender" value={formData.gender} />
+              <DataRow label="Passport No." value={formData.passport_number} />
             )}
           </View>
 
@@ -156,6 +155,7 @@ export default function Step5() {
             title="Contact & Location"
             icon="location"
             onEditStep="/(onboarding)/register/step-2"
+            router={router}
           />
           <View className="bg-slate-50/50 p-4 rounded-2xl border border-slate-100">
             <DataRow label="Phone" value={formData.phone_number} />
@@ -175,6 +175,7 @@ export default function Step5() {
             title="Employment"
             icon="briefcase"
             onEditStep="/(onboarding)/register/step-3"
+            router={router}
           />
           <View className="bg-slate-50/50 p-4 rounded-2xl border border-slate-100">
             <DataRow label="Occupation" value={formData.occupation} />
@@ -190,6 +191,7 @@ export default function Step5() {
             title="Beneficiary"
             icon="people"
             onEditStep="/(onboarding)/register/step-4"
+            router={router}
           />
           <View className="bg-slate-50/50 p-4 rounded-2xl border border-slate-100">
             <DataRow label="Next of Kin" value={formData.next_of_kin_name} />
@@ -255,7 +257,7 @@ export default function Step5() {
 
             <Text className="text-slate-500 text-center leading-6 mb-8 px-2 font-medium">
               Your membership application has been successfully submitted to the
-              MONETA SACCO board for review.Stay tuned for updates concerning
+              MONETA SACCO board for review. Stay tuned for updates concerning
               your application.
             </Text>
 

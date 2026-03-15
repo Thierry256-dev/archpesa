@@ -14,6 +14,50 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+const FormField = ({
+  label,
+  placeholder,
+  value,
+  onChange,
+  icon,
+  error,
+  editable = true,
+  onPress,
+}) => (
+  <View className="mb-5">
+    <Text className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1 ml-1">
+      {label}
+    </Text>
+    <Pressable onPress={onPress}>
+      <View
+        className={`flex-row items-center bg-slate-50 border rounded-2xl px-4 h-14 ${
+          error
+            ? "border-red-400 bg-red-50"
+            : "border-slate-200 focus:border-arch-blue"
+        }`}
+      >
+        <Ionicons name={icon} size={20} color={error ? "#F87171" : "#94A3B8"} />
+        <TextInput
+          placeholder={placeholder}
+          value={value}
+          onChangeText={onChange}
+          editable={editable}
+          placeholderTextColor="#CBD5E1"
+          className={`flex-1 ml-3 font-semibold text-base ${
+            error ? "text-red-800" : "text-slate-900"
+          }`}
+          pointerEvents={editable ? "auto" : "none"}
+        />
+      </View>
+    </Pressable>
+    {error && (
+      <Text className="text-red-500 text-[10px] ml-2 mt-1 font-medium">
+        {error}
+      </Text>
+    )}
+  </View>
+);
+
 export default function Step1() {
   const router = useRouter();
   const { formData, updateForm } = useRegistration();
@@ -63,49 +107,6 @@ export default function Step1() {
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-  // Helper for Input Fields
-  const FormField = ({
-    label,
-    placeholder,
-    value,
-    onChange,
-    icon,
-    error,
-    editable = true,
-    onPress,
-  }) => (
-    <View className="mb-5">
-      <Text className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1 ml-1">
-        {label}
-      </Text>
-      <Pressable onPress={onPress}>
-        <View
-          className={`flex-row items-center bg-slate-50 border rounded-2xl px-4 h-14 ${
-            error
-              ? "border-red-400 bg-red-50"
-              : "border-slate-200 focus:border-arch-blue"
-          }`}
-        >
-          <Ionicons
-            name={icon}
-            size={20}
-            color={error ? "#F87171" : "#94A3B8"}
-          />
-          <TextInput
-            placeholder={placeholder}
-            value={value}
-            onChangeText={onChange}
-            editable={editable}
-            placeholderTextColor="#CBD5E1"
-            className={`flex-1 ml-3 font-semibold text-base ${
-              error ? "text-red-800" : "text-slate-900"
-            }`}
-            pointerEvents={editable ? "auto" : "none"}
-          />
-        </View>
-      </Pressable>
-    </View>
-  );
 
   return (
     <SafeAreaView className="flex-1 bg-white">

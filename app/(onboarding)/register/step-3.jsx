@@ -13,6 +13,54 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+const FormField = ({
+  label,
+  placeholder,
+  value,
+  onChange,
+  icon,
+  keyboardType = "default",
+  prefix,
+  error,
+}) => (
+  <View className="mb-5">
+    <Text className="text-[12px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">
+      {label}
+    </Text>
+
+    <View
+      className={`flex-row items-center rounded-2xl px-4 h-16 border ${
+        error ? "border-red-400 bg-red-50" : "border-slate-200 bg-slate-50"
+      }`}
+    >
+      <Ionicons name={icon} size={20} color={error ? "#F87171" : "#94A3B8"} />
+
+      {prefix && (
+        <Text className="ml-2 text-slate-400 font-bold text-base">
+          {prefix}
+        </Text>
+      )}
+
+      <TextInput
+        placeholder={placeholder}
+        value={value}
+        onChangeText={onChange}
+        keyboardType={keyboardType}
+        placeholderTextColor="#CBD5E1"
+        className={`flex-1 ml-3 font-semibold text-base ${
+          error ? "text-red-800" : "text-slate-900"
+        }`}
+      />
+    </View>
+
+    {error && (
+      <Text className="text-red-500 text-[10px] ml-2 mt-1 font-medium">
+        {error}
+      </Text>
+    )}
+  </View>
+);
+
 export default function Step3() {
   const router = useRouter();
   const { formData, updateForm } = useRegistration();
@@ -61,54 +109,6 @@ export default function Step3() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const FormField = ({
-    label,
-    placeholder,
-    value,
-    onChange,
-    icon,
-    keyboardType = "default",
-    prefix,
-    error,
-  }) => (
-    <View className="mb-5">
-      <Text className="text-[12px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">
-        {label}
-      </Text>
-
-      <View
-        className={`flex-row items-center rounded-2xl px-4 h-16 border ${
-          error ? "border-red-400 bg-red-50" : "border-slate-200 bg-slate-50"
-        }`}
-      >
-        <Ionicons name={icon} size={20} color={error ? "#F87171" : "#94A3B8"} />
-
-        {prefix && (
-          <Text className="ml-2 text-slate-400 font-bold text-base">
-            {prefix}
-          </Text>
-        )}
-
-        <TextInput
-          placeholder={placeholder}
-          value={value}
-          onChangeText={onChange}
-          keyboardType={keyboardType}
-          placeholderTextColor="#CBD5E1"
-          className={`flex-1 ml-3 font-semibold text-base ${
-            error ? "text-red-800" : "text-slate-900"
-          }`}
-        />
-      </View>
-
-      {error && (
-        <Text className="text-red-500 text-[10px] ml-2 mt-1 font-medium">
-          {error}
-        </Text>
-      )}
-    </View>
-  );
-
   return (
     <SafeAreaView className="flex-1 bg-white">
       <ScrollView
@@ -155,7 +155,8 @@ export default function Step3() {
             value={formData.occupation}
             onChange={(v) => {
               updateForm("occupation", v);
-              if (errors.occupation) setErrors({ ...errors, occupation: null });
+              if (errors.occupation)
+                setErrors((prev) => ({ ...prev, occupation: null }));
             }}
             error={errors.occupation}
           />
@@ -168,7 +169,7 @@ export default function Step3() {
             onChange={(v) => {
               updateForm("employer_name", v);
               if (errors.employer_name)
-                setErrors({ ...errors, employer_name: null });
+                setErrors((prev) => ({ ...prev, employer_name: null }));
             }}
             error={errors.employer_name}
           />
@@ -181,7 +182,7 @@ export default function Step3() {
             onChange={(v) => {
               updateForm("income_source", v);
               if (errors.income_source)
-                setErrors({ ...errors, income_source: null });
+                setErrors((prev) => ({ ...prev, income_source: null }));
             }}
             error={errors.income_source}
           />
@@ -196,7 +197,7 @@ export default function Step3() {
             onChange={(v) => {
               updateForm("monthly_income", v.replace(/[^0-9.]/g, ""));
               if (errors.monthly_income)
-                setErrors({ ...errors, monthly_income: null });
+                setErrors((prev) => ({ ...prev, monthly_income: null }));
             }}
             error={errors.monthly_income}
           />

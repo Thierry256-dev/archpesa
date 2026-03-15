@@ -3,23 +3,22 @@ import { useRouter } from "expo-router";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+const StepItem = ({ icon, title, isLast = false }) => (
+  <View className="flex-row mb-1">
+    <View className="items-center mr-4">
+      <View className="w-10 h-10 rounded-full bg-slate-100 items-center justify-center border border-slate-200">
+        <Ionicons name={icon} size={20} color="#0F172A" />
+      </View>
+      {!isLast && <View className="w-[1.5px] h-8 bg-slate-200" />}
+    </View>
+    <View className="pt-2">
+      <Text className="text-slate-700 font-medium text-[15px]">{title}</Text>
+    </View>
+  </View>
+);
+
 export default function RegisterIndex() {
   const router = useRouter();
-
-  // Helper component for the visual checklist
-  const StepItem = ({ icon, title, isLast = false }) => (
-    <View className="flex-row mb-1">
-      <View className="items-center mr-4">
-        <View className="w-10 h-10 rounded-full bg-slate-100 items-center justify-center border border-slate-200">
-          <Ionicons name={icon} size={20} color="#0F172A" />
-        </View>
-        {!isLast && <View className="w-[1.5px] h-8 bg-slate-200" />}
-      </View>
-      <View className="pt-2">
-        <Text className="text-slate-700 font-medium text-[15px]">{title}</Text>
-      </View>
-    </View>
-  );
 
   return (
     <SafeAreaView className="flex-1 bg-white">
