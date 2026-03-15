@@ -20,7 +20,7 @@ export default function AdminTabsLayout() {
         tabBarInactiveTintColor: theme.gray400,
         tabBarStyle: {
           backgroundColor: theme.primary,
-          height: 60,
+          height: 65,
           alignSelf: "center",
           marginBottom: insets.bottom + 10,
           marginHorizontal: 20,
