@@ -1,17 +1,26 @@
+import { useAdminProtection } from "@/hooks/useAdminProtection";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { Redirect, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { Pressable, ScrollView, StatusBar, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  Pressable,
+  ScrollView,
+  StatusBar,
+  Text,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import NoFetchResult from "../../../../components/ui/sharedUI/NoResult";
 import useAdminAllInfo from "../../../../hooks/useAdminAllInfo";
 import { formatDateFull } from "../../../../utils/formatDateFull";
 
 export default function PendingApplications() {
+  // Call ALL hooks first (unconditionally) - before any conditionals
   const [applications, setApplications] = useState([]);
   const router = useRouter();
-
   const { registrationForms } = useAdminAllInfo();
+  const { isLoading, isAuthorized, shouldRedirectTo } = useAdminProtection();
 
   useEffect(() => {
     if (registrationForms) {
@@ -20,6 +29,19 @@ export default function PendingApplications() {
       setApplications([]);
     }
   }, [registrationForms]);
+
+  // Then check authorization
+  if (isLoading) {
+    return (
+      <View className="flex-1 items-center justify-center bg-arch-blue">
+        <ActivityIndicator size="large" color="#fff" />
+      </View>
+    );
+  }
+
+  if (!isAuthorized && shouldRedirectTo) {
+    return <Redirect href={shouldRedirectTo} />;
+  }
 
   return (
     <SafeAreaView className="flex-1 bg-slate-50 w-full">

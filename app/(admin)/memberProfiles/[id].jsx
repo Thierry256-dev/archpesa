@@ -1,8 +1,17 @@
 import useAdminAllInfo from "@/hooks/useAdminAllInfo";
+import { useAdminProtection } from "@/hooks/useAdminProtection";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
-import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import {
+  ActivityIndicator,
+  Pressable,
+  Redirect,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import NoFetchResult from "../../../components/ui/sharedUI/NoResult";
 import { getNextDate } from "../../../utils/getNextDate";
@@ -40,11 +49,26 @@ const MemberField = ({ label, value, icon, isNumeric = false, isEditing }) => {
 };
 
 export default function MemberDetail() {
+  // Call all hooks first (unconditionally)
   const router = useRouter();
-  const [isEditing, setIsEditing] = useState(false);
   const { id } = useLocalSearchParams();
-
+  // eslint-disable-next-line no-unused-vars
+  const [isEditing, setIsEditing] = useState(false);
   const { members = [] } = useAdminAllInfo() || {};
+  const { isLoading, isAuthorized, shouldRedirectTo } = useAdminProtection();
+
+  // Then do authorization checks
+  if (isLoading) {
+    return (
+      <View className="flex-1 items-center justify-center bg-arch-blue">
+        <ActivityIndicator size="large" color="#fff" />
+      </View>
+    );
+  }
+
+  if (!isAuthorized && shouldRedirectTo) {
+    return <Redirect href={shouldRedirectTo} />;
+  }
 
   const member = Array.isArray(members)
     ? members.find((m) => String(m?.id) === String(id))

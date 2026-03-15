@@ -1,6 +1,7 @@
+import { useAdminProtection } from "@/hooks/useAdminProtection";
 import { supabase } from "@/lib/supabase";
 import { Ionicons } from "@expo/vector-icons";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { Redirect, useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -16,9 +17,9 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function ApplicationDetail() {
+  // Call all hooks first (unconditionally)
   const { id } = useLocalSearchParams();
   const router = useRouter();
-
   const [application, setApplication] = useState(null);
   const [rejectionReason, setRejectionReason] = useState("");
   const [loading, setLoading] = useState(true);
@@ -27,10 +28,25 @@ export default function ApplicationDetail() {
     visible: false,
     type: null,
   });
+  const { isLoading, isAuthorized, shouldRedirectTo } = useAdminProtection();
 
   useEffect(() => {
     if (id) fetchApplication();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
+
+  // Then check authorization
+  if (isLoading) {
+    return (
+      <View className="flex-1 items-center justify-center bg-arch-blue">
+        <ActivityIndicator size="large" color="#fff" />
+      </View>
+    );
+  }
+
+  if (!isAuthorized && shouldRedirectTo) {
+    return <Redirect href={shouldRedirectTo} />;
+  }
 
   const fetchApplication = async () => {
     const { data, error } = await supabase

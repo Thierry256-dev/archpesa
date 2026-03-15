@@ -1,7 +1,8 @@
 import { useTheme } from "@/context/ThemeProvider";
+import { useAdminProtection } from "@/hooks/useAdminProtection";
 import { Ionicons } from "@expo/vector-icons";
-import { Tabs } from "expo-router";
-import { Dimensions, Platform } from "react-native";
+import { Redirect, Tabs } from "expo-router";
+import { ActivityIndicator, Dimensions, Platform, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function AdminTabsLayout() {
@@ -9,6 +10,21 @@ export default function AdminTabsLayout() {
   const { width } = Dimensions.get("window");
   const insets = useSafeAreaInsets();
   const isWeb = Platform.OS === "web";
+  const { isLoading, isAuthorized, shouldRedirectTo } = useAdminProtection();
+
+  // Show loading while authentication is resolving
+  if (isLoading) {
+    return (
+      <View className="flex-1 items-center justify-center bg-arch-blue">
+        <ActivityIndicator size="large" color="#fff" />
+      </View>
+    );
+  }
+
+  // Redirect if unauthorized
+  if (!isAuthorized && shouldRedirectTo) {
+    return <Redirect href={shouldRedirectTo} />;
+  }
 
   const MAX_WIDTH = 448;
   return (
